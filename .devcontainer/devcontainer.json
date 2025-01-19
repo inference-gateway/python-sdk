@@ -5,19 +5,19 @@
     "vscode": {
       "extensions": [
         "redhat.vscode-yaml",
+        "ms-azuretools.vscode-docker",
         "streetsidesoftware.code-spell-checker",
-        "esbenp.prettier-vscode",
         "github.vscode-github-actions",
         "github.vscode-pull-request-github",
         "yzhang.markdown-all-in-one",
         "ms-python.python",
         "ms-python.vscode-pylance",
-        "ms-azuretools.vscode-docker"
+        "ms-python.black-formatter"
       ],
       "settings": {
         "python.pythonPath": "/usr/local/bin/python",
         "python.linting.enabled": true,
-        "python.linting.pylintEnabled": true,
+        "python.linting.pylintEnabled": false,
         "python.formatting.provider": "black",
         "python.formatting.blackPath": "/usr/local/py-utils/bin/black",
         "python.sortImports.path": "/usr/local/py-utils/bin/isort",
@@ -26,7 +26,8 @@
         "cSpell.enabled": true,
         "cSpell.files": ["**/*.md"],
         "editor.formatOnSave": true,
-        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.defaultFormatter": "ms-python.black-formatter",
+        "black-formatter.args": ["--config", "black.toml"],
         "git.enableCommitSigning": true,
         "dev.containers.copyGitConfig": true,
         "githubPullRequests.experimental.chat": true,

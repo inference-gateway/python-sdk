@@ -1,4 +1,3 @@
-
 import requests
 
 
@@ -12,11 +11,7 @@ class InferenceGatewayClient:
         return response.json()
 
     def generate_content(self, provider, model, prompt):
-        payload = {
-            "modelName": model,
-            "prompt": prompt
-        }
-        response = requests.post(
-            f"{self.base_url}/llms/{provider}/generate", json=payload)
+        payload = {"modelName": model, "prompt": prompt}
+        response = requests.post(f"{self.base_url}/llms/{provider}/generate", json=payload)
         response.raise_for_status()
         return response.json()

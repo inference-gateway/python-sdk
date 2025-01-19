@@ -1,8 +1,8 @@
 FROM mcr.microsoft.com/devcontainers/python:3.12-bookworm
 
-ENV BLACK_VERSION=23.3.0 \
-    ISORT_VERSION=5.13.0 \
-    PYLINT_VERSION=2.15.10 \
+ENV BLACK_VERSION=24.10.0 \
+    ISORT_VERSION=5.13.2 \
+    PYLINT_VERSION=3.3.3 \
     ZSH_CUSTOM=/home/vscode/.oh-my-zsh/custom
 
 RUN apt-get update && \
@@ -11,7 +11,7 @@ RUN apt-get update && \
     # Install pipx
     python -m pip install --upgrade pip && \
     python -m pip install pipx && \
-    # Install black, isort, pylint, and tox using pipx
+    # Install black, isort, pylint using pipx
     pipx install black==${BLACK_VERSION} && \
     pipx install isort==${ISORT_VERSION} && \
     pipx install pylint==${PYLINT_VERSION} && \
