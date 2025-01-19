@@ -13,7 +13,7 @@ An SDK written in Python for the Inference Gateway.
 ## Installation
 
 ```sh
-pip install inference-gateway-python-sdk
+pip install inference-gateway
 ```
 
 ## Usage
@@ -21,6 +21,9 @@ pip install inference-gateway-python-sdk
 ### Creating a Client
 
 ```python
+from inference_gateway.client import InferenceGatewayClient
+
+
 if __name__ == "__main__":
     client = InferenceGatewayClient("http://localhost:8080")
 
