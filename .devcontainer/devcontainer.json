@@ -12,7 +12,8 @@
         "yzhang.markdown-all-in-one",
         "ms-python.python",
         "ms-python.vscode-pylance",
-        "ms-python.black-formatter"
+        "ms-python.black-formatter",
+        "tamasfe.even-better-toml"
       ],
       "settings": {
         "python.pythonPath": "/usr/local/bin/python",
@@ -27,7 +28,7 @@
         "cSpell.files": ["**/*.md"],
         "editor.formatOnSave": true,
         "editor.defaultFormatter": "ms-python.black-formatter",
-        "black-formatter.args": ["--config", "black.toml"],
+        "black-formatter.args": ["--config", "pyproject.toml"],
         "git.enableCommitSigning": true,
         "dev.containers.copyGitConfig": true,
         "githubPullRequests.experimental.chat": true,
