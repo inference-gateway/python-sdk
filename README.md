@@ -1,6 +1,6 @@
 # Inference Gateway Python SDK
 
-An SDK written in Python for the Inference Gateway.
+An SDK written in Python for the [Inference Gateway](https://github.com/edenreich/inference-gateway).
 
 - [Inference Gateway Python SDK](#inference-gateway-python-sdk)
   - [Installation](#installation)
