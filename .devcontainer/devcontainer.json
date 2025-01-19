@@ -1,0 +1,46 @@
+{
+  "name": "Debian with Python 3",
+  "dockerFile": "Dockerfile",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "redhat.vscode-yaml",
+        "streetsidesoftware.code-spell-checker",
+        "esbenp.prettier-vscode",
+        "github.vscode-github-actions",
+        "github.vscode-pull-request-github",
+        "yzhang.markdown-all-in-one",
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "ms-azuretools.vscode-docker"
+      ],
+      "settings": {
+        "python.pythonPath": "/usr/local/bin/python",
+        "python.linting.enabled": true,
+        "python.linting.pylintEnabled": true,
+        "python.formatting.provider": "black",
+        "python.formatting.blackPath": "/usr/local/py-utils/bin/black",
+        "python.sortImports.path": "/usr/local/py-utils/bin/isort",
+        "terminal.integrated.defaultProfile.linux": "zsh",
+        "editor.renderWhitespace": "all",
+        "cSpell.enabled": true,
+        "cSpell.files": ["**/*.md"],
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "git.enableCommitSigning": true,
+        "dev.containers.copyGitConfig": true,
+        "githubPullRequests.experimental.chat": true,
+        "githubPullRequests.experimental.notificationsView": true,
+        "files.insertFinalNewline": true
+      }
+    }
+  },
+  "mounts": [
+    "source=${localWorkspaceFolder}/.devcontainer/.zshrc,target=/home/vscode/.zshrc,type=bind,consistency=cached",
+    "source=${localWorkspaceFolder}/.devcontainer/launch.json,target=/workspaces/inference-gateway-python-sdk/.vscode/launch.json,type=bind,consistency=cached"
+  ],
+  "postCreateCommand": "pip install -r requirements.txt",
+  "remoteEnv": {
+    "GITHUB_TOKEN": "${localEnv:GITHUB_TOKEN}"
+  }
+}
