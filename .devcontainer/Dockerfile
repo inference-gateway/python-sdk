@@ -3,6 +3,8 @@ FROM mcr.microsoft.com/devcontainers/python:3.12-bookworm
 ENV BLACK_VERSION=24.10.0 \
     ISORT_VERSION=5.13.2 \
     PYLINT_VERSION=3.3.3 \
+    BUILD_VERSION=1.2.2.post1 \
+    TWINE_VERSION=6.0.1 \
     ZSH_CUSTOM=/home/vscode/.oh-my-zsh/custom
 
 RUN apt-get update && \
@@ -10,11 +12,12 @@ RUN apt-get update && \
     git clone --depth=1 https://github.com/romkatv/powerlevel10k.git ${ZSH_CUSTOM}/themes/powerlevel10k && \
     # Install pipx
     python -m pip install --upgrade pip && \
-    python -m pip install pipx && \
     # Install black, isort, pylint using pipx
-    pipx install black==${BLACK_VERSION} && \
-    pipx install isort==${ISORT_VERSION} && \
-    pipx install pylint==${PYLINT_VERSION} && \
+    pip install black==${BLACK_VERSION} && \
+    pip install isort==${ISORT_VERSION} && \
+    pip install pylint==${PYLINT_VERSION} && \
+    pip install build==${BUILD_VERSION} && \
+    pip install twine==${TWINE_VERSION} && \
     # Clean up
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
