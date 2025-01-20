@@ -14,8 +14,8 @@ classifiers = [
 license = { file = "LICENSE" }
 
 [project.urls]
-Homepage = "https://github.com/edenreich/inference-gateway-python-sdk"
-Issues = "https://github.com/edenreich/inference-gateway-python-sdk/issues"
+Homepage = "https://github.com/inference-gateway/python-sdk"
+Issues = "https://github.com/inference-gateway/python-sdk/issues"
 
 [tool.black]
 line-length = 100

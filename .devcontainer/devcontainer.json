@@ -39,7 +39,7 @@
   },
   "mounts": [
     "source=${localWorkspaceFolder}/.devcontainer/.zshrc,target=/home/vscode/.zshrc,type=bind,consistency=cached",
-    "source=${localWorkspaceFolder}/.devcontainer/launch.json,target=/workspaces/inference-gateway-python-sdk/.vscode/launch.json,type=bind,consistency=cached"
+    "source=${localWorkspaceFolder}/.devcontainer/launch.json,target=/workspaces/python-sdk/.vscode/launch.json,type=bind,consistency=cached"
   ],
   "postCreateCommand": "pip install -r requirements.txt",
   "remoteEnv": {
