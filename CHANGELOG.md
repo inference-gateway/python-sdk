@@ -1,3 +1,10 @@
+## [0.2.2](https://github.com/inference-gateway/python-sdk/compare/v0.2.1...v0.2.2) (2025-01-21)
+
+### 🐛 Bug Fixes
+
+* **release:** Correct version extraction regex to improve accuracy ([4f0a6af](https://github.com/inference-gateway/python-sdk/commit/4f0a6af3d715ab6f75815354bd8c5b7c33ab98df))
+* **release:** Update version extraction regex to use Perl-compatible syntax ([4b4475e](https://github.com/inference-gateway/python-sdk/commit/4b4475e2db82fcdcd67252f451225ffba56912b2))
+
 ## [0.2.1](https://github.com/inference-gateway/python-sdk/compare/v0.2.0...v0.2.1) (2025-01-21)
 
 ### 🔧 Miscellaneous
