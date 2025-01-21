@@ -1,18 +1,19 @@
 FROM mcr.microsoft.com/devcontainers/python:3.12-bookworm
 
-ENV BLACK_VERSION=24.10.0 \
+ENV ZSH_CUSTOM=/home/vscode/.oh-my-zsh/custom \
+    BLACK_VERSION=24.10.0 \
     ISORT_VERSION=5.13.2 \
     PYLINT_VERSION=3.3.3 \
     BUILD_VERSION=1.2.2.post1 \
     TWINE_VERSION=6.0.1 \
-    ZSH_CUSTOM=/home/vscode/.oh-my-zsh/custom
+    TASK_VERSION=v3.41.0
 
 RUN apt-get update && \
-    # Install powerlevel10k theme
-    git clone --depth=1 https://github.com/romkatv/powerlevel10k.git ${ZSH_CUSTOM}/themes/powerlevel10k && \
+    # Install Task
+    curl -s https://taskfile.dev/install.sh | sh -s -- -b /usr/local/bin ${TASK_VERSION} && \
     # Install pipx
     python -m pip install --upgrade pip && \
-    # Install black, isort, pylint using pipx
+    # Install black, isort, pylint using pip
     pip install black==${BLACK_VERSION} && \
     pip install isort==${ISORT_VERSION} && \
     pip install pylint==${PYLINT_VERSION} && \
@@ -21,5 +22,8 @@ RUN apt-get update && \
     # Clean up
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
+
+# Install powerlevel10k theme
+RUN git clone --depth=1 https://github.com/romkatv/powerlevel10k.git ${ZSH_CUSTOM}/themes/powerlevel10k
 
 USER vscode
