@@ -1,6 +1,6 @@
 [project]
 name = "inference-gateway"
-version = "0.1.1"
+version = "0.1.2"
 authors = [
   { name="Eden Reich", email="eden.reich@gmail.com" },
 ]
