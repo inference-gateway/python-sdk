@@ -1,3 +1,9 @@
+## [0.2.3](https://github.com/inference-gateway/python-sdk/compare/v0.2.2...v0.2.3) (2025-01-21)
+
+### 🐛 Bug Fixes
+
+* **release:** Remove unnecessary command substitution in release workflow ([2f9b34e](https://github.com/inference-gateway/python-sdk/commit/2f9b34e46cade3b81bf6d2b6c50c4b86a7043de3))
+
 ## [0.2.2](https://github.com/inference-gateway/python-sdk/compare/v0.2.1...v0.2.2) (2025-01-21)
 
 ### 🐛 Bug Fixes
