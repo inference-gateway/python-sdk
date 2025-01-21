@@ -6,6 +6,7 @@ import requests
 
 class Provider(str, Enum):
     """Supported LLM providers"""
+
     OLLAMA = "ollama"
     GROQ = "groq"
     OPENAI = "openai"
@@ -16,6 +17,7 @@ class Provider(str, Enum):
 
 class Role(str, Enum):
     """Message role types"""
+
     SYSTEM = "system"
     USER = "user"
     ASSISTANT = "assistant"
@@ -28,10 +30,7 @@ class Message:
 
     def to_dict(self) -> Dict[str, str]:
         """Convert message to dictionary format with string values"""
-        return {
-            "role": self.role.value,
-            "content": self.content
-        }
+        return {"role": self.role.value, "content": self.content}
 
 
 class Model:
@@ -57,7 +56,7 @@ class InferenceGatewayClient:
 
     def __init__(self, base_url: str, token: Optional[str] = None):
         """Initialize the client with base URL and optional auth token"""
-        self.base_url = base_url.rstrip('/')
+        self.base_url = base_url.rstrip("/")
         self.session = requests.Session()
         if token:
             self.session.headers.update({"Authorization": f"Bearer {token}"})
@@ -68,20 +67,11 @@ class InferenceGatewayClient:
         response.raise_for_status()
         return response.json()
 
-    def generate_content(
-        self,
-        provider: Provider,
-        model: str,
-        messages: List[Message]
-    ) -> Dict:
-        payload = {
-            "model": model,
-            "messages": [msg.to_dict() for msg in messages]
-        }
+    def generate_content(self, provider: Provider, model: str, messages: List[Message]) -> Dict:
+        payload = {"model": model, "messages": [msg.to_dict() for msg in messages]}
 
         response = self.session.post(
-            f"{self.base_url}/llms/{provider.value}/generate",
-            json=payload
+            f"{self.base_url}/llms/{provider.value}/generate", json=payload
         )
         response.raise_for_status()
         return response.json()
