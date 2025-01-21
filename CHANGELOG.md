@@ -1,3 +1,18 @@
+## [0.2.0](https://github.com/inference-gateway/python-sdk/compare/v0.1.2...v0.2.0) (2025-01-21)
+
+### ✨ Features
+
+* **api:** add OpenAPI specification for Inference Gateway API ([ab5202b](https://github.com/inference-gateway/python-sdk/commit/ab5202bf8afff49399dcfd0f0b3ae62f7ca11036))
+* **client:** enhance InferenceGatewayClient with support for multiple providers and message handling ([0166d9e](https://github.com/inference-gateway/python-sdk/commit/0166d9e9ad8648f8b2499ba9405b07e15973cc4b))
+
+### 📦 Improvements
+
+* **devcontainer:** enable task completion in zsh ([99caa3f](https://github.com/inference-gateway/python-sdk/commit/99caa3fab07ae563790590209015446e502fd154))
+
+### 🔧 Miscellaneous
+
+* **lint:** add linting task using Black for code formatting ([642ed74](https://github.com/inference-gateway/python-sdk/commit/642ed7478b1e19c8928074539baf7135cea7fab0))
+
 ## [0.1.2](https://github.com/inference-gateway/python-sdk/compare/v0.1.1...v0.1.2) (2025-01-21)
 
 ### 📦 Improvements
