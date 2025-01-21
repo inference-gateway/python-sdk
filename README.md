@@ -8,6 +8,7 @@ An SDK written in Python for the [Inference Gateway](https://github.com/edenreic
     - [Creating a Client](#creating-a-client)
     - [Listing Models](#listing-models)
     - [Generating Content](#generating-content)
+    - [Health Check](#health-check)
   - [License](#license)
 
 ## Installation
@@ -21,17 +22,12 @@ pip install inference-gateway
 ### Creating a Client
 
 ```python
-from inference_gateway.client import InferenceGatewayClient
+from inference_gateway.client import InferenceGatewayClient, Provider
 
+client = InferenceGatewayClient("http://localhost:8080")
 
-if __name__ == "__main__":
-    client = InferenceGatewayClient("http://localhost:8080")
-
-    models = client.list_models()
-    print("Available models:", models)
-
-    response = client.generate_content("providerName", "modelName", "your prompt here")
-    print("Generated content:", response["Response"]["Content"])
+# With authentication token(optional)
+client = InferenceGatewayClient("http://localhost:8080", token="your-token")
 ```
 
 ### Listing Models
@@ -48,8 +44,28 @@ print("Available models:", models)
 To generate content using a model, use the generate_content method:
 
 ```python
-response = client.generate_content("providerName", "modelName", "your prompt here")
-print("Generated content:", response["Response"]["Content"])
+from inference_gateway.client import Provider, Role, Message
+
+messages = [
+    Message(Role.SYSTEM, "You are a helpful assistant"),
+    Message(Role.USER, "Hello!"),
+]
+
+response = client.generate_content(
+    provider=Provider.OPENAI,
+    model="gpt-4",
+    messages=messages
+)
+print("Assistant:", response["choices"][0]["message"]["content"])
+```
+
+### Health Check
+
+To check the health of the API, use the health_check method:
+
+```python
+is_healthy = client.health_check()
+print("API Status:", "Healthy" if is_healthy else "Unhealthy")
 ```
 
 ## License
