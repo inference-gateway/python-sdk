@@ -10,4 +10,4 @@ tasks:
   clean:
     desc: Clean up
     cmds:
-      - rm -rf inference_gateway_sdk.egg-info dist .pytest_cache
+      - rm -rf inference_gateway.egg-info dist .pytest_cache
