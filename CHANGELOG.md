@@ -1,3 +1,9 @@
+## [0.2.1](https://github.com/inference-gateway/python-sdk/compare/v0.2.0...v0.2.1) (2025-01-21)
+
+### 🔧 Miscellaneous
+
+* **release:** add dependency on github_release for publish job ([31ca1d8](https://github.com/inference-gateway/python-sdk/commit/31ca1d8dc1b3e31fced73fe0ae4a658d3a9ab9a1))
+
 ## [0.2.0](https://github.com/inference-gateway/python-sdk/compare/v0.1.2...v0.2.0) (2025-01-21)
 
 ### ✨ Features
