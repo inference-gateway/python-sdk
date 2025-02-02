@@ -1,3 +1,5 @@
+from typing import Generator, Optional
+import json
 from dataclasses import dataclass
 from enum import Enum
 from typing import List, Dict, Optional
@@ -32,22 +34,40 @@ class Message:
         return {"role": self.role.value, "content": self.content}
 
 
+@dataclass
 class Model:
     """Represents an LLM model"""
-
-    def __init__(self, id: str, object: str, owned_by: str, created: int):
-        self.id = id
-        self.object = object
-        self.owned_by = owned_by
-        self.created = created
+    name: str
 
 
+@dataclass
 class ProviderModels:
     """Groups models by provider"""
+    provider: Provider
+    models: List[Model]
 
-    def __init__(self, provider: Provider, models: List[Model]):
-        self.provider = provider
-        self.models = models
+
+@dataclass
+class ResponseTokens:
+    """Response tokens structure as defined in the API spec"""
+    role: str
+    model: str
+    content: str
+
+
+@dataclass
+class GenerateResponse:
+    """Response structure for token generation"""
+    provider: str
+    response: ResponseTokens
+
+    @classmethod
+    def from_dict(cls, data: dict) -> 'GenerateResponse':
+        """Create GenerateResponse from dictionary data"""
+        return cls(
+            provider=data.get('provider', ''),
+            response=ResponseTokens(**data.get('response', {}))
+        )
 
 
 class InferenceGatewayClient:
@@ -75,6 +95,50 @@ class InferenceGatewayClient:
         )
         response.raise_for_status()
         return response.json()
+
+    def generate_content_stream(
+        self,
+        provider: Provider,
+        model: str,
+        messages: List[Message],
+        use_sse: bool = False
+    ) -> Generator[Union[GenerateResponse, dict], None, None]:
+        """Stream content generation from the model
+
+        Args:
+            provider: The provider to use
+            model: Name of the model to use
+            messages: List of messages for the conversation
+            use_sse: Whether to use Server-Sent Events format
+
+        Yields:
+            Either GenerateResponse objects (for raw JSON) or dicts (for SSE)
+        """
+        payload = {
+            "model": model,
+            "messages": [msg.to_dict() for msg in messages],
+            "stream": True,
+            "ssevents": use_sse
+        }
+
+        with self.session.post(
+            f"{self.base_url}/llms/{provider.value}/generate",
+            json=payload,
+            stream=True
+        ) as response:
+            response.raise_for_status()
+
+            for line in response.iter_lines():
+                if line:
+                    if use_sse and line.startswith(b'data: '):
+                        # Handle SSE format
+                        data = json.loads(line.decode(
+                            'utf-8').replace('data: ', ''))
+                        yield data
+                    else:
+                        # Handle raw JSON format
+                        data = json.loads(line)
+                        yield GenerateResponse.from_dict(data)
 
     def health_check(self) -> bool:
         """Check if the API is healthy"""
