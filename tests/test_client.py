@@ -24,7 +24,8 @@ def test_client_initialization():
     assert client.base_url == "http://test-api"
     assert "Authorization" not in client.session.headers
 
-    client_with_token = InferenceGatewayClient("http://test-api", token="test-token")
+    client_with_token = InferenceGatewayClient(
+        "http://test-api", token="test-token")
     assert "Authorization" in client_with_token.session.headers
     assert client_with_token.session.headers["Authorization"] == "Bearer test-token"
 
@@ -42,7 +43,8 @@ def test_list_models(mock_get, client, mock_response):
 @patch("requests.Session.post")
 def test_generate_content(mock_post, client, mock_response):
     """Test content generation"""
-    messages = [Message(Role.SYSTEM, "You are a helpful assistant"), Message(Role.USER, "Hello!")]
+    messages = [Message(Role.SYSTEM, "You are a helpful assistant"), Message(
+        Role.USER, "Hello!")]
 
     mock_post.return_value = mock_response
     response = client.generate_content(Provider.OPENAI, "gpt-4", messages)
@@ -86,7 +88,6 @@ def test_provider_enum():
     assert Provider.OPENAI == "openai"
     assert Provider.OLLAMA == "ollama"
     assert Provider.GROQ == "groq"
-    assert Provider.GOOGLE == "google"
     assert Provider.CLOUDFLARE == "cloudflare"
     assert Provider.COHERE == "cohere"
 

@@ -10,7 +10,6 @@ class Provider(str, Enum):
     OLLAMA = "ollama"
     GROQ = "groq"
     OPENAI = "openai"
-    GOOGLE = "google"
     CLOUDFLARE = "cloudflare"
     COHERE = "cohere"
 
@@ -68,7 +67,8 @@ class InferenceGatewayClient:
         return response.json()
 
     def generate_content(self, provider: Provider, model: str, messages: List[Message]) -> Dict:
-        payload = {"model": model, "messages": [msg.to_dict() for msg in messages]}
+        payload = {"model": model, "messages": [
+            msg.to_dict() for msg in messages]}
 
         response = self.session.post(
             f"{self.base_url}/llms/{provider.value}/generate", json=payload
