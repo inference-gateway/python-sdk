@@ -1,3 +1,22 @@
+## [0.3.0](https://github.com/inference-gateway/python-sdk/compare/v0.2.3...v0.3.0) (2025-02-03)
+
+### ✨ Features
+
+* Add streaming content generation and response handling ([90171af](https://github.com/inference-gateway/python-sdk/commit/90171af218df3182ad4cbfe33011ed711d68cabb))
+
+### ♻️ Improvements
+
+* Remove GOOGLE provider ([cab6e5c](https://github.com/inference-gateway/python-sdk/commit/cab6e5c9828d4454b9ce9b8f35bba3bc021ec05b))
+
+### 📚 Documentation
+
+* Add methods for listing provider models and streaming content in the README ([888573c](https://github.com/inference-gateway/python-sdk/commit/888573c735067780b6d32d62d3bccd321fcb8645))
+* Update OpenAPI spec - download it from inference-gateway ([fb4eabb](https://github.com/inference-gateway/python-sdk/commit/fb4eabbade02a957543b12578c3ab1e6be253299))
+
+### ✅ Miscellaneous
+
+* Enhance testing capabilities with new pytest configurations and fixtures ([298b6f8](https://github.com/inference-gateway/python-sdk/commit/298b6f88ade7f72210994fbfa595d3fd230f77a7))
+
 ## [0.2.3](https://github.com/inference-gateway/python-sdk/compare/v0.2.2...v0.2.3) (2025-01-21)
 
 ### 🐛 Bug Fixes
