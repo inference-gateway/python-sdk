@@ -116,6 +116,12 @@ class InferenceGatewayClient:
         response.raise_for_status()
         return response.json()
 
+    def list_providers_models(self, provider: Provider) -> List[Model]:
+        """List models for a specific provider"""
+        response = self.session.get(f"{self.base_url}/llms/{provider.value}")
+        response.raise_for_status()
+        return response.json()
+
     def _parse_sse_chunk(self, chunk: bytes) -> dict:
         """Parse an SSE message chunk into structured event data
 

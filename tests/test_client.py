@@ -59,6 +59,36 @@ def test_list_models(mock_get, client, mock_response):
     assert response == {"response": "test"}
 
 
+@patch("requests.Session.get")
+def test_list_provider_models(mock_get, client, mock_response):
+    """Test listing models for a specific provider"""
+    mock_response.json.return_value = {
+        "provider": "openai",
+        "models": [{"name": "gpt-4"}, {"name": "gpt-3.5-turbo"}],
+    }
+    mock_get.return_value = mock_response
+
+    response = client.list_providers_models(Provider.OPENAI)
+
+    mock_get.assert_called_once_with("http://test-api/llms/openai")
+
+    assert response == {
+        "provider": "openai",
+        "models": [{"name": "gpt-4"}, {"name": "gpt-3.5-turbo"}],
+    }
+
+
+@patch("requests.Session.get")
+def test_list_provider_models_error(mock_get, client):
+    """Test error handling when listing provider models"""
+    mock_get.side_effect = requests.exceptions.HTTPError("Provider not found")
+
+    with pytest.raises(requests.exceptions.HTTPError, match="Provider not found"):
+        client.list_providers_models(Provider.OLLAMA)
+
+    mock_get.assert_called_once_with("http://test-api/llms/ollama")
+
+
 @patch("requests.Session.post")
 def test_generate_content(mock_post, client, mock_response):
     """Test content generation"""
