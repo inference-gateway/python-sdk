@@ -34,7 +34,13 @@
         "dev.containers.copyGitConfig": true,
         "githubPullRequests.experimental.chat": true,
         "githubPullRequests.experimental.notificationsView": true,
-        "files.insertFinalNewline": true
+        "files.insertFinalNewline": true,
+        "python.testing.pytestEnabled": true,
+        "python.testing.unittestEnabled": false,
+        "python.testing.nosetestsEnabled": false,
+        "python.testing.pytestArgs": [
+            "tests"
+        ]
       }
     }
   },

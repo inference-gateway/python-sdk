@@ -15,7 +15,22 @@ tasks:
   test:
     desc: Run tests
     cmds:
-      - pytest tests/
+      - pytest tests/ -v
+
+  test:watch:
+    desc: Run tests in watch mode
+    cmds:
+      - ptw tests/ -- -v
+
+  test:coverage:
+    desc: Run tests with coverage report
+    cmds:
+      - pytest tests/ -v --cov=inference_gateway --cov-report=term-missing
+
+  test:debug:
+    desc: Run tests with debugger enabled
+    cmds:
+      - pytest tests/ -v --pdb
 
   clean:
     desc: Clean up

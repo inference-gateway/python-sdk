@@ -6,7 +6,9 @@ ENV ZSH_CUSTOM=/home/vscode/.oh-my-zsh/custom \
     PYLINT_VERSION=3.3.3 \
     BUILD_VERSION=1.2.2.post1 \
     TWINE_VERSION=6.0.1 \
-    TASK_VERSION=v3.41.0
+    TASK_VERSION=v3.41.0 \
+    PYTEST_VERSION=8.3.4 \
+    PYTEST_WATCH_VERSION=4.2.0
 
 RUN apt-get update && \
     # Install nodejs and npm
@@ -16,12 +18,17 @@ RUN apt-get update && \
     curl -s https://taskfile.dev/install.sh | sh -s -- -b /usr/local/bin ${TASK_VERSION} && \
     # Install pipx
     python -m pip install --upgrade pip && \
-    # Install black, isort, pylint using pip
-    pip install black==${BLACK_VERSION} && \
-    pip install isort==${ISORT_VERSION} && \
-    pip install pylint==${PYLINT_VERSION} && \
-    pip install build==${BUILD_VERSION} && \
-    pip install twine==${TWINE_VERSION} && \
+    # Install development tools using pip
+    pip install black==${BLACK_VERSION} \
+                isort==${ISORT_VERSION} \
+                pylint==${PYLINT_VERSION} \
+                build==${BUILD_VERSION} \
+                twine==${TWINE_VERSION} \
+                pytest==${PYTEST_VERSION} \
+                pytest-watch==${PYTEST_WATCH_VERSION} \
+                pytest-cov \
+                pytest-xdist \
+                debugpy && \
     # Clean up
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
