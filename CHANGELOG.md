@@ -1,3 +1,9 @@
+## [0.4.0](https://github.com/inference-gateway/python-sdk/compare/v0.3.0...v0.4.0) (2025-05-26)
+
+### ✨ Features
+
+* Make this SDK using the OpenAI compatible endpoints ([#1](https://github.com/inference-gateway/python-sdk/issues/1)) ([7e74a80](https://github.com/inference-gateway/python-sdk/commit/7e74a800bbccb2df59733d45f26970c10efe4e59))
+
 ## [0.3.0](https://github.com/inference-gateway/python-sdk/compare/v0.2.3...v0.3.0) (2025-02-03)
 
 ### ✨ Features
