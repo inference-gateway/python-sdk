@@ -107,6 +107,7 @@ tasks:
       - rm -rf inference_gateway.egg-info dist build .pytest_cache .coverage htmlcov
       - find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
       - find . -type d -name ".mypy_cache" -exec rm -rf {} + 2>/dev/null || true
+      - find . -type d -name "node_modules" -exec rm -rf {} + 2>/dev/null || true
       - find . -type f -name "*.pyc" -delete
       - echo "✅ Cleanup completed"
 
