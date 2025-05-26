@@ -1,3 +1,9 @@
+## [0.4.1](https://github.com/inference-gateway/python-sdk/compare/v0.4.0...v0.4.1) (2025-05-26)
+
+### 📚 Documentation
+
+* **examples:** Enhance SDK with new examples and environment configuration ([#2](https://github.com/inference-gateway/python-sdk/issues/2)) ([e111ee3](https://github.com/inference-gateway/python-sdk/commit/e111ee3099e68c57f788827bcdbddf6c99ced3d2))
+
 ## [0.4.0](https://github.com/inference-gateway/python-sdk/compare/v0.3.0...v0.4.0) (2025-05-26)
 
 ### ✨ Features
