@@ -68,17 +68,17 @@ tasks:
     desc: Format code with black and isort
     cmds:
       - echo "Formatting code..."
-      - black inference_gateway/ tests/
-      - isort inference_gateway/ tests/
+      - black inference_gateway/ tests/ examples/
+      - isort inference_gateway/ tests/ examples/
       - echo "✅ Code formatted"
 
   lint:
     desc: Run all linting checks
     cmds:
       - echo "Running linting checks..."
-      - black --check inference_gateway/ tests/
-      - isort --check-only inference_gateway/ tests/
-      - mypy inference_gateway/
+      - black --check inference_gateway/ tests/ examples/
+      - isort --check-only inference_gateway/ tests/ examples/
+      - mypy inference_gateway/ examples/
       - echo "✅ All linting checks passed"
 
   test:

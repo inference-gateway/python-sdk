@@ -12,6 +12,7 @@ import requests
 from pydantic import ValidationError
 
 from inference_gateway.models import (
+    ChatCompletionTool,
     CreateChatCompletionRequest,
     CreateChatCompletionResponse,
     ListModelsResponse,
@@ -264,7 +265,7 @@ class InferenceGatewayClient:
         provider: Optional[Union[Provider, str]] = None,
         max_tokens: Optional[int] = None,
         stream: bool = False,
-        tools: Optional[List[Dict[str, Any]]] = None,
+        tools: Optional[List[ChatCompletionTool]] = None,
         **kwargs: Any,
     ) -> CreateChatCompletionResponse:
         """Generate a chat completion.
@@ -275,7 +276,7 @@ class InferenceGatewayClient:
             provider: Optional provider specification
             max_tokens: Maximum number of tokens to generate
             stream: Whether to stream the response
-            tools: List of tools the model may call
+            tools: List of tools the model may call (using ChatCompletionTool models)
             **kwargs: Additional parameters to pass to the API
 
         Returns:
@@ -302,7 +303,7 @@ class InferenceGatewayClient:
             if max_tokens is not None:
                 request_data["max_tokens"] = max_tokens
             if tools:
-                request_data["tools"] = tools
+                request_data["tools"] = [tool.model_dump(exclude_none=True) for tool in tools]
 
             request_data.update(kwargs)
 
@@ -323,7 +324,7 @@ class InferenceGatewayClient:
         messages: List[Message],
         provider: Optional[Union[Provider, str]] = None,
         max_tokens: Optional[int] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
+        tools: Optional[List[ChatCompletionTool]] = None,
         use_sse: bool = True,
         **kwargs: Any,
     ) -> Generator[Union[Dict[str, Any], SSEvent], None, None]:
@@ -334,7 +335,7 @@ class InferenceGatewayClient:
             messages: List of messages for the conversation
             provider: Optional provider specification
             max_tokens: Maximum number of tokens to generate
-            tools: List of tools the model may call
+            tools: List of tools the model may call (using ChatCompletionTool models)
             use_sse: Whether to use Server-Sent Events format
             **kwargs: Additional parameters to pass to the API
 
@@ -362,7 +363,7 @@ class InferenceGatewayClient:
             if max_tokens is not None:
                 request_data["max_tokens"] = max_tokens
             if tools:
-                request_data["tools"] = tools
+                request_data["tools"] = [tool.model_dump(exclude_none=True) for tool in tools]
 
             request_data.update(kwargs)
 

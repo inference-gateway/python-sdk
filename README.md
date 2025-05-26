@@ -17,6 +17,7 @@
   - [Error Handling](#error-handling)
   - [Advanced Usage](#advanced-usage)
     - [Using Tools](#using-tools)
+    - [Listing Available MCP Tools](#listing-available-mcp-tools)
     - [Custom HTTP Configuration](#custom-http-configuration)
   - [License](#license)
 
@@ -184,6 +185,54 @@ except InferenceGatewayError as e:
 ## Advanced Usage
 
 ### Using Tools
+
+```python
+# Define a weather tool using type-safe Pydantic models
+from inference_gateway.models import ChatCompletionTool, FunctionObject, FunctionParameters
+
+weather_tool = ChatCompletionTool(
+    type="function",
+    function=FunctionObject(
+        name="get_current_weather",
+        description="Get the current weather in a given location",
+        parameters=FunctionParameters(
+            type="object",
+            properties={
+                "location": {
+                    "type": "string",
+                    "description": "The city and state, e.g. San Francisco, CA"
+                },
+                "unit": {
+                    "type": "string",
+                    "enum": ["celsius", "fahrenheit"],
+                    "description": "The temperature unit to use"
+                }
+            },
+            required=["location"]
+        )
+    )
+)
+
+# Using tools in a chat completion
+response = client.create_chat_completion(
+    model="openai/gpt-4",
+    messages=[
+        Message(role="system", content="You are a helpful assistant with access to weather information"),
+        Message(role="user", content="What is the weather like in New York?")
+    ],
+    tools=[weather_tool]  # Pass the tool definition
+)
+
+print(response.choices[0].message.content)
+
+# Check if the model made a tool call
+if response.choices[0].message.tool_calls:
+    for tool_call in response.choices[0].message.tool_calls:
+        print(f"Tool called: {tool_call.function.name}")
+        print(f"Arguments: {tool_call.function.arguments}")
+```
+
+### Listing Available MCP Tools
 
 ```python
 # List available MCP tools works when MCP_ENABLE and MCP_EXPOSE are set on the gateway
