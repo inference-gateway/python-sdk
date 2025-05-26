@@ -1,9 +1,11 @@
 import json
 import os
 
+from pydantic import ValidationError
+
 from inference_gateway import InferenceGatewayClient, Message
 from inference_gateway.client import InferenceGatewayAPIError, InferenceGatewayError
-from inference_gateway.models import SSEvent
+from inference_gateway.models import CreateChatCompletionStreamResponse, SSEvent
 
 
 def main() -> None:
@@ -57,23 +59,36 @@ def main() -> None:
         )
 
         for chunk in stream:
-            if isinstance(chunk, SSEvent):
-                # Handle Server-Sent Events format
-                if chunk.data:
+            # All chunks are now SSEvent objects
+            if chunk.data:
+                try:
+                    # Parse the raw JSON data
+                    data = json.loads(chunk.data)
+
+                    # Try to unmarshal to structured model for type safety
                     try:
-                        data = json.loads(chunk.data)
+                        structured_chunk = CreateChatCompletionStreamResponse.model_validate(data)
+
+                        # Use the structured model for better type safety and IDE support
+                        if structured_chunk.choices and len(structured_chunk.choices) > 0:
+                            choice = structured_chunk.choices[0]
+                            if hasattr(choice.delta, "content") and choice.delta.content:
+                                print(choice.delta.content, end="", flush=True)
+
+                            # Optionally show other information
+                            if choice.finish_reason and choice.finish_reason != "null":
+                                print(f"\n[Finished: {choice.finish_reason}]")
+
+                    except ValidationError:
+                        # Fallback to manual parsing for non-standard chunks
                         if "choices" in data and len(data["choices"]) > 0:
                             delta = data["choices"][0].get("delta", {})
                             if "content" in delta and delta["content"]:
                                 print(delta["content"], end="", flush=True)
-                    except json.JSONDecodeError:
-                        pass
-            elif isinstance(chunk, dict):
-                # Handle JSON format
-                if "choices" in chunk and len(chunk["choices"]) > 0:
-                    delta = chunk["choices"][0].get("delta", {})
-                    if "content" in delta and delta["content"]:
-                        print(delta["content"], end="", flush=True)
+
+                except json.JSONDecodeError:
+                    # Handle non-JSON SSE data
+                    print(f"[Non-JSON chunk: {chunk.data}]", end="", flush=True)
 
         print("\n")
 
