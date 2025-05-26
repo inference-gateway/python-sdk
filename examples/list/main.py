@@ -18,4 +18,4 @@ print("All models:", models)
 
 # Filter by provider
 openai_models = client.list_models(provider=PROVIDER)
-print("Provider {PROVIDER} models:", openai_models)
+print(f"Provider {PROVIDER} models:", openai_models)
