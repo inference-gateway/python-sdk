@@ -1,9 +1,7 @@
 [project]
 name = "inference-gateway"
 version = "0.4.0"
-authors = [
-  { name="Eden Reich", email="eden.reich@gmail.com" },
-]
+authors = [{ name = "Eden Reich", email = "eden.reich@gmail.com" }]
 description = "A Python SDK for Inference Gateway"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -22,21 +20,22 @@ classifiers = [
 license = { file = "LICENSE" }
 dependencies = [
     "requests>=2.32.3",
-    "pydantic>=2.10.0",
-    "httpx>=0.28.0",
-    "typing-extensions>=4.12.0",
+    "pydantic>=2.11.5",
+    "httpx>=0.28.1",
+    "typing-extensions>=4.13.2",
 ]
 
 [project.optional-dependencies]
 dev = [
     "pytest>=8.3.5",
-    "pytest-cov>=6.0.0",
+    "pytest-cov>=6.1.1",
     "pytest-watch>=4.2.0",
-    "black>=24.0.0",
-    "isort>=5.13.0",
-    "mypy>=1.13.0",
-    "datamodel-code-generator>=0.25.0",
+    "black>=25.1.0",
+    "isort>=6.0.1",
+    "mypy>=1.15.0",
+    "datamodel-code-generator>=0.30.1",
     "pre-commit>=4.2.0",
+    "types-requests>=2.32.3",
 ]
 
 [project.urls]

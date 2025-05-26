@@ -1,25 +1,25 @@
 repos:
   - repo: https://github.com/psf/black
-    rev: 24.10.0
+    rev: 25.1.0
     hooks:
       - id: black
         args: [--config=pyproject.toml]
         language_version: python3.12
 
   - repo: https://github.com/pycqa/isort
-    rev: 5.13.2
+    rev: 6.0.1
     hooks:
       - id: isort
         args: [--profile=black, --line-length=100]
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.13.0
+    rev: v1.15.0
     hooks:
       - id: mypy
         additional_dependencies:
           [
-            pydantic>=2.10.0,
-            httpx>=0.28.0,
+            pydantic>=2.11.5,
+            httpx>=0.28.1,
             requests>=2.32.3,
             types-requests,
             pytest>=8.3.5,
