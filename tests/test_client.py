@@ -25,7 +25,7 @@ from inference_gateway.models import (
 @pytest.fixture
 def client():
     """Create a test client instance"""
-    return InferenceGatewayClient("http://test-api")
+    return InferenceGatewayClient("http://test-api/v1")
 
 
 @pytest.fixture
@@ -55,7 +55,7 @@ def mock_response():
 def test_params():
     """Fixture providing test parameters"""
     return {
-        "api_url": "http://test-api",
+        "api_url": "http://test-api/v1",
         "provider": "openai",
         "model": "gpt-4",
         "message": Message(role="user", content="Hello"),
@@ -64,11 +64,11 @@ def test_params():
 
 def test_client_initialization():
     """Test client initialization with and without token"""
-    client = InferenceGatewayClient("http://test-api")
-    assert client.base_url == "http://test-api"
+    client = InferenceGatewayClient("http://test-api/v1")
+    assert client.base_url == "http://test-api/v1"
     assert "Authorization" not in client.session.headers
 
-    client_with_token = InferenceGatewayClient("http://test-api", token="test-token")
+    client_with_token = InferenceGatewayClient("http://test-api/v1", token="test-token")
     assert "Authorization" in client_with_token.session.headers
     assert client_with_token.session.headers["Authorization"] == "Bearer test-token"
 
@@ -83,7 +83,7 @@ def test_list_models(mock_request, client, mock_response):
         "GET", "http://test-api/v1/models", params={}, timeout=30.0
     )
     assert isinstance(response, ListModelsResponse)
-    assert response.provider == "openai"
+    assert response.provider.root == "openai"
     assert response.object == "list"
     assert len(response.data) == 1
     assert response.data[0].id == "gpt-4"
@@ -123,7 +123,7 @@ def test_list_models_with_provider(mock_request, client):
         "GET", "http://test-api/v1/models", params={"provider": "openai"}, timeout=30.0
     )
     assert isinstance(response, ListModelsResponse)
-    assert response.provider == "openai"
+    assert response.provider.root == "openai"
     assert response.object == "list"
     assert len(response.data) == 2
     assert response.data[0].id == "gpt-4"
@@ -191,25 +191,27 @@ def test_create_chat_completion(mock_request, client):
 
 
 @patch("requests.Session.request")
-def test_health_check(mock_request, client):
+def test_health_check(mock_request):
     """Test health check endpoint"""
+    health_client = InferenceGatewayClient("http://test-api")
+
     mock_response = Mock()
     mock_response.status_code = 200
     mock_response.raise_for_status.return_value = None
     mock_request.return_value = mock_response
 
-    assert client.health_check() is True
+    assert health_client.health_check() is True
     mock_request.assert_called_once_with("GET", "http://test-api/health", timeout=30.0)
 
     mock_response.status_code = 500
     mock_response.raise_for_status.side_effect = requests.exceptions.HTTPError("Server error")
-    assert client.health_check() is False
+    assert health_client.health_check() is False
 
 
 def test_message_model():
     """Test Message model creation and serialization"""
     message = Message(role="user", content="Hello!")
-    assert message.role == "user"
+    assert message.role.root == "user"
     assert message.content == "Hello!"
 
     message_dict = message.model_dump()
@@ -369,8 +371,9 @@ def test_create_chat_completion_stream_error(mock_request, client, test_params, 
 
 
 @patch("requests.Session.request")
-def test_proxy_request(mock_request, client):
+def test_proxy_request(mock_request):
     """Test proxy request to provider"""
+    proxy_client = InferenceGatewayClient("http://test-api")
 
     mock_resp = Mock()
     mock_resp.status_code = 200
@@ -378,12 +381,15 @@ def test_proxy_request(mock_request, client):
     mock_resp.raise_for_status.return_value = None
     mock_request.return_value = mock_resp
 
-    response = client.proxy_request(
+    response = proxy_client.proxy_request(
         provider="openai", path="completions", method="POST", json_data={"prompt": "Hello"}
     )
 
     mock_request.assert_called_once_with(
-        "POST", "http://test-api/proxy/openai/completions", json={"prompt": "Hello"}, timeout=30.0
+        "POST",
+        "http://test-api/proxy/openai/completions",
+        json={"prompt": "Hello"},
+        timeout=30.0,
     )
 
     assert response == {"response": "test"}
@@ -408,8 +414,8 @@ def test_exception_hierarchy():
 
 def test_context_manager():
     """Test client as context manager"""
-    with InferenceGatewayClient("http://test-api") as client:
-        assert client.base_url == "http://test-api"
+    with InferenceGatewayClient("http://test-api/v1") as client:
+        assert client.base_url == "http://test-api/v1"
         assert client.session is not None
 
 
@@ -434,7 +440,7 @@ def test_client_with_custom_timeout(mock_request):
     }
     mock_request.return_value = mock_response
 
-    client = InferenceGatewayClient("http://test-api", timeout=30)
+    client = InferenceGatewayClient("http://test-api/v1", timeout=30)
     client.list_models()
 
     mock_request.assert_called_once_with("GET", "http://test-api/v1/models", params={}, timeout=30)
