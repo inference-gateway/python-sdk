@@ -206,37 +206,6 @@ class InferenceGatewayClient:
         except ValidationError as e:
             raise InferenceGatewayValidationError(f"Response validation failed: {e}")
 
-    def _parse_sse_chunk(self, chunk: bytes) -> SSEvent:
-        """Parse an SSE message chunk into structured event data.
-
-        Args:
-            chunk: Raw SSE message chunk in bytes format
-
-        Returns:
-            SSEvent: Parsed SSE message with event type and data fields
-
-        Raises:
-            InferenceGatewayValidationError: If chunk format or content is invalid
-        """
-        if not isinstance(chunk, bytes):
-            raise TypeError(f"Expected bytes, got {type(chunk)}")
-
-        try:
-            decoded = chunk.decode("utf-8")
-            event_type = None
-            data = None
-
-            for line in (l.strip() for l in decoded.split("\n") if l.strip()):
-                if line.startswith("event:"):
-                    event_type = line.removeprefix("event:").strip()
-                elif line.startswith("data:"):
-                    data = line.removeprefix("data:").strip()
-
-            return SSEvent(event=event_type, data=data, retry=None)
-
-        except UnicodeDecodeError as e:
-            raise InferenceGatewayValidationError(f"Invalid UTF-8 encoding in SSE chunk: {chunk!r}")
-
     def _parse_json_line(self, line: bytes) -> Dict[str, Any]:
         """Parse a single JSON line into a dictionary.
 
@@ -325,9 +294,8 @@ class InferenceGatewayClient:
         provider: Optional[Union[Provider, str]] = None,
         max_tokens: Optional[int] = None,
         tools: Optional[List[ChatCompletionTool]] = None,
-        use_sse: bool = True,
         **kwargs: Any,
-    ) -> Generator[Union[Dict[str, Any], SSEvent], None, None]:
+    ) -> Generator[SSEvent, None, None]:
         """Stream a chat completion.
 
         Args:
@@ -336,11 +304,10 @@ class InferenceGatewayClient:
             provider: Optional provider specification
             max_tokens: Maximum number of tokens to generate
             tools: List of tools the model may call (using ChatCompletionTool models)
-            use_sse: Whether to use Server-Sent Events format
             **kwargs: Additional parameters to pass to the API
 
         Yields:
-            Union[Dict[str, Any], SSEvent]: Stream chunks
+            SSEvent: Stream chunks in SSEvent format
 
         Raises:
             InferenceGatewayAPIError: If the API request fails
@@ -377,7 +344,7 @@ class InferenceGatewayClient:
                         response.raise_for_status()
                     except httpx.HTTPStatusError as e:
                         raise InferenceGatewayAPIError(f"Request failed: {str(e)}")
-                    yield from self._process_stream_response(response, use_sse)
+                    yield from self._process_stream_response(response)
             else:
                 requests_response = self.session.post(
                     url, params=params, json=request.model_dump(exclude_none=True), stream=True
@@ -386,49 +353,45 @@ class InferenceGatewayClient:
                     requests_response.raise_for_status()
                 except (requests.exceptions.HTTPError, Exception) as e:
                     raise InferenceGatewayAPIError(f"Request failed: {str(e)}")
-                yield from self._process_stream_response(requests_response, use_sse)
+                yield from self._process_stream_response(requests_response)
 
         except ValidationError as e:
             raise InferenceGatewayValidationError(f"Request validation failed: {e}")
 
     def _process_stream_response(
-        self, response: Union[requests.Response, httpx.Response], use_sse: bool
-    ) -> Generator[Union[Dict[str, Any], SSEvent], None, None]:
-        """Process streaming response data."""
-        if use_sse:
-            buffer: List[bytes] = []
+        self, response: Union[requests.Response, httpx.Response]
+    ) -> Generator[SSEvent, None, None]:
+        """Process streaming response data in SSEvent format."""
+        current_event = None
 
-            for line in response.iter_lines():
-                if not line:
-                    if buffer:
-                        chunk = b"\n".join(buffer)
-                        yield self._parse_sse_chunk(chunk)
-                        buffer = []
-                    continue
+        for line in response.iter_lines():
+            if not line:
+                continue
 
-                if isinstance(line, str):
-                    line_bytes = line.encode("utf-8")
-                else:
-                    line_bytes = line
-                buffer.append(line_bytes)
-        else:
-            for line in response.iter_lines():
-                if not line:
-                    continue
+            if isinstance(line, str):
+                line_bytes = line.encode("utf-8")
+            else:
+                line_bytes = line
 
-                if isinstance(line, str):
-                    line_bytes = line.encode("utf-8")
-                else:
-                    line_bytes = line
+            if line_bytes.strip() == b"data: [DONE]":
+                continue
 
-                if line_bytes.strip() == b"data: [DONE]":
-                    continue
-                if line_bytes.startswith(b"data: "):
-                    json_str = line_bytes[6:].decode("utf-8")
-                    data = json.loads(json_str)
-                    yield data
-                else:
-                    yield self._parse_json_line(line_bytes)
+            if line_bytes.startswith(b"event: "):
+                current_event = line_bytes[7:].decode("utf-8").strip()
+                continue
+            elif line_bytes.startswith(b"data: "):
+                json_str = line_bytes[6:].decode("utf-8")
+                event_type = current_event if current_event else "content-delta"
+                yield SSEvent(event=event_type, data=json_str)
+                current_event = None
+            elif line_bytes.strip() == b"":
+                continue
+            else:
+                try:
+                    parsed_data = self._parse_json_line(line_bytes)
+                    yield SSEvent(event="content-delta", data=json.dumps(parsed_data))
+                except Exception:
+                    yield SSEvent(event="content-delta", data=line_bytes.decode("utf-8"))
 
     def proxy_request(
         self,

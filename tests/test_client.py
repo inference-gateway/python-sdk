@@ -243,44 +243,33 @@ def test_message_role_values():
         MessageRole("invalid_role")
 
 
-@pytest.mark.parametrize("use_sse,expected_format", [(True, "sse"), (False, "json")])
 @patch("requests.Session.request")
-def test_create_chat_completion_stream(mock_request, client, use_sse, expected_format):
-    """Test streaming chat completion with both raw JSON and SSE formats"""
+def test_create_chat_completion_stream(mock_request, client):
+    """Test streaming chat completion in SSEvent format"""
     mock_response = Mock()
     mock_response.status_code = 200
     mock_response.raise_for_status.return_value = None
 
-    if use_sse:
-        mock_response.iter_lines.return_value = [
-            b"event: message-start",
-            b'data: {"role":"assistant"}',
-            b"",
-            b"event: content-delta",
-            b'data: {"content":"Hello"}',
-            b"",
-            b"event: content-delta",
-            b'data: {"content":" world!"}',
-            b"",
-            b"event: message-end",
-            b'data: {"content":""}',
-            b"",
-        ]
-    else:
-        mock_response.iter_lines.return_value = [
-            b'data: {"choices":[{"delta":{"role":"assistant"}}],"model":"gpt-4"}',
-            b'data: {"choices":[{"delta":{"content":"Hello"}}],"model":"gpt-4"}',
-            b'data: {"choices":[{"delta":{"content":" world!"}}],"model":"gpt-4"}',
-            b"data: [DONE]",
-        ]
+    mock_response.iter_lines.return_value = [
+        b"event: message-start",
+        b'data: {"role":"assistant"}',
+        b"",
+        b"event: content-delta",
+        b'data: {"content":"Hello"}',
+        b"",
+        b"event: content-delta",
+        b'data: {"content":" world!"}',
+        b"",
+        b"event: message-end",
+        b'data: {"content":""}',
+        b"",
+    ]
 
     mock_request.return_value = mock_response
 
     messages = [Message(role="user", content="What's up?")]
     chunks = list(
-        client.create_chat_completion_stream(
-            model="gpt-4", messages=messages, provider="openai", use_sse=use_sse
-        )
+        client.create_chat_completion_stream(model="gpt-4", messages=messages, provider="openai")
     )
 
     mock_request.assert_called_once_with(
@@ -296,23 +285,67 @@ def test_create_chat_completion_stream(mock_request, client, use_sse, expected_f
         stream=True,
     )
 
-    if expected_format == "sse":
-        assert len(chunks) == 4
-        assert chunks[0].event == "message-start"
-        assert chunks[0].data == '{"role":"assistant"}'
-        assert chunks[1].event == "content-delta"
-        assert chunks[1].data == '{"content":"Hello"}'
-        assert chunks[2].event == "content-delta"
-        assert chunks[2].data == '{"content":" world!"}'
-        assert chunks[3].event == "message-end"
-        assert chunks[3].data == '{"content":""}'
-    else:
-        assert len(chunks) == 3
-        assert "choices" in chunks[0]
-        assert "delta" in chunks[0]["choices"][0]
-        assert chunks[0]["choices"][0]["delta"]["role"] == "assistant"
-        assert chunks[1]["choices"][0]["delta"]["content"] == "Hello"
-        assert chunks[2]["choices"][0]["delta"]["content"] == " world!"
+    assert len(chunks) == 4
+    assert chunks[0].event == "message-start"
+    assert chunks[0].data == '{"role":"assistant"}'
+    assert chunks[1].event == "content-delta"
+    assert chunks[1].data == '{"content":"Hello"}'
+    assert chunks[2].event == "content-delta"
+    assert chunks[2].data == '{"content":" world!"}'
+    assert chunks[3].event == "message-end"
+    assert chunks[3].data == '{"content":""}'
+
+
+@patch("requests.Session.request")
+def test_create_chat_completion_stream_openai_format(mock_request, client):
+    """Test streaming chat completion with OpenAI-compatible data format"""
+    mock_response = Mock()
+    mock_response.status_code = 200
+    mock_response.raise_for_status.return_value = None
+
+    mock_response.iter_lines.return_value = [
+        b'data: {"choices":[{"delta":{"role":"assistant"}}],"model":"gpt-4"}',
+        b'data: {"choices":[{"delta":{"content":"Hello"}}],"model":"gpt-4"}',
+        b'data: {"choices":[{"delta":{"content":" world!"}}],"model":"gpt-4"}',
+        b"data: [DONE]",
+    ]
+
+    mock_request.return_value = mock_response
+
+    messages = [Message(role="user", content="What's up?")]
+    chunks = list(
+        client.create_chat_completion_stream(model="gpt-4", messages=messages, provider="openai")
+    )
+
+    mock_request.assert_called_once_with(
+        "POST",
+        "http://test-api/v1/chat/completions",
+        data=None,
+        json={
+            "model": "gpt-4",
+            "messages": [{"role": "user", "content": "What's up?"}],
+            "stream": True,
+        },
+        params={"provider": "openai"},
+        stream=True,
+    )
+
+    assert len(chunks) == 3
+
+    for chunk in chunks:
+        assert isinstance(chunk, SSEvent)
+        assert chunk.event == "content-delta"
+
+    import json
+
+    chunk_0_data = json.loads(chunks[0].data)
+    assert chunk_0_data["choices"][0]["delta"]["role"] == "assistant"
+
+    chunk_1_data = json.loads(chunks[1].data)
+    assert chunk_1_data["choices"][0]["delta"]["content"] == "Hello"
+
+    chunk_2_data = json.loads(chunks[2].data)
+    assert chunk_2_data["choices"][0]["delta"]["content"] == " world!"
 
 
 @pytest.mark.parametrize(
@@ -344,7 +377,6 @@ def test_create_chat_completion_stream_error(mock_request, client, test_params, 
         mock_response.iter_lines.return_value = error_scenario["iter_lines"]
 
     mock_request.return_value = mock_response
-    use_sse = error_scenario.get("use_sse", False)
 
     with pytest.raises(InferenceGatewayError, match=error_scenario["expected_match"]):
         list(
@@ -352,7 +384,6 @@ def test_create_chat_completion_stream_error(mock_request, client, test_params, 
                 model=test_params["model"],
                 messages=[test_params["message"]],
                 provider=test_params["provider"],
-                use_sse=use_sse,
             )
         )
 

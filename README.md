@@ -124,25 +124,41 @@ print(response.choices[0].message.content)
 #### Streaming Completion
 
 ```python
-# Using Server-Sent Events (SSE)
+from inference_gateway.models import CreateChatCompletionStreamResponse
+from pydantic import ValidationError
+import json
+
+# Streaming returns SSEvent objects
 for chunk in client.create_chat_completion_stream(
     model="ollama/llama2",
     messages=[
         Message(role="user", content="Tell me a story")
-    ],
-    use_sse=True
+    ]
 ):
-    print(chunk.data, end="", flush=True)
+    if chunk.data:
+        try:
+            # Parse the raw JSON data
+            data = json.loads(chunk.data)
 
-# Using JSON lines
-for chunk in client.create_chat_completion_stream(
-    model="anthropic/claude-3",
-    messages=[
-        Message(role="user", content="Explain AI safety")
-    ],
-    use_sse=False
-):
-    print(chunk["choices"][0]["delta"]["content"], end="", flush=True)
+            # Unmarshal to structured model for type safety
+            try:
+                structured_chunk = CreateChatCompletionStreamResponse.model_validate(data)
+
+                # Use the structured model for better type safety and IDE support
+                if structured_chunk.choices and len(structured_chunk.choices) > 0:
+                    choice = structured_chunk.choices[0]
+                    if hasattr(choice.delta, 'content') and choice.delta.content:
+                        print(choice.delta.content, end="", flush=True)
+
+            except ValidationError:
+                # Fallback to manual parsing for non-standard chunks
+                if "choices" in data and len(data["choices"]) > 0:
+                    delta = data["choices"][0].get("delta", {})
+                    if "content" in delta and delta["content"]:
+                        print(delta["content"], end="", flush=True)
+
+        except json.JSONDecodeError:
+            pass
 ```
 
 ### Proxy Requests
