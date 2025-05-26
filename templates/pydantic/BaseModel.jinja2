@@ -1,0 +1,13 @@
+class {{ class_name }}({{ base_class }}):
+    """{{ description or class_name + " model for Inference Gateway API." }}"""
+
+    # Pydantic v2 configuration
+    model_config = ConfigDict(
+        extra="forbid",
+        validate_assignment=True,
+        use_enum_values=True,
+        populate_by_name=True,
+    )
+{%- for field in fields %}
+    {{ field.name }}: {{ field.type_hint }}
+{%- endfor -%}

@@ -1,13 +1,24 @@
+from typing import Any, Dict, List
+from unittest.mock import Mock, patch
+
 import pytest
 import requests
-from unittest.mock import Mock, patch
+
 from inference_gateway.client import (
+    InferenceGatewayAPIError,
     InferenceGatewayClient,
-    Provider,
-    Role,
+    InferenceGatewayError,
+    InferenceGatewayValidationError,
+)
+from inference_gateway.models import (
+    CreateChatCompletionRequest,
+    CreateChatCompletionResponse,
+    ListModelsResponse,
     Message,
-    GenerateResponse,
-    ResponseTokens,
+    MessageRole,
+    Model,
+    Provider,
+    SSEvent,
 )
 
 
@@ -22,7 +33,21 @@ def mock_response():
     """Create a mock response"""
     mock = Mock()
     mock.status_code = 200
-    mock.json.return_value = {"response": "test"}
+    mock.json.return_value = {
+        "provider": "openai",
+        "object": "list",
+        "data": [
+            {
+                "id": "gpt-4",
+                "object": "model",
+                "created": 1687882410,
+                "owned_by": "openai",
+                "served_by": "openai",
+            }
+        ],
+    }
+    mock.headers = {"content-type": "application/json"}
+    mock.raise_for_status.return_value = None
     return mock
 
 
@@ -31,10 +56,9 @@ def test_params():
     """Fixture providing test parameters"""
     return {
         "api_url": "http://test-api",
-        "provider": Provider.OPENAI,
+        "provider": "openai",
         "model": "gpt-4",
-        "message": Message(Role.USER, "Hello"),
-        "endpoint": "/llms/openai/generate",
+        "message": Message(role="user", content="Hello"),
     }
 
 
@@ -49,136 +73,183 @@ def test_client_initialization():
     assert client_with_token.session.headers["Authorization"] == "Bearer test-token"
 
 
-@patch("requests.Session.get")
-def test_list_models(mock_get, client, mock_response):
+@patch("requests.Session.request")
+def test_list_models(mock_request, client, mock_response):
     """Test listing available models"""
-    mock_get.return_value = mock_response
+    mock_request.return_value = mock_response
     response = client.list_models()
 
-    mock_get.assert_called_once_with("http://test-api/llms")
-    assert response == {"response": "test"}
+    mock_request.assert_called_once_with(
+        "GET", "http://test-api/v1/models", params={}, timeout=30.0
+    )
+    assert isinstance(response, ListModelsResponse)
+    assert response.provider == "openai"
+    assert response.object == "list"
+    assert len(response.data) == 1
+    assert response.data[0].id == "gpt-4"
 
 
-@patch("requests.Session.get")
-def test_list_provider_models(mock_get, client, mock_response):
-    """Test listing models for a specific provider"""
+@patch("requests.Session.request")
+def test_list_models_with_provider(mock_request, client):
+    """Test listing models with provider filter"""
+    mock_response = Mock()
+    mock_response.status_code = 200
+    mock_response.raise_for_status.return_value = None
     mock_response.json.return_value = {
         "provider": "openai",
-        "models": [{"name": "gpt-4"}, {"name": "gpt-3.5-turbo"}],
+        "object": "list",
+        "data": [
+            {
+                "id": "gpt-4",
+                "object": "model",
+                "created": 1687882410,
+                "owned_by": "openai",
+                "served_by": "openai",
+            },
+            {
+                "id": "gpt-3.5-turbo",
+                "object": "model",
+                "created": 1687882410,
+                "owned_by": "openai",
+                "served_by": "openai",
+            },
+        ],
     }
-    mock_get.return_value = mock_response
+    mock_request.return_value = mock_response
 
-    response = client.list_providers_models(Provider.OPENAI)
+    response = client.list_models("openai")
 
-    mock_get.assert_called_once_with("http://test-api/llms/openai")
+    mock_request.assert_called_once_with(
+        "GET", "http://test-api/v1/models", params={"provider": "openai"}, timeout=30.0
+    )
+    assert isinstance(response, ListModelsResponse)
+    assert response.provider == "openai"
+    assert response.object == "list"
+    assert len(response.data) == 2
+    assert response.data[0].id == "gpt-4"
+    assert response.data[1].id == "gpt-3.5-turbo"
 
-    assert response == {
-        "provider": "openai",
-        "models": [{"name": "gpt-4"}, {"name": "gpt-3.5-turbo"}],
+
+@patch("requests.Session.request")
+def test_list_models_error(mock_request, client):
+    """Test error handling when listing models"""
+    mock_request.side_effect = requests.exceptions.HTTPError("Provider not found")
+
+    with pytest.raises(InferenceGatewayError, match="Request failed"):
+        client.list_models("ollama")
+
+    mock_request.assert_called_once_with(
+        "GET", "http://test-api/v1/models", params={"provider": "ollama"}, timeout=30.0
+    )
+
+
+@patch("requests.Session.request")
+def test_create_chat_completion(mock_request, client):
+    """Test chat completion"""
+    messages = [
+        Message(role="system", content="You are a helpful assistant"),
+        Message(role="user", content="Hello!"),
+    ]
+
+    mock_response = Mock()
+    mock_response.status_code = 200
+    mock_response.raise_for_status.return_value = None
+    mock_response.json.return_value = {
+        "id": "chatcmpl-123",
+        "object": "chat.completion",
+        "created": 1677652288,
+        "model": "gpt-4",
+        "choices": [
+            {
+                "index": 0,
+                "message": {"role": "assistant", "content": "Hello! How can I help you today?"},
+                "finish_reason": "stop",
+            }
+        ],
+        "usage": {"prompt_tokens": 20, "completion_tokens": 10, "total_tokens": 30},
     }
+    mock_request.return_value = mock_response
 
+    response = client.create_chat_completion("gpt-4", messages, "openai")
 
-@patch("requests.Session.get")
-def test_list_provider_models_error(mock_get, client):
-    """Test error handling when listing provider models"""
-    mock_get.side_effect = requests.exceptions.HTTPError("Provider not found")
-
-    with pytest.raises(requests.exceptions.HTTPError, match="Provider not found"):
-        client.list_providers_models(Provider.OLLAMA)
-
-    mock_get.assert_called_once_with("http://test-api/llms/ollama")
-
-
-@patch("requests.Session.post")
-def test_generate_content(mock_post, client, mock_response):
-    """Test content generation"""
-    messages = [Message(Role.SYSTEM, "You are a helpful assistant"), Message(Role.USER, "Hello!")]
-
-    mock_post.return_value = mock_response
-    response = client.generate_content(Provider.OPENAI, "gpt-4", messages)
-
-    mock_post.assert_called_once_with(
-        "http://test-api/llms/openai/generate",
+    mock_request.assert_called_once_with(
+        "POST",
+        "http://test-api/v1/chat/completions",
+        params={"provider": "openai"},
         json={
             "model": "gpt-4",
             "messages": [
                 {"role": "system", "content": "You are a helpful assistant"},
                 {"role": "user", "content": "Hello!"},
             ],
+            "stream": False,
         },
+        timeout=30.0,
     )
-    assert response == {"response": "test"}
+    assert isinstance(response, CreateChatCompletionResponse)
+    assert response.id == "chatcmpl-123"
 
 
-@patch("requests.Session.get")
-def test_health_check(mock_get, client):
+@patch("requests.Session.request")
+def test_health_check(mock_request, client):
     """Test health check endpoint"""
     mock_response = Mock()
     mock_response.status_code = 200
-    mock_get.return_value = mock_response
+    mock_response.raise_for_status.return_value = None
+    mock_request.return_value = mock_response
 
     assert client.health_check() is True
-    mock_get.assert_called_once_with("http://test-api/health")
+    mock_request.assert_called_once_with("GET", "http://test-api/health", timeout=30.0)
 
-    # Test unhealthy response
     mock_response.status_code = 500
+    mock_response.raise_for_status.side_effect = requests.exceptions.HTTPError("Server error")
     assert client.health_check() is False
 
 
-def test_message_to_dict():
-    """Test Message class serialization"""
-    message = Message(Role.USER, "Hello!")
-    assert message.to_dict() == {"role": "user", "content": "Hello!"}
+def test_message_model():
+    """Test Message model creation and serialization"""
+    message = Message(role="user", content="Hello!")
+    assert message.role == "user"
+    assert message.content == "Hello!"
+
+    message_dict = message.model_dump()
+    assert message_dict["role"] == "user"
+    assert message_dict["content"] == "Hello!"
 
 
-def test_provider_enum():
-    """Test Provider enum values"""
-    assert Provider.OPENAI == "openai"
-    assert Provider.OLLAMA == "ollama"
-    assert Provider.GROQ == "groq"
-    assert Provider.CLOUDFLARE == "cloudflare"
-    assert Provider.COHERE == "cohere"
+def test_provider_values():
+    """Test Provider values"""
+    provider = Provider("openai")
+    assert provider.root == "openai"
+
+    with pytest.raises(ValueError):
+        Provider("invalid_provider")
 
 
-def test_role_enum():
-    """Test Role enum values"""
-    assert Role.SYSTEM == "system"
-    assert Role.USER == "user"
-    assert Role.ASSISTANT == "assistant"
+def test_message_role_values():
+    """Test MessageRole values"""
+    role = MessageRole("system")
+    assert role.root == "system"
+
+    role = MessageRole("user")
+    assert role.root == "user"
+
+    role = MessageRole("assistant")
+    assert role.root == "assistant"
+
+    with pytest.raises(ValueError):
+        MessageRole("invalid_role")
 
 
 @pytest.mark.parametrize("use_sse,expected_format", [(True, "sse"), (False, "json")])
-@patch("requests.Session.post")
-def test_generate_content_stream(mock_post, client, use_sse, expected_format):
-    """Test streaming content generation with both raw JSON and SSE formats"""
+@patch("requests.Session.request")
+def test_create_chat_completion_stream(mock_request, client, use_sse, expected_format):
+    """Test streaming chat completion with both raw JSON and SSE formats"""
     mock_response = Mock()
     mock_response.status_code = 200
+    mock_response.raise_for_status.return_value = None
 
     if use_sse:
-        mock_response.raw = Mock()
-        mock_response.raw.read = (
-            Mock(
-                side_effect=[
-                    b"event: message-start\n",
-                    b'data: {"role":"assistant"}\n\n',
-                    b"event: content-delta\n",
-                    b'data: {"content":"Hello"}\n\n',
-                    b"event: content-delta\n",
-                    b'data: {"content":" world!"}\n\n',
-                    b"event: message-end\n",
-                    b'data: {"content":""}\n\n',
-                    b"",
-                ]
-            )
-            if use_sse
-            else Mock(
-                side_effect=[
-                    b'{"role":"assistant","model":"gpt-4","content":"Hello"}\n',
-                    b'{"role":"assistant","model":"gpt-4","content":" world!"}\n',
-                    b"",
-                ]
-            )
-        )
         mock_response.iter_lines.return_value = [
             b"event: message-start",
             b'data: {"role":"assistant"}',
@@ -195,81 +266,71 @@ def test_generate_content_stream(mock_post, client, use_sse, expected_format):
         ]
     else:
         mock_response.iter_lines.return_value = [
-            b'{"role":"assistant","model":"gpt-4","content":"Hello"}',
-            b'{"role":"assistant","model":"gpt-4","content":" world!"}',
+            b'data: {"choices":[{"delta":{"role":"assistant"}}],"model":"gpt-4"}',
+            b'data: {"choices":[{"delta":{"content":"Hello"}}],"model":"gpt-4"}',
+            b'data: {"choices":[{"delta":{"content":" world!"}}],"model":"gpt-4"}',
+            b"data: [DONE]",
         ]
 
-    mock_post.return_value = mock_response
+    mock_request.return_value = mock_response
 
-    messages = [Message(Role.USER, "What's up?")]
+    messages = [Message(role="user", content="What's up?")]
     chunks = list(
-        client.generate_content_stream(
-            provider=Provider.OPENAI, model="gpt-4", messages=messages, use_sse=use_sse
+        client.create_chat_completion_stream(
+            model="gpt-4", messages=messages, provider="openai", use_sse=use_sse
         )
     )
 
-    mock_post.assert_called_once_with(
-        "http://test-api/llms/openai/generate",
+    mock_request.assert_called_once_with(
+        "POST",
+        "http://test-api/v1/chat/completions",
+        data=None,
         json={
             "model": "gpt-4",
             "messages": [{"role": "user", "content": "What's up?"}],
             "stream": True,
-            "ssevents": use_sse,
         },
+        params={"provider": "openai"},
         stream=True,
     )
 
     if expected_format == "sse":
         assert len(chunks) == 4
-        assert chunks[0] == {"event": "message-start", "data": {"role": "assistant"}}
-        assert chunks[1] == {"event": "content-delta", "data": {"content": "Hello"}}
-        assert chunks[2] == {"event": "content-delta", "data": {"content": " world!"}}
-        assert chunks[3] == {"event": "message-end", "data": {"content": ""}}
+        assert chunks[0].event == "message-start"
+        assert chunks[0].data == '{"role":"assistant"}'
+        assert chunks[1].event == "content-delta"
+        assert chunks[1].data == '{"content":"Hello"}'
+        assert chunks[2].event == "content-delta"
+        assert chunks[2].data == '{"content":" world!"}'
+        assert chunks[3].event == "message-end"
+        assert chunks[3].data == '{"content":""}'
     else:
-        assert len(chunks) == 2
-        assert isinstance(chunks[0], ResponseTokens)
-        assert isinstance(chunks[1], ResponseTokens)
-        assert chunks[0].role == "assistant"
-        assert chunks[0].model == "gpt-4"
-        assert chunks[0].content == "Hello"
-        assert chunks[1].content == " world!"
-
-    for chunk in chunks:
-        if use_sse:
-            assert isinstance(chunk, dict)
-            assert "event" in chunk
-        else:
-            assert isinstance(chunk, ResponseTokens)
+        assert len(chunks) == 3
+        assert "choices" in chunks[0]
+        assert "delta" in chunks[0]["choices"][0]
+        assert chunks[0]["choices"][0]["delta"]["role"] == "assistant"
+        assert chunks[1]["choices"][0]["delta"]["content"] == "Hello"
+        assert chunks[2]["choices"][0]["delta"]["content"] == " world!"
 
 
 @pytest.mark.parametrize(
     "error_scenario",
     [
-        {"status_code": 500, "error": Exception("API Error"), "expected_match": "API Error"},
+        {"status_code": 500, "error": Exception("API Error"), "expected_match": "Request failed"},
         {
             "status_code": 401,
             "error": requests.exceptions.HTTPError("Unauthorized"),
-            "expected_match": "Unauthorized",
+            "expected_match": "Request failed",
         },
         {
             "status_code": 400,
             "error": requests.exceptions.HTTPError("Invalid model"),
-            "expected_match": "Invalid model",
-        },
-        {
-            "status_code": 200,
-            "iter_lines": [b'{"invalid": "json'],
-            "expected_match": r"Invalid JSON response: \{\"invalid\": \"json.*column \d+.*char \d+",
-        },
-        {
-            "status_code": 200,
-            "iter_lines": [b"{}"],
-            "expected_match": r"Missing required arguments: role, model, content",
+            "expected_match": "Request failed",
         },
     ],
 )
-@patch("requests.Session.post")
-def test_generate_content_stream_error(mock_post, client, test_params, error_scenario):
+@patch("requests.Session.request")
+def test_create_chat_completion_stream_error(mock_request, client, test_params, error_scenario):
     """Test error handling during streaming for various scenarios"""
     mock_response = Mock()
     mock_response.status_code = error_scenario["status_code"]
@@ -280,25 +341,221 @@ def test_generate_content_stream_error(mock_post, client, test_params, error_sce
     if "iter_lines" in error_scenario:
         mock_response.iter_lines.return_value = error_scenario["iter_lines"]
 
-    mock_post.return_value = mock_response
+    mock_request.return_value = mock_response
     use_sse = error_scenario.get("use_sse", False)
 
-    with pytest.raises(Exception, match=error_scenario["expected_match"]):
+    with pytest.raises(InferenceGatewayError, match=error_scenario["expected_match"]):
         list(
-            client.generate_content_stream(
-                provider=test_params["provider"],
+            client.create_chat_completion_stream(
                 model=test_params["model"],
                 messages=[test_params["message"]],
+                provider=test_params["provider"],
                 use_sse=use_sse,
             )
         )
 
-    expected_url = f"{test_params['api_url']}{test_params['endpoint']}"
-    expected_payload = {
-        "model": test_params["model"],
-        "messages": [test_params["message"].to_dict()],
-        "stream": True,
-        "ssevents": use_sse,
+    mock_request.assert_called_once_with(
+        "POST",
+        "http://test-api/v1/chat/completions",
+        data=None,
+        json={
+            "model": test_params["model"],
+            "messages": [test_params["message"].model_dump(exclude_none=True)],
+            "stream": True,
+        },
+        params={"provider": test_params["provider"]},
+        stream=True,
+    )
+
+
+@patch("requests.Session.request")
+def test_proxy_request(mock_request, client):
+    """Test proxy request to provider"""
+
+    mock_resp = Mock()
+    mock_resp.status_code = 200
+    mock_resp.json.return_value = {"response": "test"}
+    mock_resp.raise_for_status.return_value = None
+    mock_request.return_value = mock_resp
+
+    response = client.proxy_request(
+        provider="openai", path="completions", method="POST", json_data={"prompt": "Hello"}
+    )
+
+    mock_request.assert_called_once_with(
+        "POST", "http://test-api/proxy/openai/completions", json={"prompt": "Hello"}, timeout=30.0
+    )
+
+    assert response == {"response": "test"}
+
+
+def test_exception_hierarchy():
+    """Test exception hierarchy and error handling"""
+
+    base_error = InferenceGatewayError("Base error")
+    assert str(base_error) == "Base error"
+    assert isinstance(base_error, Exception)
+
+    api_error = InferenceGatewayAPIError("API error", status_code=400)
+    assert str(api_error) == "API error"
+    assert api_error.status_code == 400
+    assert isinstance(api_error, InferenceGatewayError)
+
+    validation_error = InferenceGatewayValidationError("Validation error")
+    assert str(validation_error) == "Validation error"
+    assert isinstance(validation_error, InferenceGatewayError)
+
+
+def test_context_manager():
+    """Test client as context manager"""
+    with InferenceGatewayClient("http://test-api") as client:
+        assert client.base_url == "http://test-api"
+        assert client.session is not None
+
+
+@patch("requests.Session.request")
+def test_client_with_custom_timeout(mock_request):
+    """Test client with custom timeout settings"""
+    mock_response = Mock()
+    mock_response.status_code = 200
+    mock_response.raise_for_status.return_value = None
+    mock_response.json.return_value = {
+        "provider": "openai",
+        "object": "list",
+        "data": [
+            {
+                "id": "gpt-4",
+                "object": "model",
+                "created": 1687882410,
+                "owned_by": "openai",
+                "served_by": "openai",
+            }
+        ],
+    }
+    mock_request.return_value = mock_response
+
+    client = InferenceGatewayClient("http://test-api", timeout=30)
+    client.list_models()
+
+    mock_request.assert_called_once_with("GET", "http://test-api/v1/models", params={}, timeout=30)
+
+
+def test_sse_event_parsing():
+    """Test SSEvent model parsing"""
+    event = SSEvent(event="content-delta", data='{"content": "Hello"}', retry=None)
+    assert event.event == "content-delta"
+    assert event.data == '{"content": "Hello"}'
+
+    event_dict = event.model_dump()
+    assert event_dict["event"] == "content-delta"
+    assert event_dict["data"] == '{"content": "Hello"}'
+
+
+def test_list_tools():
+    """Test listing MCP tools"""
+    mock_response_data = {
+        "object": "list",
+        "data": [
+            {
+                "name": "read_file",
+                "description": "Read content from a file",
+                "server": "http://mcp-filesystem-server:8083/mcp",
+                "input_schema": {
+                    "type": "object",
+                    "properties": {
+                        "path": {"type": "string", "description": "Path to the file to read"}
+                    },
+                    "required": ["path"],
+                },
+            },
+            {
+                "name": "write_file",
+                "description": "Write content to a file",
+                "server": "http://mcp-filesystem-server:8083/mcp",
+                "input_schema": {
+                    "type": "object",
+                    "properties": {
+                        "path": {"type": "string", "description": "Path to the file to write"},
+                        "content": {"type": "string", "description": "Content to write"},
+                    },
+                    "required": ["path", "content"],
+                },
+            },
+        ],
     }
 
-    mock_post.assert_called_once_with(expected_url, json=expected_payload, stream=True)
+    with patch("requests.Session.request") as mock_request:
+        mock_response = Mock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = mock_response_data
+        mock_response.raise_for_status.return_value = None
+        mock_request.return_value = mock_response
+
+        client = InferenceGatewayClient("http://test-api/v1", "test-token")
+        response = client.list_tools()
+
+        assert response.object == "list"
+        assert len(response.data) == 2
+
+        first_tool = response.data[0]
+        assert first_tool.name == "read_file"
+        assert first_tool.description == "Read content from a file"
+        assert first_tool.server == "http://mcp-filesystem-server:8083/mcp"
+        assert "path" in first_tool.input_schema["properties"]
+
+        second_tool = response.data[1]
+        assert second_tool.name == "write_file"
+        assert second_tool.description == "Write content to a file"
+        assert second_tool.server == "http://mcp-filesystem-server:8083/mcp"
+        assert "path" in second_tool.input_schema["properties"]
+        assert "content" in second_tool.input_schema["properties"]
+
+        mock_request.assert_called_once_with(
+            "GET",
+            "http://test-api/v1/mcp/tools",
+            timeout=30.0,
+        )
+
+
+def test_list_tools_error():
+    """Test list_tools method with API error"""
+    with patch("requests.Session.request") as mock_request:
+        mock_response = Mock()
+        mock_response.status_code = 403
+        mock_response.json.return_value = {"error": "MCP not exposed"}
+        mock_response.raise_for_status.side_effect = requests.HTTPError(
+            "403 Client Error: Forbidden"
+        )
+        mock_request.return_value = mock_response
+
+        client = InferenceGatewayClient("http://test-api/v1", "test-token")
+
+        with pytest.raises(InferenceGatewayAPIError) as excinfo:
+            client.list_tools()
+
+        assert "Request failed" in str(excinfo.value)
+
+        mock_request.assert_called_once_with(
+            "GET",
+            "http://test-api/v1/mcp/tools",
+            timeout=30.0,
+        )
+
+
+def test_list_tools_validation_error():
+    """Test list_tools method with validation error"""
+    invalid_response_data = {"object": "invalid", "data": "not an array"}
+
+    with patch("requests.Session.request") as mock_request:
+        mock_response = Mock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = invalid_response_data
+        mock_response.raise_for_status.return_value = None
+        mock_request.return_value = mock_response
+
+        client = InferenceGatewayClient("http://test-api/v1", "test-token")
+
+        with pytest.raises(InferenceGatewayValidationError) as excinfo:
+            client.list_tools()
+
+        assert "Response validation failed" in str(excinfo.value)

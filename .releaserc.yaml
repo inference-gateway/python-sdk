@@ -60,8 +60,5 @@ plugins:
         "releaseNameTemplate": "🚀 Version ${nextRelease.version}",
       },
     ]
-  - [
-      "@semantic-release/git",
-      { "assets": ["CHANGELOG.md", "pyproject.toml"] },
-    ]
+  - ["@semantic-release/git", { "assets": ["CHANGELOG.md", "pyproject.toml"] }]
 repositoryUrl: "https://github.com/inference-gateway/python-sdk"
