@@ -7,7 +7,8 @@ ENV BLACK_VERSION=25.1.0 \
     TWINE_VERSION=6.1.0 \
     TASK_VERSION=v3.43.3 \
     PYTEST_VERSION=8.3.5 \
-    PYTEST_WATCH_VERSION=4.2.0
+    PYTEST_WATCH_VERSION=4.2.0 \
+    PRE_COMMIT_VERSION=4.2.0
 
 RUN apt-get update && \
     # Install GitHub CLI
@@ -25,16 +26,17 @@ RUN apt-get update && \
     python -m pip install --upgrade pip && \
     # Install development tools using pip
     pip install black==${BLACK_VERSION} \
-                isort==${ISORT_VERSION} \
-                pylint==${PYLINT_VERSION} \
-                build==${BUILD_VERSION} \
-                twine==${TWINE_VERSION} \
-                pytest==${PYTEST_VERSION} \
-                pytest-watch==${PYTEST_WATCH_VERSION} \
-                pytest-cov \
-                pytest-xdist \
-                datamodel-code-generator \
-                debugpy && \
+    isort==${ISORT_VERSION} \
+    pylint==${PYLINT_VERSION} \
+    build==${BUILD_VERSION} \
+    twine==${TWINE_VERSION} \
+    pytest==${PYTEST_VERSION} \
+    pytest-watch==${PYTEST_WATCH_VERSION} \
+    pytest-cov \
+    pytest-xdist \
+    datamodel-code-generator \
+    pre-commit==${PRE_COMMIT_VERSION} \
+    debugpy && \
     # Clean up
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*

@@ -770,7 +770,7 @@ components:
         See the [guide](/docs/guides/function-calling) for examples, and the
         [JSON Schema
         reference](https://json-schema.org/understanding-json-schema/) for
-        documentation about the format. 
+        documentation about the format.
 
         Omitting `parameters` defines a function with an empty parameter list.
       additionalProperties: true
@@ -860,7 +860,7 @@ components:
             The format of the reasoning content. Can be `raw` or `parsed`.
 
             When specified as raw some reasoning models will output <think /> tags.
-            When specified as parsed the model will output the reasoning under 
+            When specified as parsed the model will output the reasoning under
             `reasoning` or `reasoning_content` attribute.
       required:
         - model

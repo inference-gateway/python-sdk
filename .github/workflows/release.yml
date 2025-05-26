@@ -75,12 +75,12 @@ jobs:
       - name: Check out the code
         uses: actions/checkout@v4.2.2
         with:
-            persist-credentials: false
+          persist-credentials: false
 
       - name: Set up Python
         uses: actions/setup-python@v5.6.0
         with:
-          python-version: '3.12'
+          python-version: "3.12"
 
       - name: Update pyproject.toml version
         run: |

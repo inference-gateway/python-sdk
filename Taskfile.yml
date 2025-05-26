@@ -38,14 +38,14 @@ tasks:
     cmds:
       - echo "Generating Pydantic v2 models from OpenAPI spec..."
       - >
-        datamodel-codegen 
-        --input openapi.yaml 
-        --output inference_gateway/models.py 
-        --output-model-type pydantic_v2.BaseModel 
-        --enum-field-as-literal all 
+        datamodel-codegen
+        --input openapi.yaml
+        --output inference_gateway/models.py
+        --output-model-type pydantic_v2.BaseModel
+        --enum-field-as-literal all
         --target-python-version {{.PYTHON_VERSION}}
-        --use-schema-description 
-        --use-generic-container-types 
+        --use-schema-description
+        --use-generic-container-types
         --use-standard-collections
         --use-annotated
         --use-field-description
@@ -106,6 +106,7 @@ tasks:
       - echo "Cleaning up..."
       - rm -rf inference_gateway.egg-info dist build .pytest_cache .coverage htmlcov
       - find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
+      - find . -type d -name ".mypy_cache" -exec rm -rf {} + 2>/dev/null || true
       - find . -type f -name "*.pyc" -delete
       - echo "✅ Cleanup completed"
 
@@ -133,6 +134,7 @@ tasks:
       - task: install
       - task: oas-download
       - task: generate
+      - task: pre-commit:install
       - task: test
       - echo "✅ Development environment setup complete"
 
@@ -144,3 +146,24 @@ tasks:
       - task: test
       - task: build
       - echo "✅ All CI checks passed"
+
+  pre-commit:install:
+    desc: Install pre-commit hooks
+    cmds:
+      - echo "Installing pre-commit hooks..."
+      - pre-commit install
+      - echo "✅ Pre-commit hooks installed"
+
+  pre-commit:run:
+    desc: Run pre-commit hooks on all files
+    cmds:
+      - echo "Running pre-commit hooks on all files..."
+      - pre-commit run --all-files
+      - echo "✅ Pre-commit hooks completed"
+
+  pre-commit:update:
+    desc: Update pre-commit hook versions
+    cmds:
+      - echo "Updating pre-commit hook versions..."
+      - pre-commit autoupdate
+      - echo "✅ Pre-commit hooks updated"

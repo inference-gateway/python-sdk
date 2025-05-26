@@ -14,7 +14,7 @@ from pydantic import BaseModel, Field, ConfigDict
 class Provider(str, Enum):
     """Supported AI providers for the Inference Gateway."""
     OLLAMA = "ollama"
-    GROQ = "groq" 
+    GROQ = "groq"
     OPENAI = "openai"
     CLOUDFLARE = "cloudflare"
     COHERE = "cohere"

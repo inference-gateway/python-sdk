@@ -59,11 +59,11 @@ from inference_gateway.client import Provider, Role, Message
 
 messages = [
     Message(
-      Role.SYSTEM, 
+      Role.SYSTEM,
       "You are an helpful assistant"
     ),
     Message(
-      Role.USER, 
+      Role.USER,
       "Hello!"
     ),
 ]
@@ -85,11 +85,11 @@ from inference_gateway.client import Provider, Role, Message
 
 messages = [
     Message(
-      Role.SYSTEM, 
+      Role.SYSTEM,
       "You are an helpful assistant"
     ),
     Message(
-      Role.USER, 
+      Role.USER,
       "Hello!"
     ),
 ]

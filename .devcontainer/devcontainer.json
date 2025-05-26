@@ -17,22 +17,27 @@
         "ms-python.python",
         "ms-python.vscode-pylance",
         "ms-python.black-formatter",
+        "ms-python.isort",
         "tamasfe.even-better-toml"
       ],
       "settings": {
         "python.pythonPath": "/usr/local/bin/python",
         "python.linting.enabled": true,
         "python.linting.pylintEnabled": false,
-        "python.formatting.provider": "black",
-        "python.formatting.blackPath": "/usr/local/py-utils/bin/black",
-        "python.sortImports.path": "/usr/local/py-utils/bin/isort",
+        "python.defaultInterpreterPath": "/usr/local/bin/python",
         "terminal.integrated.defaultProfile.linux": "zsh",
         "editor.renderWhitespace": "all",
         "cSpell.enabled": true,
         "cSpell.files": ["**/*.md"],
         "editor.formatOnSave": true,
-        "editor.defaultFormatter": "ms-python.black-formatter",
         "black-formatter.args": ["--config", "pyproject.toml"],
+        "isort.args": ["--profile", "black", "--line-length", "100"],
+        "editor.codeActionsOnSave": {
+          "source.organizeImports": "explicit"
+        },
+        "[python]": {
+          "editor.defaultFormatter": "ms-python.black-formatter"
+        },
         "git.enableCommitSigning": true,
         "dev.containers.copyGitConfig": true,
         "githubPullRequests.experimental.chat": true,
@@ -41,10 +46,16 @@
         "python.testing.pytestEnabled": true,
         "python.testing.unittestEnabled": false,
         "python.testing.nosetestsEnabled": false,
-        "python.testing.pytestArgs": [
-            "tests"
-        ],
+        "python.testing.pytestArgs": ["tests"],
         "notebook.insertFinalNewline": true,
+        "yaml.schemas": {
+          "https://json.schemastore.org/pre-commit-config.json": [
+            ".pre-commit-config.yaml",
+            ".pre-commit-config.yml"
+          ]
+        },
+        "yaml.schemaStore.enable": true,
+        "yaml.validate": true,
         "github.copilot.enable": {
           "*": true
         },
