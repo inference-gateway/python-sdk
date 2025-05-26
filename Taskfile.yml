@@ -1,38 +1,146 @@
 ---
 version: "3"
 
+vars:
+  OPENAPI_URL: https://raw.githubusercontent.com/inference-gateway/inference-gateway/refs/heads/main/openapi.yaml
+  PYTHON_VERSION: "3.12"
+
 tasks:
-  oas-download:
-    desc: Download OpenAPI specification
+  default:
+    desc: Show available tasks
     cmds:
-      - curl -o openapi.yaml https://raw.githubusercontent.com/inference-gateway/inference-gateway/refs/heads/main/openapi.yaml
+      - task --list
+
+  install:
+    desc: Install dependencies for development
+    cmds:
+      - pip install -e ".[dev]"
+
+  oas-download:
+    desc: Download latest OpenAPI specification from inference-gateway repository
+    cmds:
+      - echo "Downloading OpenAPI spec from {{.OPENAPI_URL}}..."
+      - curl -sSL -o openapi.yaml "{{.OPENAPI_URL}}"
+      - echo "✅ OpenAPI spec downloaded successfully"
+
+  oas-validate:
+    desc: Validate the OpenAPI specification
+    deps:
+      - oas-download
+    cmds:
+      - python -c "import yaml; yaml.safe_load(open('openapi.yaml', 'r'))"
+      - echo "✅ OpenAPI spec is valid YAML"
+
+  generate:
+    desc: Generate Pydantic models from OpenAPI specification
+    deps:
+      - oas-validate
+    cmds:
+      - echo "Generating Pydantic v2 models from OpenAPI spec..."
+      - >
+        datamodel-codegen 
+        --input openapi.yaml 
+        --output inference_gateway/models.py 
+        --output-model-type pydantic_v2.BaseModel 
+        --enum-field-as-literal all 
+        --target-python-version {{.PYTHON_VERSION}}
+        --use-schema-description 
+        --use-generic-container-types 
+        --use-standard-collections
+        --use-annotated
+        --use-field-description
+        --field-constraints
+        --disable-appending-item-suffix
+        --custom-template-dir templates/
+        --wrap-string-literal
+        --use-one-literal-as-default
+        --use-subclass-enum
+        --strict-nullable
+        --allow-population-by-field-name
+        --snake-case-field
+        --strip-default-none
+        --use-title-as-name
+      - echo "✅ Models generated successfully"
+      - task: format
+
+  format:
+    desc: Format code with black and isort
+    cmds:
+      - echo "Formatting code..."
+      - black inference_gateway/ tests/
+      - isort inference_gateway/ tests/
+      - echo "✅ Code formatted"
 
   lint:
-    desc: Lint the code
+    desc: Run all linting checks
     cmds:
-      - black inference_gateway/ tests/
+      - echo "Running linting checks..."
+      - black --check inference_gateway/ tests/
+      - isort --check-only inference_gateway/ tests/
+      - mypy inference_gateway/
+      - echo "✅ All linting checks passed"
 
   test:
     desc: Run tests
     cmds:
+      - echo "Running tests..."
       - pytest tests/ -v
+      - echo "✅ All tests passed"
 
   test:watch:
     desc: Run tests in watch mode
     cmds:
+      - echo "Running tests in watch mode..."
       - ptw tests/ -- -v
 
   test:coverage:
     desc: Run tests with coverage report
     cmds:
-      - pytest tests/ -v --cov=inference_gateway --cov-report=term-missing
-
-  test:debug:
-    desc: Run tests with debugger enabled
-    cmds:
-      - pytest tests/ -v --pdb
+      - echo "Running tests with coverage..."
+      - pytest tests/ -v --cov=inference_gateway --cov-report=term-missing --cov-report=html
+      - echo "✅ Coverage report generated"
 
   clean:
-    desc: Clean up
+    desc: Clean up build artifacts and cache files
     cmds:
-      - rm -rf inference_gateway.egg-info dist .pytest_cache inference_gateway/__pycache__ tests/__pycache__ .coverage
+      - echo "Cleaning up..."
+      - rm -rf inference_gateway.egg-info dist build .pytest_cache .coverage htmlcov
+      - find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
+      - find . -type f -name "*.pyc" -delete
+      - echo "✅ Cleanup completed"
+
+  build:
+    desc: Build the package
+    deps:
+      - clean
+      - lint
+      - test
+    cmds:
+      - echo "Building package..."
+      - python -m build
+      - echo "✅ Package built successfully"
+
+  docs:serve:
+    desc: Serve documentation locally (placeholder for future docs)
+    cmds:
+      - echo "📚 Documentation server would start here"
+      - echo "Future mkdocs serve or similar"
+
+  dev:setup:
+    desc: Complete development environment setup
+    cmds:
+      - echo "Setting up development environment..."
+      - task: install
+      - task: oas-download
+      - task: generate
+      - task: test
+      - echo "✅ Development environment setup complete"
+
+  ci:check:
+    desc: Run all CI checks (lint, test, build)
+    cmds:
+      - echo "Running CI checks..."
+      - task: lint
+      - task: test
+      - task: build
+      - echo "✅ All CI checks passed"

@@ -29,6 +29,8 @@ tags:
     description: List and describe the various models available in the API.
   - name: Completions
     description: Generate completions from the models.
+  - name: Tools
+    description: List and manage MCP tools.
   - name: Proxy
     description: Proxy requests to provider endpoints.
   - name: Health
@@ -67,43 +69,51 @@ paths:
                   value:
                     object: "list"
                     data:
-                      - id: "gpt-4o"
+                      - id: "openai/gpt-4o"
                         object: "model"
                         created: 1686935002
                         owned_by: "openai"
-                      - id: "llama-3.3-70b-versatile"
+                        served_by: "openai"
+                      - id: "openai/llama-3.3-70b-versatile"
                         object: "model"
                         created: 1723651281
                         owned_by: "groq"
-                      - id: "claude-3-opus-20240229"
+                        served_by: "groq"
+                      - id: "cohere/claude-3-opus-20240229"
                         object: "model"
                         created: 1708905600
                         owned_by: "anthropic"
-                      - id: "command-r"
+                        served_by: "anthropic"
+                      - id: "cohere/command-r"
                         object: "model"
                         created: 1707868800
                         owned_by: "cohere"
-                      - id: "phi3:3.8b"
+                        served_by: "cohere"
+                      - id: "ollama/phi3:3.8b"
                         object: "model"
                         created: 1718441600
                         owned_by: "ollama"
+                        served_by: "ollama"
                 singleProvider:
                   summary: Models from a specific provider
                   value:
                     object: "list"
                     data:
-                      - id: "gpt-4o"
+                      - id: "openai/gpt-4o"
                         object: "model"
                         created: 1686935002
                         owned_by: "openai"
-                      - id: "gpt-4-turbo"
+                        served_by: "openai"
+                      - id: "openai/gpt-4-turbo"
                         object: "model"
                         created: 1687882410
                         owned_by: "openai"
-                      - id: "gpt-3.5-turbo"
+                        served_by: "openai"
+                      - id: "openai/gpt-3.5-turbo"
                         object: "model"
                         created: 1677649963
                         owned_by: "openai"
+                        served_by: "openai"
         "401":
           $ref: "#/components/responses/Unauthorized"
         "500":
@@ -142,6 +152,29 @@ paths:
           $ref: "#/components/responses/BadRequest"
         "401":
           $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /mcp/tools:
+    get:
+      operationId: listTools
+      tags:
+        - Tools
+      description: |
+        Lists the currently available MCP tools. Only accessible when EXPOSE_MCP is enabled.
+      summary: Lists the currently available MCP tools
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ListToolsResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/MCPNotExposed"
         "500":
           $ref: "#/components/responses/InternalError"
   /proxy/{provider}/{path}:
@@ -349,6 +382,14 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/Error"
+    MCPNotExposed:
+      description: MCP tools endpoint is not exposed
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            error: "MCP tools endpoint is not exposed. Set EXPOSE_MCP=true to enable."
     ProviderResponse:
       description: |
         ProviderResponse depends on the specific provider and endpoint being called
@@ -562,6 +603,9 @@ components:
           type: string
         chat:
           type: string
+      required:
+        - models
+        - chat
     Error:
       type: object
       properties:
@@ -589,10 +633,12 @@ components:
             $ref: "#/components/schemas/ChatCompletionMessageToolCall"
         tool_call_id:
           type: string
-        reasoning:
-          type: string
         reasoning_content:
           type: string
+          description: The reasoning content of the chunk message.
+        reasoning:
+          type: string
+          description: The reasoning of the chunk message. Same as reasoning_content.
       required:
         - role
         - content
@@ -611,6 +657,12 @@ components:
           type: string
         served_by:
           $ref: "#/components/schemas/Provider"
+      required:
+        - id
+        - object
+        - created
+        - owned_by
+        - served_by
     ListModelsResponse:
       type: object
       description: Response structure for listing models
@@ -624,6 +676,56 @@ components:
           items:
             $ref: "#/components/schemas/Model"
           default: []
+      required:
+        - object
+        - data
+    ListToolsResponse:
+      type: object
+      description: Response structure for listing MCP tools
+      properties:
+        object:
+          type: string
+          description: Always "list"
+          example: "list"
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/MCPTool"
+          default: []
+          description: Array of available MCP tools
+      required:
+        - object
+        - data
+    MCPTool:
+      type: object
+      description: An MCP tool definition
+      properties:
+        name:
+          type: string
+          description: The name of the tool
+          example: "read_file"
+        description:
+          type: string
+          description: A description of what the tool does
+          example: "Read content from a file"
+        server:
+          type: string
+          description: The MCP server that provides this tool
+          example: "http://mcp-filesystem-server:8083/mcp"
+        input_schema:
+          type: object
+          description: JSON schema for the tool's input parameters
+          example:
+            type: "object"
+            properties:
+              file_path:
+                type: "string"
+                description: "Path to the file to read"
+            required: ["file_path"]
+      required:
+        - name
+        - description
+        - server
     FunctionObject:
       type: object
       properties:
@@ -671,18 +773,7 @@ components:
         documentation about the format. 
 
         Omitting `parameters` defines a function with an empty parameter list.
-      properties:
-        type:
-          type: string
-          description: The type of the parameters. Currently, only `object` is supported.
-        properties:
-          type: object
-          description: The properties of the parameters.
-        required:
-          type: array
-          items:
-            type: string
-          description: The required properties of the parameters.
+      additionalProperties: true
     ChatCompletionToolType:
       type: string
       description: The type of the tool. Currently, only `function` is supported.
@@ -725,7 +816,8 @@ components:
             usage statistics for the entire request, and the `choices` field
             will always be an empty array. All other chunks will also include a
             `usage` field, but with a null value.
-          default: true
+      required:
+        - include_usage
     CreateChatCompletionRequest:
       type: object
       properties:
@@ -762,6 +854,14 @@ components:
             are supported.
           items:
             $ref: "#/components/schemas/ChatCompletionTool"
+        reasoning_format:
+          type: string
+          description: >
+            The format of the reasoning content. Can be `raw` or `parsed`.
+
+            When specified as raw some reasoning models will output <think /> tags.
+            When specified as parsed the model will output the reasoning under 
+            `reasoning` or `reasoning_content` attribute.
       required:
         - model
         - messages
@@ -904,6 +1004,12 @@ components:
         content:
           type: string
           description: The contents of the chunk message.
+        reasoning_content:
+          type: string
+          description: The reasoning content of the chunk message.
+        reasoning:
+          type: string
+          description: The reasoning of the chunk message. Same as reasoning_content.
         tool_calls:
           type: array
           items:
@@ -913,6 +1019,9 @@ components:
         refusal:
           type: string
           description: The refusal message generated by the model.
+      required:
+        - content
+        - role
     ChatCompletionMessageToolCallChunk:
       type: object
       properties:
@@ -1045,6 +1154,13 @@ components:
           description: The object type, which is always `chat.completion.chunk`.
         usage:
           $ref: "#/components/schemas/CompletionUsage"
+        reasoning_format:
+          type: string
+          description: >
+            The format of the reasoning content. Can be `raw` or `parsed`.
+
+            When specified as raw some reasoning models will output <think /> tags.
+            When specified as parsed the model will output the reasoning under reasoning_content.
       required:
         - choices
         - created
@@ -1057,11 +1173,6 @@ components:
           - general:
               title: "General settings"
               settings:
-                - name: application_name
-                  env: "APPLICATION_NAME"
-                  type: string
-                  default: "inference-gateway"
-                  description: "The name of the application"
                 - name: environment
                   env: "ENVIRONMENT"
                   type: string
@@ -1077,6 +1188,53 @@ components:
                   type: bool
                   default: "false"
                   description: "Enable authentication"
+          - mcp:
+              title: "Model Context Protocol (MCP)"
+              settings:
+                - name: mcp_enable
+                  env: "MCP_ENABLE"
+                  type: bool
+                  default: "false"
+                  description: "Enable MCP"
+                - name: mcp_expose
+                  env: "MCP_EXPOSE"
+                  type: bool
+                  default: "false"
+                  description: "Expose MCP tools endpoint"
+                - name: mcp_servers
+                  env: "MCP_SERVERS"
+                  type: string
+                  description: "List of MCP servers"
+                - name: mcp_client_timeout
+                  env: "MCP_CLIENT_TIMEOUT"
+                  type: time.Duration
+                  default: "5s"
+                  description: "MCP client HTTP timeout"
+                - name: mcp_dial_timeout
+                  env: "MCP_DIAL_TIMEOUT"
+                  type: time.Duration
+                  default: "3s"
+                  description: "MCP client dial timeout"
+                - name: mcp_tls_handshake_timeout
+                  env: "MCP_TLS_HANDSHAKE_TIMEOUT"
+                  type: time.Duration
+                  default: "3s"
+                  description: "MCP client TLS handshake timeout"
+                - name: mcp_response_header_timeout
+                  env: "MCP_RESPONSE_HEADER_TIMEOUT"
+                  type: time.Duration
+                  default: "3s"
+                  description: "MCP client response header timeout"
+                - name: mcp_expect_continue_timeout
+                  env: "MCP_EXPECT_CONTINUE_TIMEOUT"
+                  type: time.Duration
+                  default: "1s"
+                  description: "MCP client expect continue timeout"
+                - name: mcp_request_timeout
+                  env: "MCP_REQUEST_TIMEOUT"
+                  type: time.Duration
+                  default: "5s"
+                  description: "MCP client request timeout for initialize and tool calls"
           - oidc:
               title: "OpenID Connect"
               settings:
