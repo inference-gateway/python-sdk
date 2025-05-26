@@ -83,7 +83,7 @@ def test_list_models(mock_request, client, mock_response):
         "GET", "http://test-api/v1/models", params={}, timeout=30.0
     )
     assert isinstance(response, ListModelsResponse)
-    assert response.provider == "openai"
+    assert response.provider.root == "openai"
     assert response.object == "list"
     assert len(response.data) == 1
     assert response.data[0].id == "gpt-4"
@@ -123,7 +123,7 @@ def test_list_models_with_provider(mock_request, client):
         "GET", "http://test-api/v1/models", params={"provider": "openai"}, timeout=30.0
     )
     assert isinstance(response, ListModelsResponse)
-    assert response.provider == "openai"
+    assert response.provider.root == "openai"
     assert response.object == "list"
     assert len(response.data) == 2
     assert response.data[0].id == "gpt-4"
@@ -209,7 +209,7 @@ def test_health_check(mock_request, client):
 def test_message_model():
     """Test Message model creation and serialization"""
     message = Message(role="user", content="Hello!")
-    assert message.role == "user"
+    assert message.role.root == "user"
     assert message.content == "Hello!"
 
     message_dict = message.model_dump()

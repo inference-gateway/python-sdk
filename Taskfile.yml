@@ -43,7 +43,7 @@ tasks:
         --output inference_gateway/models.py
         --output-model-type pydantic_v2.BaseModel
         --enum-field-as-literal all
-        --target-python-version {{.PYTHON_VERSION}}
+        --target-python-version 3.12
         --use-schema-description
         --use-generic-container-types
         --use-standard-collections
@@ -58,7 +58,8 @@ tasks:
         --strict-nullable
         --allow-population-by-field-name
         --snake-case-field
-        --strip-default-none
+        --use-default
+        --use-default-kwarg
         --use-title-as-name
       - echo "✅ Models generated successfully"
       - task: format
@@ -121,6 +122,29 @@ tasks:
       - echo "Building package..."
       - python -m build
       - echo "✅ Package built successfully"
+
+  install-global:
+    desc: Build and install the package globally for testing
+    deps:
+      - build
+    cmds:
+      - echo "Installing package globally..."
+      - pip uninstall -y inference-gateway || true
+      - pip install dist/*.whl --force-reinstall
+      - echo "✅ Package installed globally successfully"
+
+  install-global-dev:
+    desc: Build and install the package globally for testing (skip tests)
+    deps:
+      - clean
+      - format
+    cmds:
+      - echo "Building package (skipping tests)..."
+      - python -m build
+      - echo "Installing package globally..."
+      - pip uninstall -y inference-gateway || true
+      - pip install dist/*.whl --force-reinstall
+      - echo "✅ Package installed globally successfully"
 
   docs:serve:
     desc: Serve documentation locally (placeholder for future docs)

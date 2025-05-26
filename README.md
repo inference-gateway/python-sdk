@@ -41,7 +41,7 @@ pip install inference-gateway
 ### Basic Usage
 
 ```python
-from inference_gateway import InferenceGatewayClient, Message, MessageRole
+from inference_gateway import InferenceGatewayClient, Message
 
 # Initialize client
 client = InferenceGatewayClient("http://localhost:8080")
@@ -50,8 +50,8 @@ client = InferenceGatewayClient("http://localhost:8080")
 response = client.create_chat_completion(
     model="openai/gpt-4",
     messages=[
-        Message(role=MessageRole.SYSTEM, content="You are a helpful assistant"),
-        Message(role=MessageRole.USER, content="Hello!")
+        Message(role="system", content="You are a helpful assistant"),
+        Message(role="user", content="Hello!")
     ]
 )
 
@@ -105,13 +105,13 @@ print("OpenAI models:", openai_models)
 #### Standard Completion
 
 ```python
-from inference_gateway import Message, MessageRole
+from inference_gateway import Message
 
 response = client.create_chat_completion(
     model="openai/gpt-4",
     messages=[
-        Message(role=MessageRole.SYSTEM, content="You are a helpful assistant"),
-        Message(role=MessageRole.USER, content="Explain quantum computing")
+        Message(role="system", content="You are a helpful assistant"),
+        Message(role="user", content="Explain quantum computing")
     ],
     max_tokens=500
 )
@@ -126,7 +126,7 @@ print(response.choices[0].message.content)
 for chunk in client.create_chat_completion_stream(
     model="ollama/llama2",
     messages=[
-        Message(role=MessageRole.USER, content="Tell me a story")
+        Message(role="user", content="Tell me a story")
     ],
     use_sse=True
 ):
@@ -136,7 +136,7 @@ for chunk in client.create_chat_completion_stream(
 for chunk in client.create_chat_completion_stream(
     model="anthropic/claude-3",
     messages=[
-        Message(role=MessageRole.USER, content="Explain AI safety")
+        Message(role="user", content="Explain AI safety")
     ],
     use_sse=False
 ):
