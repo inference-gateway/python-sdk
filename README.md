@@ -236,15 +236,20 @@ if response.choices[0].message.tool_calls:
 ### Listing Available MCP Tools
 
 ```python
-# List available MCP tools works when MCP_ENABLE and MCP_EXPOSE are set on the gateway
+# List available MCP tools (requires MCP_ENABLE and MCP_EXPOSE to be set on the gateway)
 tools = client.list_tools()
 print("Available tools:", tools)
 ```
 
-Currently the SDK only supports listing tools, this is useful when you have a UI application and you want to display to the user what tools are connected and available, because the tools themselves live on the server the client doesn't need to instruct the LLM to use them.
-They will be inferred and injected automatically to the request by the Inference Gateway server and the client will receive the final response.
+**Server-Side Tool Management**
 
-When you send a chat completion as a streaming request and you have MCP servers configured, you would see the tool calls in the response stream, but you don't need to do anything special in the client code, it just let you know that the LLM wants to call a tool on the server. This simplify the client code and allows you to focus on the LLM interaction without worrying about tool management.
+The SDK currently supports listing available MCP tools, which is particularly useful for UI applications that need to display connected tools to users. The key advantage is that tools are managed server-side:
+
+- **Automatic Tool Injection**: Tools are automatically inferred and injected into requests by the Inference Gateway server
+- **Simplified Client Code**: No need to manually manage or configure tools in your client application
+- **Transparent Tool Calls**: During streaming chat completions with configured MCP servers, tool calls appear in the response stream - no special handling required except optionally displaying them to users
+
+This architecture allows you to focus on LLM interactions while the gateway handles all tool management complexities behind the scenes.
 
 ### Custom HTTP Configuration
 
