@@ -189,23 +189,12 @@ except InferenceGatewayError as e:
 # List available MCP tools works when MCP_ENABLE and MCP_EXPOSE are set on the gateway
 tools = client.list_tools()
 print("Available tools:", tools)
-
-# Use tools in chat completion works when MCP_ENABLE and MCP_EXPOSE are set to false on the gateway
-response = client.create_chat_completion(
-    model="openai/gpt-4",
-    messages=[...],
-    tools=[
-        {
-            "type": "function",
-            "function": {
-                "name": "get_current_weather",
-                "description": "Get the current weather",
-                "parameters": {...}
-            }
-        }
-    ]
-)
 ```
+
+Currently the SDK only supports listing tools, this is useful when you have a UI application and you want to display to the user what tools are connected and available, because the tools themselves live on the server the client doesn't need to instruct the LLM to use them.
+They will be inferred and injected automatically to the request by the Inference Gateway server and the client will receive the final response.
+
+When you send a chat completion as a streaming request and you have MCP servers configured, you would see the tool calls in the response stream, but you don't need to do anything special in the client code, it just let you know that the LLM wants to call a tool on the server. This simplify the client code and allows you to focus on the LLM interaction without worrying about tool management.
 
 ### Custom HTTP Configuration
 
