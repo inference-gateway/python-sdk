@@ -57,11 +57,11 @@ class InferenceGatewayClient:
     Example:
         ```python
         # Basic usage
-        client = InferenceGatewayClient("https://api.example.com")
+        client = InferenceGatewayClient("https://api.example.com/v1")
 
         # With authentication
         client = InferenceGatewayClient(
-            "https://api.example.com",
+            "https://api.example.com/v1",
             token="your-api-token"
         )
 
@@ -87,7 +87,7 @@ class InferenceGatewayClient:
         """Initialize the client with base URL and optional auth token.
 
         Args:
-            base_url: The base URL of the Inference Gateway API
+            base_url: The base URL of the Inference Gateway API (should include /v1)
             token: Optional authentication token
             timeout: Request timeout in seconds (default: 30.0)
             use_httpx: Whether to use httpx instead of requests (default: False)
@@ -174,7 +174,7 @@ class InferenceGatewayClient:
             InferenceGatewayAPIError: If the API request fails
             InferenceGatewayValidationError: If response validation fails
         """
-        url = f"{self.base_url}/v1/models"
+        url = f"{self.base_url}/models"
         params = {}
 
         if provider:
@@ -285,7 +285,7 @@ class InferenceGatewayClient:
             InferenceGatewayAPIError: If the API request fails
             InferenceGatewayValidationError: If request/response validation fails
         """
-        url = f"{self.base_url}/v1/chat/completions"
+        url = f"{self.base_url}/chat/completions"
         params = {}
 
         if provider:
@@ -345,7 +345,7 @@ class InferenceGatewayClient:
             InferenceGatewayAPIError: If the API request fails
             InferenceGatewayValidationError: If request validation fails
         """
-        url = f"{self.base_url}/v1/chat/completions"
+        url = f"{self.base_url}/chat/completions"
         params = {}
 
         if provider:

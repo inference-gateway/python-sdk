@@ -3,7 +3,7 @@ import os
 from inference_gateway import InferenceGatewayClient, Message
 
 # Initialize client
-client = InferenceGatewayClient("http://localhost:8080")
+client = InferenceGatewayClient("http://localhost:8080/v1")
 
 # Use environment variable with default model
 LLM_NAME = os.getenv("LLM_NAME", "openai/gpt-4")

@@ -44,7 +44,7 @@ pip install inference-gateway
 from inference_gateway import InferenceGatewayClient, Message
 
 # Initialize client
-client = InferenceGatewayClient("http://localhost:8080")
+client = InferenceGatewayClient("http://localhost:8080/v1")
 
 # Simple chat completion
 response = client.create_chat_completion(
@@ -70,18 +70,18 @@ print(response.choices[0].message.content)
 from inference_gateway import InferenceGatewayClient
 
 # Basic configuration
-client = InferenceGatewayClient("http://localhost:8080")
+client = InferenceGatewayClient("http://localhost:8080/v1")
 
 # With authentication
 client = InferenceGatewayClient(
-    "http://localhost:8080",
+    "http://localhost:8080/v1",
     token="your-api-token",
     timeout=60.0  # Custom timeout
 )
 
 # Using httpx instead of requests
 client = InferenceGatewayClient(
-    "http://localhost:8080",
+    "http://localhost:8080/v1",
     use_httpx=True
 )
 ```
@@ -201,13 +201,13 @@ When you send a chat completion as a streaming request and you have MCP servers 
 ```python
 # With custom headers
 client = InferenceGatewayClient(
-    "http://localhost:8080",
+    "http://localhost:8080/v1",
     headers={"X-Custom-Header": "value"}
 )
 
 # With proxy settings
 client = InferenceGatewayClient(
-    "http://localhost:8080",
+    "http://localhost:8080/v1",
     proxies={"http": "http://proxy.example.com"}
 )
 ```
