@@ -19,6 +19,7 @@
     - [Using Tools](#using-tools)
     - [Listing Available MCP Tools](#listing-available-mcp-tools)
     - [Custom HTTP Configuration](#custom-http-configuration)
+  - [Examples](#examples)
   - [License](#license)
 
 A modern Python SDK for interacting with the [Inference Gateway](https://github.com/edenreich/inference-gateway), providing a unified interface to multiple AI providers.
@@ -260,6 +261,17 @@ client = InferenceGatewayClient(
     proxies={"http": "http://proxy.example.com"}
 )
 ```
+
+## Examples
+
+For comprehensive examples demonstrating various use cases, see the [examples](examples/) directory:
+
+- [List LLMs](examples/list/) - How to list available models
+- [Chat](examples/chat/) - Basic and advanced chat completion examples
+- [Tools](examples/tools/) - Working with function tools
+- [MCP](examples/mcp/) - Model Context Protocol integration examples
+
+Each example includes a detailed README with setup instructions and explanations.
 
 ## License
 
