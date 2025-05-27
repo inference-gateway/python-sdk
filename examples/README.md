@@ -4,17 +4,19 @@ Before starting with the examples, ensure you have the inference-gateway up and 
 
 1. Copy the `.env.example` file to `.env` and set your provider key.
 
-2. Set your preferred Large Language Model (LLM) provider for the examples:
+2. Run the Docker container:
+
+```
+docker run --rm -it -p 8080:8080 --env-file .env -e $LLM_NAME ghcr.io/inference-gateway/inference-gateway:latest
+```
+
+3. In a new terminal, set your preferred Large Language Model (LLM) provider for the examples:
 
 ```sh
 export LLM_NAME=groq/meta-llama/llama-4-scout-17b-16e-instruct
 ```
 
-3. Run the Docker container:
-
-```
-docker run --rm -it -p 8080:8080 --env-file .env -e $LLM_NAME ghcr.io/inference-gateway/inference-gateway:0.7.1
-```
+And cd into the specific examples.
 
 Recommended is to set the environment variable `ENVIRONMENT=development` in your `.env` file to enable debug mode.
 
