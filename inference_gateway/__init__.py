@@ -15,7 +15,7 @@ from inference_gateway.models import (
     CompletionUsage,
     CreateChatCompletionRequest,
     CreateChatCompletionResponse,
-    Function,
+    FunctionObject,
     ListModelsResponse,
     Message,
     MessageRole,
@@ -43,5 +43,5 @@ __all__ = [
     "Model",
     "CompletionUsage",
     "ChatCompletionMessageToolCall",
-    "Function",
+    "FunctionObject",
 ]
