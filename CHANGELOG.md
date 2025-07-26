@@ -1,3 +1,23 @@
+## [0.5.0](https://github.com/inference-gateway/python-sdk/compare/v0.4.1...v0.5.0) (2025-07-26)
+
+### ✨ Features
+
+* Add google provider ([#4](https://github.com/inference-gateway/python-sdk/issues/4)) ([09caa2e](https://github.com/inference-gateway/python-sdk/commit/09caa2e466deb9378376716b099134ed8c930a76))
+
+### ♻️ Improvements
+
+* Enhance streaming chat completion with structured SSEvent handling and validation ([#3](https://github.com/inference-gateway/python-sdk/issues/3)) ([cfcf147](https://github.com/inference-gateway/python-sdk/commit/cfcf14701331ccaede318778c66c8337d277ff94))
+
+### 📚 Documentation
+
+* Update README examples for Docker setup and LLM configuration ([e55776d](https://github.com/inference-gateway/python-sdk/commit/e55776d0037d910d08f4303c836a864b8974d589))
+
+### 🔧 Miscellaneous
+
+* Add dependabot configuration for pip and GitHub Actions updates ([3dcc773](https://github.com/inference-gateway/python-sdk/commit/3dcc773dff3cd853fda6da21d97cbc7d0e59f8a4))
+* Change GitHub Actions update schedule from weekly to daily ([99fd21f](https://github.com/inference-gateway/python-sdk/commit/99fd21f902f01c13df3684b05a917121701b04db))
+* Set open-pull-requests-limit to 0 for dependabot updates ([ec02f02](https://github.com/inference-gateway/python-sdk/commit/ec02f02792c35a172ac4c13a07a5bcecd2ca70d9))
+
 ## [0.4.1](https://github.com/inference-gateway/python-sdk/compare/v0.4.0...v0.4.1) (2025-05-26)
 
 ### 📚 Documentation
