@@ -1,3 +1,14 @@
+## [0.6.1](https://github.com/inference-gateway/python-sdk/compare/v0.6.0...v0.6.1) (2026-05-06)
+
+### 📚 Documentation
+
+* Restructure README to mirror Go SDK layout ([7e4d523](https://github.com/inference-gateway/python-sdk/commit/7e4d5234b42012a248c777b04de7dad3aa3e659b))
+
+### 🔧 Miscellaneous
+
+* **deps:** Bump claude-code version ([fb93516](https://github.com/inference-gateway/python-sdk/commit/fb935163340ce2ee62728c15fa859cdce42f623a))
+* Remove copilot instructions ([e8a225a](https://github.com/inference-gateway/python-sdk/commit/e8a225a5a6057daaf8bc7d16d6c50b602d2ca017))
+
 ## [0.6.0](https://github.com/inference-gateway/python-sdk/compare/v0.5.0...v0.6.0) (2026-05-06)
 
 ### ✨ Features
