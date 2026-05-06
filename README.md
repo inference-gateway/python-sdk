@@ -12,12 +12,14 @@
     - [Chat Completions](#chat-completions)
       - [Standard Completion](#standard-completion)
       - [Streaming Completion](#streaming-completion)
+      - [Multimodal Content](#multimodal-content)
     - [Proxy Requests](#proxy-requests)
     - [Health Checking](#health-checking)
   - [Error Handling](#error-handling)
   - [Advanced Usage](#advanced-usage)
     - [Using Tools](#using-tools)
     - [Listing Available MCP Tools](#listing-available-mcp-tools)
+    - [Provider-Specific Tool-Call Metadata](#provider-specific-tool-call-metadata)
     - [Custom HTTP Configuration](#custom-http-configuration)
   - [Examples](#examples)
   - [License](#license)
@@ -57,7 +59,7 @@ response = client.create_chat_completion(
     ]
 )
 
-print(response.choices[0].message.content)
+print(response.choices[0].message.content.root)
 ```
 
 ## Requirements
@@ -118,7 +120,7 @@ response = client.create_chat_completion(
     max_tokens=500
 )
 
-print(response.choices[0].message.content)
+print(response.choices[0].message.content.root)
 ```
 
 #### Streaming Completion
@@ -160,6 +162,45 @@ for chunk in client.create_chat_completion_stream(
         except json.JSONDecodeError:
             pass
 ```
+
+#### Multimodal Content
+
+For models that support vision, `Message.content` accepts either a plain string or a list of content parts mixing text and images:
+
+```python
+from inference_gateway import (
+    InferenceGatewayClient,
+    Message,
+    TextContentPart,
+    ImageContentPart,
+    ImageURL,
+)
+
+client = InferenceGatewayClient("http://localhost:8080/v1")
+
+response = client.create_chat_completion(
+    model="openai/gpt-4o",
+    messages=[
+        Message(
+            role="user",
+            content=[
+                TextContentPart(type="text", text="What's in this image?"),
+                ImageContentPart(
+                    type="image_url",
+                    image_url=ImageURL(
+                        url="https://example.com/image.jpg",
+                        detail="auto",
+                    ),
+                ),
+            ],
+        )
+    ],
+)
+
+print(response.choices[0].message.content.root)
+```
+
+`ImageURL.url` also accepts data URLs (e.g. `data:image/png;base64,...`) for inline images, and `detail` can be `"auto"`, `"low"`, or `"high"`.
 
 ### Proxy Requests
 
@@ -240,7 +281,7 @@ response = client.create_chat_completion(
     tools=[weather_tool]  # Pass the tool definition
 )
 
-print(response.choices[0].message.content)
+print(response.choices[0].message.content.root)
 
 # Check if the model made a tool call
 if response.choices[0].message.tool_calls:
@@ -266,6 +307,35 @@ The SDK currently supports listing available MCP tools, which is particularly us
 - **Transparent Tool Calls**: During streaming chat completions with configured MCP servers, tool calls appear in the response stream - no special handling required except optionally displaying them to users
 
 This architecture allows you to focus on LLM interactions while the gateway handles all tool management complexities behind the scenes.
+
+### Provider-Specific Tool-Call Metadata
+
+Some providers attach opaque, per-call metadata that must be echoed back on follow-up requests. The most notable case is Google Gemini's reasoning models, which return a `thought_signature` on each tool call — the next request must round-trip it verbatim or the provider will reject it.
+
+The SDK preserves this automatically as long as you append the assistant message back to the conversation as a model object (rather than reconstructing it from a dict):
+
+```python
+response = client.create_chat_completion(
+    model="google/gemini-3-pro",
+    messages=messages,
+    tools=tools,
+)
+
+assistant_message = response.choices[0].message
+messages.append(assistant_message)  # preserves extra_content.google.thought_signature
+
+# ... append your tool results, then send the follow-up request ...
+```
+
+If you need to construct one explicitly:
+
+```python
+from inference_gateway import Google, ToolCallExtraContent
+
+extra = ToolCallExtraContent(google=Google(thought_signature="..."))
+```
+
+The field is fully optional — providers that don't use it ignore it entirely, and `model_dump(exclude_none=True)` strips it from the wire when unset.
 
 ### Custom HTTP Configuration
 

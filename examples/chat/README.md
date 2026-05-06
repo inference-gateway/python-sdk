@@ -38,7 +38,7 @@ response = client.create_chat_completion(
     max_tokens=100,
 )
 
-print(response.choices[0].message.content)
+print(response.choices[0].message.content.root)
 ```
 
 ### Streaming Chat Completion
