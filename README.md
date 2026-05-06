@@ -1,171 +1,165 @@
-# Inference Gateway Python SDK
+<div align="center">
 
-- [Inference Gateway Python SDK](#inference-gateway-python-sdk)
-  - [Features](#features)
-  - [Quick Start](#quick-start)
-    - [Installation](#installation)
-    - [Basic Usage](#basic-usage)
-  - [Requirements](#requirements)
-  - [Client Configuration](#client-configuration)
-  - [Core Functionality](#core-functionality)
+# 🚀 Inference Gateway Python SDK
+
+### A modern and easy-to-use Python SDK for the Inference Gateway
+
+[![PyPI version](https://img.shields.io/pypi/v/inference-gateway.svg)](https://pypi.org/project/inference-gateway/)
+[![Python Version](https://img.shields.io/pypi/pyversions/inference-gateway.svg)](https://pypi.org/project/inference-gateway/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Release](https://img.shields.io/github/release/inference-gateway/python-sdk.svg)](https://github.com/inference-gateway/python-sdk/releases)
+
+Connect to multiple LLM providers through a unified interface • Stream responses • Function calling • Vision support • MCP tools support • Pydantic validation
+
+[Installation](#installation) • [Quick Start](#usage) • [Examples](#examples) • [License](#license)
+
+</div>
+
+---
+
+- [🚀 Inference Gateway Python SDK](#-inference-gateway-python-sdk)
+  - [A modern and easy-to-use Python SDK for the Inference Gateway](#a-modern-and-easy-to-use-python-sdk-for-the-inference-gateway)
+  - [Installation](#installation)
+  - [Usage](#usage)
+    - [Creating a Client](#creating-a-client)
     - [Listing Models](#listing-models)
-    - [Chat Completions](#chat-completions)
-      - [Standard Completion](#standard-completion)
-      - [Streaming Completion](#streaming-completion)
-      - [Multimodal Content](#multimodal-content)
-    - [Proxy Requests](#proxy-requests)
-    - [Health Checking](#health-checking)
-  - [Error Handling](#error-handling)
-  - [Advanced Usage](#advanced-usage)
-    - [Using Tools](#using-tools)
-    - [Listing Available MCP Tools](#listing-available-mcp-tools)
+    - [Listing MCP Tools](#listing-mcp-tools)
+    - [Generating Content](#generating-content)
+    - [Vision Support](#vision-support)
+    - [Using ReasoningFormat](#using-reasoningformat)
+    - [Streaming Content](#streaming-content)
+    - [Tool-Use](#tool-use)
     - [Provider-Specific Tool-Call Metadata](#provider-specific-tool-call-metadata)
-    - [Custom HTTP Configuration](#custom-http-configuration)
+    - [Proxy Requests](#proxy-requests)
+    - [Health Check](#health-check)
+    - [Error Handling](#error-handling)
   - [Examples](#examples)
+  - [Supported Providers](#supported-providers)
   - [License](#license)
 
-A modern Python SDK for interacting with the [Inference Gateway](https://github.com/edenreich/inference-gateway), providing a unified interface to multiple AI providers.
+## Installation
 
-## Features
-
-- 🔗 Unified interface for multiple AI providers (OpenAI, Anthropic, Ollama, etc.)
-- 🛡️ Type-safe operations using Pydantic models
-- ⚡ Support for both synchronous and streaming responses
-- 🚨 Built-in error handling and validation
-- 🔄 Proxy requests directly to provider APIs
-
-## Quick Start
-
-### Installation
+To install the SDK, use `pip`:
 
 ```sh
 pip install inference-gateway
 ```
 
-### Basic Usage
+Requires Python 3.12+.
+
+## Usage
+
+### Creating a Client
+
+To create a client, instantiate `InferenceGatewayClient`:
 
 ```python
 from inference_gateway import InferenceGatewayClient, Message
 
-# Initialize client
 client = InferenceGatewayClient("http://localhost:8080/v1")
-
-# Simple chat completion
-response = client.create_chat_completion(
-    model="openai/gpt-4",
-    messages=[
-        Message(role="system", content="You are a helpful assistant"),
-        Message(role="user", content="Hello!")
-    ]
-)
-
-print(response.choices[0].message.content.root)
 ```
 
-## Requirements
-
-- Python 3.8+
-- `requests` or `httpx` (for HTTP client)
-- `pydantic` (for data validation)
-
-## Client Configuration
+The client also supports authentication, custom timeouts, and an optional `httpx` backend:
 
 ```python
-from inference_gateway import InferenceGatewayClient
-
-# Basic configuration
-client = InferenceGatewayClient("http://localhost:8080/v1")
-
 # With authentication
 client = InferenceGatewayClient(
     "http://localhost:8080/v1",
     token="your-api-token",
-    timeout=60.0  # Custom timeout
+    timeout=60.0,
 )
 
-# Using httpx instead of requests
+# Using httpx instead of the default requests backend
 client = InferenceGatewayClient(
     "http://localhost:8080/v1",
-    use_httpx=True
+    use_httpx=True,
 )
-```
 
-## Core Functionality
+# Use as a context manager to ensure the underlying HTTP client is closed
+with InferenceGatewayClient("http://localhost:8080/v1") as client:
+    models = client.list_models()
+```
 
 ### Listing Models
 
-```python
-# List all available models
-models = client.list_models()
-print("All models:", models)
+To list available models, use the `list_models` method:
 
-# Filter by provider
+```python
+# List all models from all providers
+models = client.list_models()
+print("All available models:", models)
+
+# List models for a specific provider
 openai_models = client.list_models(provider="openai")
 print("OpenAI models:", openai_models)
 ```
 
-### Chat Completions
+### Listing MCP Tools
 
-#### Standard Completion
+To list available MCP (Model Context Protocol) tools, use the `list_tools` method. This functionality is only available when `MCP_ENABLE` and `MCP_EXPOSE` are set on the Inference Gateway server:
 
 ```python
-from inference_gateway import Message
+tools = client.list_tools()
+
+print(f"Found {len(tools.data)} MCP tools:")
+for tool in tools.data:
+    print(f"- {tool.name}: {tool.description} (Server: {tool.server})")
+```
+
+> **Note:** The MCP tools endpoint requires authentication and is only accessible when the server has `MCP_EXPOSE=true` configured.
+
+**Server-Side Tool Management**
+
+The SDK currently supports listing available MCP tools, which is particularly useful for UI applications that need to display connected tools to users. The key advantage is that tools are managed server-side:
+
+- **Automatic Tool Injection**: Tools are automatically inferred and injected into requests by the Inference Gateway server
+- **Simplified Client Code**: No need to manually manage or configure tools in your client application
+- **Transparent Tool Calls**: During streaming chat completions with configured MCP servers, tool calls appear in the response stream — no special handling required except optionally displaying them to users
+
+### Generating Content
+
+To generate content using a model, use the `create_chat_completion` method:
+
+> **Note:** Some models support reasoning capabilities. You can use the `reasoning_format` parameter to control how reasoning is provided in the response. The model's reasoning will be available in the `reasoning` or `reasoning_content` fields of the response message.
+
+```python
+from inference_gateway import InferenceGatewayClient, Message
+
+client = InferenceGatewayClient("http://localhost:8080/v1")
 
 response = client.create_chat_completion(
-    model="openai/gpt-4",
+    model="ollama/llama2",
     messages=[
-        Message(role="system", content="You are a helpful assistant"),
-        Message(role="user", content="Explain quantum computing")
+        Message(role="system", content="You are a helpful assistant."),
+        Message(role="user", content="What is Python?"),
     ],
-    max_tokens=500
 )
 
 print(response.choices[0].message.content.root)
+
+# If reasoning was requested and the model supports it
+if response.choices[0].message.reasoning:
+    print("Reasoning:", response.choices[0].message.reasoning)
 ```
 
-#### Streaming Completion
+### Vision Support
+
+The SDK supports multimodal messages with images for vision-capable models like GPT-4o. You can include images via URLs or base64-encoded data URLs.
+
+#### Simple Text Message
 
 ```python
-from inference_gateway.models import CreateChatCompletionStreamResponse
-from pydantic import ValidationError
-import json
+from inference_gateway import InferenceGatewayClient, Message
 
-# Streaming returns SSEvent objects
-for chunk in client.create_chat_completion_stream(
-    model="ollama/llama2",
-    messages=[
-        Message(role="user", content="Tell me a story")
-    ]
-):
-    if chunk.data:
-        try:
-            # Parse the raw JSON data
-            data = json.loads(chunk.data)
+client = InferenceGatewayClient("http://localhost:8080/v1")
 
-            # Unmarshal to structured model for type safety
-            try:
-                structured_chunk = CreateChatCompletionStreamResponse.model_validate(data)
-
-                # Use the structured model for better type safety and IDE support
-                if structured_chunk.choices and len(structured_chunk.choices) > 0:
-                    choice = structured_chunk.choices[0]
-                    if hasattr(choice.delta, 'content') and choice.delta.content:
-                        print(choice.delta.content, end="", flush=True)
-
-            except ValidationError:
-                # Fallback to manual parsing for non-standard chunks
-                if "choices" in data and len(data["choices"]) > 0:
-                    delta = data["choices"][0].get("delta", {})
-                    if "content" in delta and delta["content"]:
-                        print(delta["content"], end="", flush=True)
-
-        except json.JSONDecodeError:
-            pass
+response = client.create_chat_completion(
+    model="openai/gpt-4o",
+    messages=[Message(role="user", content="What is the Python programming language?")],
+)
 ```
 
-#### Multimodal Content
-
-For models that support vision, `Message.content` accepts either a plain string or a list of content parts mixing text and images:
+#### Vision Message with Image URL
 
 ```python
 from inference_gateway import (
@@ -184,7 +178,7 @@ response = client.create_chat_completion(
         Message(
             role="user",
             content=[
-                TextContentPart(type="text", text="What's in this image?"),
+                TextContentPart(type="text", text="What is in this image?"),
                 ImageContentPart(
                     type="image_url",
                     image_url=ImageURL(
@@ -196,117 +190,174 @@ response = client.create_chat_completion(
         )
     ],
 )
-
-print(response.choices[0].message.content.root)
 ```
 
-`ImageURL.url` also accepts data URLs (e.g. `data:image/png;base64,...`) for inline images, and `detail` can be `"auto"`, `"low"`, or `"high"`.
-
-### Proxy Requests
+#### Vision Message with Base64 Encoded Image
 
 ```python
-# Proxy request to OpenAI's API
-response = client.proxy_request(
-    provider="openai",
-    path="/v1/models",
-    method="GET"
+from inference_gateway import ImageContentPart, ImageURL
+
+ImageContentPart(
+    type="image_url",
+    image_url=ImageURL(
+        url="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD...",
+        detail="high",  # better quality, more expensive
+    ),
+)
+```
+
+#### Multiple Images in One Message
+
+```python
+Message(
+    role="user",
+    content=[
+        TextContentPart(type="text", text="Compare these images:"),
+        ImageContentPart(type="image_url", image_url=ImageURL(url="https://example.com/image1.jpg")),
+        ImageContentPart(type="image_url", image_url=ImageURL(url="https://example.com/image2.jpg")),
+    ],
+)
+```
+
+**Image Detail Levels:**
+
+- `"auto"`: Automatic detail level (default)
+- `"low"`: Lower resolution, faster and cheaper
+- `"high"`: Higher resolution, better quality but more expensive
+
+For a complete example, see the [chat example](examples/chat/).
+
+### Using ReasoningFormat
+
+You can enable reasoning capabilities by setting the `reasoning_format` parameter in your request:
+
+```python
+from inference_gateway import InferenceGatewayClient, Message
+
+client = InferenceGatewayClient("http://localhost:8080/v1")
+
+response = client.create_chat_completion(
+    model="anthropic/claude-3-opus-20240229",
+    messages=[
+        Message(role="system", content="You are a helpful assistant. Please include your reasoning for complex questions."),
+        Message(role="user", content="What is the square root of 144 and why?"),
+    ],
+    reasoning_format="parsed",  # "raw" or "parsed" — defaults to "parsed"
 )
 
-print("OpenAI models:", response)
+print("Content:", response.choices[0].message.content.root)
+if response.choices[0].message.reasoning:
+    print("Reasoning:", response.choices[0].message.reasoning)
 ```
 
-### Health Checking
+### Streaming Content
+
+To generate content using streaming mode, use the `create_chat_completion_stream` method. It yields `SSEvent` objects:
 
 ```python
-if client.health_check():
-    print("API is healthy")
-else:
-    print("API is unavailable")
+import json
+from pydantic import ValidationError
+from inference_gateway import InferenceGatewayClient, Message
+from inference_gateway.models import CreateChatCompletionStreamResponse
+
+client = InferenceGatewayClient("http://localhost:8080/v1")
+
+for chunk in client.create_chat_completion_stream(
+    model="ollama/llama2",
+    messages=[
+        Message(role="system", content="You are a helpful assistant."),
+        Message(role="user", content="Tell me a story."),
+    ],
+):
+    if not chunk.data:
+        continue
+
+    try:
+        data = json.loads(chunk.data)
+        stream_response = CreateChatCompletionStreamResponse.model_validate(data)
+    except (json.JSONDecodeError, ValidationError):
+        continue
+
+    for choice in stream_response.choices:
+        # Reasoning content (both reasoning and reasoning_content fields)
+        if choice.delta.reasoning:
+            print(f"💭 Reasoning: {choice.delta.reasoning}")
+        if choice.delta.reasoning_content:
+            print(f"💭 Reasoning: {choice.delta.reasoning_content}")
+
+        if choice.delta.content:
+            print(choice.delta.content, end="", flush=True)
 ```
 
-## Error Handling
+### Tool-Use
 
-The SDK provides several exception types:
-
-```python
-try:
-    response = client.create_chat_completion(...)
-except InferenceGatewayAPIError as e:
-    print(f"API Error: {e} (Status: {e.status_code})")
-    print("Response:", e.response_data)
-except InferenceGatewayValidationError as e:
-    print(f"Validation Error: {e}")
-except InferenceGatewayError as e:
-    print(f"General Error: {e}")
-```
-
-## Advanced Usage
-
-### Using Tools
+To use tools with the SDK, define a tool with the type-safe Pydantic models and pass it to the request:
 
 ```python
-# Define a weather tool using type-safe Pydantic models
+from inference_gateway import InferenceGatewayClient, Message
 from inference_gateway.models import ChatCompletionTool, FunctionObject, FunctionParameters
 
-weather_tool = ChatCompletionTool(
-    type="function",
-    function=FunctionObject(
-        name="get_current_weather",
-        description="Get the current weather in a given location",
-        parameters=FunctionParameters(
-            type="object",
-            properties={
-                "location": {
-                    "type": "string",
-                    "description": "The city and state, e.g. San Francisco, CA"
+client = InferenceGatewayClient("http://localhost:8080/v1")
+
+tools = [
+    ChatCompletionTool(
+        type="function",
+        function=FunctionObject(
+            name="get_current_weather",
+            description="Get the current weather in a given location",
+            parameters=FunctionParameters(
+                type="object",
+                properties={
+                    "location": {
+                        "type": "string",
+                        "enum": ["san francisco", "new york", "london", "tokyo", "sydney"],
+                        "description": "The city and state, e.g. San Francisco, CA",
+                    },
+                    "unit": {
+                        "type": "string",
+                        "enum": ["celsius", "fahrenheit"],
+                        "description": "The temperature unit to use",
+                    },
                 },
-                "unit": {
-                    "type": "string",
-                    "enum": ["celsius", "fahrenheit"],
-                    "description": "The temperature unit to use"
-                }
-            },
-            required=["location"]
-        )
-    )
-)
+                required=["location"],
+            ),
+        ),
+    ),
+    ChatCompletionTool(
+        type="function",
+        function=FunctionObject(
+            name="get_current_time",
+            description="Get the current time in a given location",
+            parameters=FunctionParameters(
+                type="object",
+                properties={
+                    "location": {
+                        "type": "string",
+                        "enum": ["san francisco", "new york", "london", "tokyo", "sydney"],
+                        "description": "The city and state, e.g. San Francisco, CA",
+                    },
+                },
+                required=["location"],
+            ),
+        ),
+    ),
+]
 
-# Using tools in a chat completion
 response = client.create_chat_completion(
-    model="openai/gpt-4",
+    model="openai/gpt-4o",
     messages=[
-        Message(role="system", content="You are a helpful assistant with access to weather information"),
-        Message(role="user", content="What is the weather like in New York?")
+        Message(role="system", content="You are a helpful assistant with access to weather and time information."),
+        Message(role="user", content="What is the weather like in New York?"),
     ],
-    tools=[weather_tool]  # Pass the tool definition
+    tools=tools,
 )
 
-print(response.choices[0].message.content.root)
-
-# Check if the model made a tool call
+# Inspect any tool calls made by the model
 if response.choices[0].message.tool_calls:
     for tool_call in response.choices[0].message.tool_calls:
         print(f"Tool called: {tool_call.function.name}")
         print(f"Arguments: {tool_call.function.arguments}")
 ```
-
-### Listing Available MCP Tools
-
-```python
-# List available MCP tools (requires MCP_ENABLE and MCP_EXPOSE to be set on the gateway)
-tools = client.list_tools()
-print("Available tools:", tools)
-```
-
-**Server-Side Tool Management**
-
-The SDK currently supports listing available MCP tools, which is particularly useful for UI applications that need to display connected tools to users. The key advantage is that tools are managed server-side:
-
-- **Automatic Tool Injection**: Tools are automatically inferred and injected into requests by the Inference Gateway server
-- **Simplified Client Code**: No need to manually manage or configure tools in your client application
-- **Transparent Tool Calls**: During streaming chat completions with configured MCP servers, tool calls appear in the response stream - no special handling required except optionally displaying them to users
-
-This architecture allows you to focus on LLM interactions while the gateway handles all tool management complexities behind the scenes.
 
 ### Provider-Specific Tool-Call Metadata
 
@@ -337,32 +388,79 @@ extra = ToolCallExtraContent(google=Google(thought_signature="..."))
 
 The field is fully optional — providers that don't use it ignore it entirely, and `model_dump(exclude_none=True)` strips it from the wire when unset.
 
-### Custom HTTP Configuration
+### Proxy Requests
+
+To proxy a raw request directly to a provider's API through the gateway, use `proxy_request`:
 
 ```python
-# With custom headers
-client = InferenceGatewayClient(
-    "http://localhost:8080/v1",
-    headers={"X-Custom-Header": "value"}
+response = client.proxy_request(
+    provider="openai",
+    path="/v1/models",
+    method="GET",
 )
 
-# With proxy settings
-client = InferenceGatewayClient(
-    "http://localhost:8080/v1",
-    proxies={"http": "http://proxy.example.com"}
+print("OpenAI models:", response)
+```
+
+### Health Check
+
+To check if the API is healthy:
+
+```python
+if client.health_check():
+    print("API is healthy")
+else:
+    print("API is unavailable")
+```
+
+### Error Handling
+
+The SDK provides several exception types:
+
+```python
+from inference_gateway import (
+    InferenceGatewayError,
+    InferenceGatewayAPIError,
+    InferenceGatewayValidationError,
 )
+
+try:
+    response = client.create_chat_completion(...)
+except InferenceGatewayAPIError as e:
+    print(f"API Error: {e} (Status: {e.status_code})")
+    print("Response:", e.response_data)
+except InferenceGatewayValidationError as e:
+    print(f"Validation Error: {e}")
+except InferenceGatewayError as e:
+    print(f"General Error: {e}")
 ```
 
 ## Examples
 
-For comprehensive examples demonstrating various use cases, see the [examples](examples/) directory:
+For more detailed examples and use cases, check out the [examples directory](./examples/). The examples include:
 
-- [List LLMs](examples/list/) - How to list available models
-- [Chat](examples/chat/) - Basic and advanced chat completion examples
-- [Tools](examples/tools/) - Working with function tools
-- [MCP](examples/mcp/) - Model Context Protocol integration examples
+- **[List Example](./examples/list/)** - How to list available models
+- **[Chat Example](./examples/chat/)** - Basic and advanced chat completion examples
+- **[Tools Example](./examples/tools/)** - Function calling and tool usage
+- **[MCP Example](./examples/mcp/)** - Model Context Protocol integration examples
 
-Each example includes a detailed README with setup instructions and explanations.
+Each example includes its own README with specific instructions and explanations.
+
+## Supported Providers
+
+The SDK supports the following LLM providers:
+
+- Ollama (`"ollama"`)
+- Ollama Cloud (`"ollama_cloud"`)
+- Groq (`"groq"`)
+- OpenAI (`"openai"`)
+- DeepSeek (`"deepseek"`)
+- Cloudflare (`"cloudflare"`)
+- Cohere (`"cohere"`)
+- Anthropic (`"anthropic"`)
+- Google (`"google"`)
+- Mistral AI (`"mistral"`)
+- Moonshot (`"moonshot"`)
 
 ## License
 
