@@ -76,8 +76,8 @@ def main() -> None:
                                 print(choice.delta.content, end="", flush=True)
 
                             # Optionally show other information
-                            if choice.finish_reason and choice.finish_reason != "null":
-                                print(f"\n[Finished: {choice.finish_reason}]")
+                            if choice.finish_reason and choice.finish_reason.root != "null":
+                                print(f"\n[Finished: {choice.finish_reason.root}]")
 
                     except ValidationError:
                         # Fallback to manual parsing for non-standard chunks

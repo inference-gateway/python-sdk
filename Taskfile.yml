@@ -52,6 +52,7 @@ tasks:
         --field-constraints
         --disable-appending-item-suffix
         --custom-template-dir templates/
+        --type-mappings "string+byte=string"
         --wrap-string-literal
         --use-one-literal-as-default
         --use-subclass-enum

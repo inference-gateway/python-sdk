@@ -212,7 +212,7 @@ def test_message_model():
     """Test Message model creation and serialization"""
     message = Message(role="user", content="Hello!")
     assert message.role.root == "user"
-    assert message.content == "Hello!"
+    assert message.content.root == "Hello!"
 
     message_dict = message.model_dump()
     assert message_dict["role"] == "user"

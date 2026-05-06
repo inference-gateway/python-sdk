@@ -147,30 +147,17 @@ def main() -> None:
         response = client.create_chat_completion(model=LLM_NAME, messages=messages, tools=tools)
 
         assistant_message = response.choices[0].message
-        print(f"Assistant: {assistant_message.content or '(Making tool calls...)'}")
+        assistant_text = assistant_message.content.root if assistant_message.content else None
+        print(f"Assistant: {assistant_text or '(Making tool calls...)'}")
 
         # Check if the model made tool calls
         if assistant_message.tool_calls:
             print(f"\nTool calls made: {len(assistant_message.tool_calls)}")
 
-            # Add assistant message to conversation
-            messages.append(
-                Message(
-                    role="assistant",
-                    content=assistant_message.content,
-                    tool_calls=[
-                        {
-                            "id": tool_call.id,
-                            "type": tool_call.type,
-                            "function": {
-                                "name": tool_call.function.name,
-                                "arguments": tool_call.function.arguments,
-                            },
-                        }
-                        for tool_call in assistant_message.tool_calls
-                    ],
-                )
-            )
+            # Echo the assistant message back verbatim so provider-specific
+            # fields like Google Gemini's `extra_content.google.thought_signature`
+            # round-trip correctly.
+            messages.append(assistant_message)
 
             # Execute each tool call and add results
             for tool_call in assistant_message.tool_calls:
@@ -191,7 +178,9 @@ def main() -> None:
                 model=LLM_NAME, messages=messages, tools=tools
             )
 
-            print(f"\nFinal Assistant Response: {final_response.choices[0].message.content}")
+            final_content = final_response.choices[0].message.content
+            final_text = final_content.root if final_content else ""
+            print(f"\nFinal Assistant Response: {final_text}")
         else:
             print("No tool calls were made.")
 
