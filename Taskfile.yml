@@ -2,8 +2,8 @@
 version: "3"
 
 vars:
-  OPENAPI_URL: https://raw.githubusercontent.com/inference-gateway/inference-gateway/refs/heads/main/openapi.yaml
-  PYTHON_VERSION: "3.12"
+  OPENAPI_URL: https://raw.githubusercontent.com/inference-gateway/schemas/refs/heads/main/openapi.yaml
+  PYTHON_VERSION: "3.13"
 
 tasks:
   default:
@@ -43,7 +43,7 @@ tasks:
         --output inference_gateway/models.py
         --output-model-type pydantic_v2.BaseModel
         --enum-field-as-literal all
-        --target-python-version 3.12
+        --target-python-version {{.PYTHON_VERSION}}
         --use-schema-description
         --use-generic-container-types
         --use-standard-collections
