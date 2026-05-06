@@ -1,3 +1,19 @@
+## [0.6.0](https://github.com/inference-gateway/python-sdk/compare/v0.5.0...v0.6.0) (2026-05-06)
+
+### ✨ Features
+
+* Sync SDK with latest OpenAPI spec ([7e124d5](https://github.com/inference-gateway/python-sdk/commit/7e124d5c66db6ee5dcb6c10cbfd456e0cf46b6d1))
+
+### 📚 Documentation
+
+* Update README to include multimodal content and provider-specific tool-call metadata ([dd22363](https://github.com/inference-gateway/python-sdk/commit/dd22363125e1efc931fd93c1c7bf6158cccb5c46))
+
+### 🔧 Miscellaneous
+
+* **deps:** Bump all dependecies to their latest ([6552eeb](https://github.com/inference-gateway/python-sdk/commit/6552eeb7727176783abd76cbb675d6de5b2f4977))
+* **deps:** Bump CI and pre-commit hook versions ([5874606](https://github.com/inference-gateway/python-sdk/commit/587460637a0644e3f84e418aefad4cfcf78cb536))
+* **deps:** Bump other 3.12 python instances to 3.13 ([da26b3f](https://github.com/inference-gateway/python-sdk/commit/da26b3fee8c419fd88b3dd895c86dc9e4d7df49d))
+
 ## [0.5.0](https://github.com/inference-gateway/python-sdk/compare/v0.4.1...v0.5.0) (2025-07-26)
 
 ### ✨ Features
