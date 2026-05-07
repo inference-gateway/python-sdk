@@ -1,3 +1,13 @@
+## [0.6.2](https://github.com/inference-gateway/python-sdk/compare/v0.6.1...v0.6.2) (2026-05-07)
+
+### 👷 CI
+
+* Add claude code action ([b22620a](https://github.com/inference-gateway/python-sdk/commit/b22620a5cc94f5ee25c5591dc8f65319e9bae3b9))
+
+### 🔧 Miscellaneous
+
+* Update Claude workflow configuration for branch prefix and allowed tools ([973d5dd](https://github.com/inference-gateway/python-sdk/commit/973d5dd600449434f6ce0af47bf2abaa974becf7))
+
 ## [0.6.1](https://github.com/inference-gateway/python-sdk/compare/v0.6.0...v0.6.1) (2026-05-06)
 
 ### 📚 Documentation
