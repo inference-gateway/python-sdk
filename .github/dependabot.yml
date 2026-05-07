@@ -5,10 +5,6 @@ updates:
     schedule:
       interval: "daily"
     open-pull-requests-limit: 0
-    reviewers:
-      - "inference-gateway/maintainers"
-    assignees:
-      - "inference-gateway/maintainers"
     commit-message:
       prefix: "deps"
       prefix-development: "deps-dev"
@@ -28,10 +24,6 @@ updates:
     schedule:
       interval: "daily"
     open-pull-requests-limit: 0
-    reviewers:
-      - "inference-gateway/maintainers"
-    assignees:
-      - "inference-gateway/maintainers"
     commit-message:
       prefix: "ci"
       include: "scope"
