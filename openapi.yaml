@@ -933,7 +933,7 @@ components:
         See the [guide](/docs/guides/function-calling) for examples, and the
         [JSON Schema
         reference](https://json-schema.org/understanding-json-schema/) for
-        documentation about the format.
+        documentation about the format. 
 
         Omitting `parameters` defines a function with an empty parameter list.
       additionalProperties: true
@@ -1023,7 +1023,7 @@ components:
             The format of the reasoning content. Can be `raw` or `parsed`.
 
             When specified as raw some reasoning models will output <think /> tags.
-            When specified as parsed the model will output the reasoning under
+            When specified as parsed the model will output the reasoning under 
             `reasoning` or `reasoning_content` attribute.
       required:
         - model
@@ -1072,11 +1072,28 @@ components:
           description: The index of the choice in the list of choices.
         message:
           $ref: '#/components/schemas/Message'
+        logprobs:
+          description: Log probability information for the choice.
+          type: object
+          nullable: true
+          properties:
+            content:
+              description: A list of message content tokens with log probability information.
+              type: array
+              items:
+                $ref: '#/components/schemas/ChatCompletionTokenLogprob'
+            refusal:
+              description: A list of message refusal tokens with log probability information.
+              type: array
+              items:
+                $ref: '#/components/schemas/ChatCompletionTokenLogprob'
+          required:
+            - content
+            - refusal
       required:
         - finish_reason
         - index
         - message
-        - logprobs
     ChatCompletionStreamChoice:
       type: object
       required:
