@@ -4,9 +4,10 @@ schema-version = "1.11.0"
 python3.pkg-path = "python3"
 python3.version = "^3.13.12"
 claude-code.pkg-path = "claude-code"
-claude-code.version = "2.1.123"
+claude-code.version = "2.1.137"
 go-task.pkg-path = "go-task"
 go-task.version = "3.48.0"
+infer.flake = "github:inference-gateway/cli/v0.109.6"
 
 [hook]
 on-activate = """
