@@ -3,16 +3,24 @@
   "manifest": {
     "schema-version": "1.11.0",
     "install": {
+      "black": {
+        "pkg-path": "black",
+        "version": "25.1.0"
+      },
       "claude-code": {
         "pkg-path": "claude-code",
-        "version": "2.1.141"
+        "version": "^2.1.141"
       },
       "go-task": {
         "pkg-path": "go-task",
         "version": "3.48.0"
       },
       "infer": {
-        "flake": "github:inference-gateway/cli/v0.109.8"
+        "flake": "github:inference-gateway/cli/v0.109.11"
+      },
+      "isort": {
+        "pkg-path": "isort",
+        "version": "7.0.0"
       },
       "python3": {
         "pkg-path": "python3",
@@ -31,6 +39,126 @@
     "options": {}
   },
   "packages": [
+    {
+      "attr_path": "black",
+      "broken": false,
+      "derivation": "/nix/store/l7n6kfi4sxqr2h83frxhx62anjf6ckii-python3.13-black-25.1.0.drv",
+      "description": "Uncompromising Python code formatter",
+      "install_id": "black",
+      "license": "MIT",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=d233902339c02a9c334e7e593de68855ad26c4cb",
+      "name": "black-25.1.0",
+      "pname": "black",
+      "rev": "d233902339c02a9c334e7e593de68855ad26c4cb",
+      "rev_count": 998534,
+      "rev_date": "2026-05-15T18:21:44Z",
+      "scrape_date": "2026-05-17T07:05:50.614779Z",
+      "stabilities": [
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "25.1.0",
+      "outputs_to_install": [
+        "out"
+      ],
+      "outputs": {
+        "dist": "/nix/store/5gnmnjc0s54fb7pfzizwqd3d4p5pjjjg-python3.13-black-25.1.0-dist",
+        "out": "/nix/store/wfvhlrn5nd6khns8vd4mynz00isd6wcq-python3.13-black-25.1.0"
+      },
+      "system": "aarch64-darwin",
+      "group": "toplevel",
+      "priority": 5
+    },
+    {
+      "attr_path": "black",
+      "broken": false,
+      "derivation": "/nix/store/7waam261yhn823748f1alb9v2p03vli5-python3.13-black-25.1.0.drv",
+      "description": "Uncompromising Python code formatter",
+      "install_id": "black",
+      "license": "MIT",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=d233902339c02a9c334e7e593de68855ad26c4cb",
+      "name": "black-25.1.0",
+      "pname": "black",
+      "rev": "d233902339c02a9c334e7e593de68855ad26c4cb",
+      "rev_count": 998534,
+      "rev_date": "2026-05-15T18:21:44Z",
+      "scrape_date": "2026-05-17T07:33:28.943277Z",
+      "stabilities": [
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "25.1.0",
+      "outputs_to_install": [
+        "out"
+      ],
+      "outputs": {
+        "dist": "/nix/store/nb3mqycwrw0bj0khkrdj2a6lhkgpfgvj-python3.13-black-25.1.0-dist",
+        "out": "/nix/store/dkki51dvfkff891fs0yng4p751dz2wfq-python3.13-black-25.1.0"
+      },
+      "system": "aarch64-linux",
+      "group": "toplevel",
+      "priority": 5
+    },
+    {
+      "attr_path": "black",
+      "broken": false,
+      "derivation": "/nix/store/6fagwi6l7q5ljiy67j685r41p83fsl4s-python3.13-black-25.1.0.drv",
+      "description": "Uncompromising Python code formatter",
+      "install_id": "black",
+      "license": "MIT",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=d233902339c02a9c334e7e593de68855ad26c4cb",
+      "name": "black-25.1.0",
+      "pname": "black",
+      "rev": "d233902339c02a9c334e7e593de68855ad26c4cb",
+      "rev_count": 998534,
+      "rev_date": "2026-05-15T18:21:44Z",
+      "scrape_date": "2026-05-17T08:01:17.146456Z",
+      "stabilities": [
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "25.1.0",
+      "outputs_to_install": [
+        "out"
+      ],
+      "outputs": {
+        "dist": "/nix/store/yw8381l8r3r19322gh8n75336yilqbqj-python3.13-black-25.1.0-dist",
+        "out": "/nix/store/603bwrsl9zl0b3n0xxnhgkgwrnz63jcq-python3.13-black-25.1.0"
+      },
+      "system": "x86_64-darwin",
+      "group": "toplevel",
+      "priority": 5
+    },
+    {
+      "attr_path": "black",
+      "broken": false,
+      "derivation": "/nix/store/wp82shf56b7xf8i47jyfkl28b3q6bl5l-python3.13-black-25.1.0.drv",
+      "description": "Uncompromising Python code formatter",
+      "install_id": "black",
+      "license": "MIT",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=d233902339c02a9c334e7e593de68855ad26c4cb",
+      "name": "black-25.1.0",
+      "pname": "black",
+      "rev": "d233902339c02a9c334e7e593de68855ad26c4cb",
+      "rev_count": 998534,
+      "rev_date": "2026-05-15T18:21:44Z",
+      "scrape_date": "2026-05-17T08:32:09.131435Z",
+      "stabilities": [
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "25.1.0",
+      "outputs_to_install": [
+        "out"
+      ],
+      "outputs": {
+        "dist": "/nix/store/qik22v7lg69v3j1vyzdi3b26a4slflwm-python3.13-black-25.1.0-dist",
+        "out": "/nix/store/yk2ay5wn56lcribazm7cvwvxasm3nvhk-python3.13-black-25.1.0"
+      },
+      "system": "x86_64-linux",
+      "group": "toplevel",
+      "priority": 5
+    },
     {
       "attr_path": "claude-code",
       "broken": false,
@@ -264,6 +392,126 @@
       "priority": 5
     },
     {
+      "attr_path": "isort",
+      "broken": false,
+      "derivation": "/nix/store/w5gcjpq3xkkydm0qha2xz3rwb1qyqka8-python3.13-isort-7.0.0.drv",
+      "description": "Python utility / library to sort Python imports",
+      "install_id": "isort",
+      "license": "MIT",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=d233902339c02a9c334e7e593de68855ad26c4cb",
+      "name": "isort-7.0.0",
+      "pname": "isort",
+      "rev": "d233902339c02a9c334e7e593de68855ad26c4cb",
+      "rev_count": 998534,
+      "rev_date": "2026-05-15T18:21:44Z",
+      "scrape_date": "2026-05-17T07:06:07.403249Z",
+      "stabilities": [
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "7.0.0",
+      "outputs_to_install": [
+        "out"
+      ],
+      "outputs": {
+        "dist": "/nix/store/16lfnjk2jy791bc5i6iq8ckk8ryxgqff-python3.13-isort-7.0.0-dist",
+        "out": "/nix/store/rkm2m2pbkpl20vrhs92ffgmbqksl2pfr-python3.13-isort-7.0.0"
+      },
+      "system": "aarch64-darwin",
+      "group": "toplevel",
+      "priority": 5
+    },
+    {
+      "attr_path": "isort",
+      "broken": false,
+      "derivation": "/nix/store/kry9dc4vayk1d7wkvxgw9ic89w31wsm4-python3.13-isort-7.0.0.drv",
+      "description": "Python utility / library to sort Python imports",
+      "install_id": "isort",
+      "license": "MIT",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=d233902339c02a9c334e7e593de68855ad26c4cb",
+      "name": "isort-7.0.0",
+      "pname": "isort",
+      "rev": "d233902339c02a9c334e7e593de68855ad26c4cb",
+      "rev_count": 998534,
+      "rev_date": "2026-05-15T18:21:44Z",
+      "scrape_date": "2026-05-17T07:33:50.195660Z",
+      "stabilities": [
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "7.0.0",
+      "outputs_to_install": [
+        "out"
+      ],
+      "outputs": {
+        "dist": "/nix/store/3hff0kykrx4k9zidaxyngdvbr4n9zsyy-python3.13-isort-7.0.0-dist",
+        "out": "/nix/store/7231jrw0ickg2fgq4n2cbqji0iyz9qb1-python3.13-isort-7.0.0"
+      },
+      "system": "aarch64-linux",
+      "group": "toplevel",
+      "priority": 5
+    },
+    {
+      "attr_path": "isort",
+      "broken": false,
+      "derivation": "/nix/store/4jmkvy42vc2bhfp9mx5bgrqb16vnp7is-python3.13-isort-7.0.0.drv",
+      "description": "Python utility / library to sort Python imports",
+      "install_id": "isort",
+      "license": "MIT",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=d233902339c02a9c334e7e593de68855ad26c4cb",
+      "name": "isort-7.0.0",
+      "pname": "isort",
+      "rev": "d233902339c02a9c334e7e593de68855ad26c4cb",
+      "rev_count": 998534,
+      "rev_date": "2026-05-15T18:21:44Z",
+      "scrape_date": "2026-05-17T08:01:34.475770Z",
+      "stabilities": [
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "7.0.0",
+      "outputs_to_install": [
+        "out"
+      ],
+      "outputs": {
+        "dist": "/nix/store/547yiqvyiy17l0qr82jywfazv6l9vi5i-python3.13-isort-7.0.0-dist",
+        "out": "/nix/store/13ac7d48qdfb8fl911h8bvm4fbxd3f7b-python3.13-isort-7.0.0"
+      },
+      "system": "x86_64-darwin",
+      "group": "toplevel",
+      "priority": 5
+    },
+    {
+      "attr_path": "isort",
+      "broken": false,
+      "derivation": "/nix/store/dfvz1c9nij3sqrpv7nkjs9jysm08wk2g-python3.13-isort-7.0.0.drv",
+      "description": "Python utility / library to sort Python imports",
+      "install_id": "isort",
+      "license": "MIT",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=d233902339c02a9c334e7e593de68855ad26c4cb",
+      "name": "isort-7.0.0",
+      "pname": "isort",
+      "rev": "d233902339c02a9c334e7e593de68855ad26c4cb",
+      "rev_count": 998534,
+      "rev_date": "2026-05-15T18:21:44Z",
+      "scrape_date": "2026-05-17T08:32:31.950903Z",
+      "stabilities": [
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "7.0.0",
+      "outputs_to_install": [
+        "out"
+      ],
+      "outputs": {
+        "dist": "/nix/store/22m7qpblyr46k80dsfy6hyjln70l234h-python3.13-isort-7.0.0-dist",
+        "out": "/nix/store/ghb6811dphc5l80ywaj5jdzaqjriirkq-python3.13-isort-7.0.0"
+      },
+      "system": "x86_64-linux",
+      "group": "toplevel",
+      "priority": 5
+    },
+    {
       "attr_path": "python3",
       "broken": false,
       "derivation": "/nix/store/4jsnzrzl379r6cjrr836lh6vi4p4kgv4-python3-3.13.12.drv",
@@ -393,12 +641,12 @@
     },
     {
       "install_id": "infer",
-      "locked-url": "github:inference-gateway/cli/00bf8592d5e792674fb42f213690b6c9b3103204?narHash=sha256-yyuHcPzWuH1PAvQV7LQST3IOQMH4XeC47kA5HOCdc80%3D",
+      "locked-url": "github:inference-gateway/cli/9fa99d36a9eed8efe65bad85c3ba53d405c386d3?narHash=sha256-Re9UOFjjqBasuU%2BoRe7wUN2JfwLTcTP%2BDaz3Bt3tfpg%3D",
       "flake-description": "Inference Gateway CLI - infer",
       "locked-flake-attr-path": "packages.aarch64-darwin.default",
-      "derivation": "/nix/store/7ds14pggchd9qpn81hbidfdydiaj0pzv-infer-0.109.8.drv",
+      "derivation": "/nix/store/80v5r9c3d56djgykcb66j0hschadbh1d-infer-0.109.11.drv",
       "outputs": {
-        "out": "/nix/store/z35ky0aisdhzjha87xld56nkjzpgmmmm-infer-0.109.8"
+        "out": "/nix/store/y378g3ardzhdm185xzs9hpxzrhdaz4vc-infer-0.109.11"
       },
       "output-names": [
         "out"
@@ -409,9 +657,9 @@
       "requested-outputs-to-install": [],
       "package-system": "aarch64-darwin",
       "system": "aarch64-darwin",
-      "name": "infer-0.109.8",
+      "name": "infer-0.109.11",
       "pname": "infer",
-      "version": "0.109.8",
+      "version": "0.109.11",
       "description": "Command-line interface for the Inference Gateway - AI model interaction manager",
       "licenses": [
         "MIT"
@@ -422,12 +670,12 @@
     },
     {
       "install_id": "infer",
-      "locked-url": "github:inference-gateway/cli/00bf8592d5e792674fb42f213690b6c9b3103204?narHash=sha256-yyuHcPzWuH1PAvQV7LQST3IOQMH4XeC47kA5HOCdc80%3D",
+      "locked-url": "github:inference-gateway/cli/9fa99d36a9eed8efe65bad85c3ba53d405c386d3?narHash=sha256-Re9UOFjjqBasuU%2BoRe7wUN2JfwLTcTP%2BDaz3Bt3tfpg%3D",
       "flake-description": "Inference Gateway CLI - infer",
       "locked-flake-attr-path": "packages.aarch64-linux.default",
-      "derivation": "/nix/store/a0s0xfwwwq9vyhw760zmbvxxajy5ss72-infer-0.109.8.drv",
+      "derivation": "/nix/store/a0ks779h5pcxzavj9vjm2ggik81gqn1h-infer-0.109.11.drv",
       "outputs": {
-        "out": "/nix/store/pas6pxjxv117g7sc4j6j32g13dwax2g5-infer-0.109.8"
+        "out": "/nix/store/71fj6d5bjpj6c0axhmlmym50a2hz8r1a-infer-0.109.11"
       },
       "output-names": [
         "out"
@@ -438,9 +686,9 @@
       "requested-outputs-to-install": [],
       "package-system": "aarch64-linux",
       "system": "aarch64-linux",
-      "name": "infer-0.109.8",
+      "name": "infer-0.109.11",
       "pname": "infer",
-      "version": "0.109.8",
+      "version": "0.109.11",
       "description": "Command-line interface for the Inference Gateway - AI model interaction manager",
       "licenses": [
         "MIT"
@@ -451,12 +699,12 @@
     },
     {
       "install_id": "infer",
-      "locked-url": "github:inference-gateway/cli/00bf8592d5e792674fb42f213690b6c9b3103204?narHash=sha256-yyuHcPzWuH1PAvQV7LQST3IOQMH4XeC47kA5HOCdc80%3D",
+      "locked-url": "github:inference-gateway/cli/9fa99d36a9eed8efe65bad85c3ba53d405c386d3?narHash=sha256-Re9UOFjjqBasuU%2BoRe7wUN2JfwLTcTP%2BDaz3Bt3tfpg%3D",
       "flake-description": "Inference Gateway CLI - infer",
       "locked-flake-attr-path": "packages.x86_64-darwin.default",
-      "derivation": "/nix/store/0zv9wdb6y5in5bhpigigb8z6qansi6fh-infer-0.109.8.drv",
+      "derivation": "/nix/store/6360p5vwriizzvrw41l97a4r4f3ihhw9-infer-0.109.11.drv",
       "outputs": {
-        "out": "/nix/store/q50ya2h6vncgcz6vagmdp0i395nbsg9c-infer-0.109.8"
+        "out": "/nix/store/cadhlw2mzcbgaqgzjqbhrmmh7f7v18a4-infer-0.109.11"
       },
       "output-names": [
         "out"
@@ -467,9 +715,9 @@
       "requested-outputs-to-install": [],
       "package-system": "x86_64-darwin",
       "system": "x86_64-darwin",
-      "name": "infer-0.109.8",
+      "name": "infer-0.109.11",
       "pname": "infer",
-      "version": "0.109.8",
+      "version": "0.109.11",
       "description": "Command-line interface for the Inference Gateway - AI model interaction manager",
       "licenses": [
         "MIT"
@@ -480,12 +728,12 @@
     },
     {
       "install_id": "infer",
-      "locked-url": "github:inference-gateway/cli/00bf8592d5e792674fb42f213690b6c9b3103204?narHash=sha256-yyuHcPzWuH1PAvQV7LQST3IOQMH4XeC47kA5HOCdc80%3D",
+      "locked-url": "github:inference-gateway/cli/9fa99d36a9eed8efe65bad85c3ba53d405c386d3?narHash=sha256-Re9UOFjjqBasuU%2BoRe7wUN2JfwLTcTP%2BDaz3Bt3tfpg%3D",
       "flake-description": "Inference Gateway CLI - infer",
       "locked-flake-attr-path": "packages.x86_64-linux.default",
-      "derivation": "/nix/store/qcmp1766a7j0liyfxzh4hbpf4k6vqgxm-infer-0.109.8.drv",
+      "derivation": "/nix/store/22b3gk75i7a9123p7nyl1mwl5xd0j8d5-infer-0.109.11.drv",
       "outputs": {
-        "out": "/nix/store/j1misprvb146zavv8ya1kpna2j6lir19-infer-0.109.8"
+        "out": "/nix/store/kr4vww7ax035rildp6kb14gpaxpk1ayl-infer-0.109.11"
       },
       "output-names": [
         "out"
@@ -496,9 +744,9 @@
       "requested-outputs-to-install": [],
       "package-system": "x86_64-linux",
       "system": "x86_64-linux",
-      "name": "infer-0.109.8",
+      "name": "infer-0.109.11",
       "pname": "infer",
-      "version": "0.109.8",
+      "version": "0.109.11",
       "description": "Command-line interface for the Inference Gateway - AI model interaction manager",
       "licenses": [
         "MIT"
