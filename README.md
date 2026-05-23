@@ -6,7 +6,7 @@
 
 [![PyPI version](https://img.shields.io/pypi/v/inference-gateway.svg)](https://pypi.org/project/inference-gateway/)
 [![Python Version](https://img.shields.io/pypi/pyversions/inference-gateway.svg)](https://pypi.org/project/inference-gateway/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 [![Release](https://img.shields.io/github/release/inference-gateway/python-sdk.svg)](https://github.com/inference-gateway/python-sdk/releases)
 
 Connect to multiple LLM providers through a unified interface • Stream responses • Function calling • Vision support • MCP tools support • Pydantic validation
@@ -464,4 +464,4 @@ The SDK supports the following LLM providers:
 
 ## License
 
-This SDK is distributed under the MIT License, see [LICENSE](LICENSE) for more information.
+This SDK is distributed under the Apache 2.0 License, see [LICENSE](LICENSE) for more information.
