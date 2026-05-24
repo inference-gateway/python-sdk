@@ -114,7 +114,7 @@ The SDK currently supports listing available MCP tools, which is particularly us
 
 - **Automatic Tool Injection**: Tools are automatically inferred and injected into requests by the Inference Gateway server
 - **Simplified Client Code**: No need to manually manage or configure tools in your client application
-- **Transparent Tool Calls**: During streaming chat completions with configured MCP servers, tool calls appear in the response stream — no special handling required except optionally displaying them to users
+- **Transparent Tool Calls**: During streaming chat completions with configured MCP servers, tool calls appear in the response stream - no special handling required except optionally displaying them to users
 
 ### Generating Content
 
@@ -242,7 +242,7 @@ response = client.create_chat_completion(
         Message(role="system", content="You are a helpful assistant. Please include your reasoning for complex questions."),
         Message(role="user", content="What is the square root of 144 and why?"),
     ],
-    reasoning_format="parsed",  # "raw" or "parsed" — defaults to "parsed"
+    reasoning_format="parsed",  # "raw" or "parsed" - defaults to "parsed"
 )
 
 print("Content:", response.choices[0].message.content.root)
@@ -361,7 +361,7 @@ if response.choices[0].message.tool_calls:
 
 ### Provider-Specific Tool-Call Metadata
 
-Some providers attach opaque, per-call metadata that must be echoed back on follow-up requests. The most notable case is Google Gemini's reasoning models, which return a `thought_signature` on each tool call — the next request must round-trip it verbatim or the provider will reject it.
+Some providers attach opaque, per-call metadata that must be echoed back on follow-up requests. The most notable case is Google Gemini's reasoning models, which return a `thought_signature` on each tool call - the next request must round-trip it verbatim or the provider will reject it.
 
 The SDK preserves this automatically as long as you append the assistant message back to the conversation as a model object (rather than reconstructing it from a dict):
 
@@ -386,7 +386,7 @@ from inference_gateway import Google, ToolCallExtraContent
 extra = ToolCallExtraContent(google=Google(thought_signature="..."))
 ```
 
-The field is fully optional — providers that don't use it ignore it entirely, and `model_dump(exclude_none=True)` strips it from the wire when unset.
+The field is fully optional - providers that don't use it ignore it entirely, and `model_dump(exclude_none=True)` strips it from the wire when unset.
 
 ### Proxy Requests
 
