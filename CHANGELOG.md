@@ -1,3 +1,41 @@
+## [0.6.3](https://github.com/inference-gateway/python-sdk/compare/v0.6.2...v0.6.3) (2026-05-30)
+
+### ♻️ Improvements
+
+* Remove assignees and reviewers from dependabot ([a5ddc64](https://github.com/inference-gateway/python-sdk/commit/a5ddc64dfff8d59b5f09085b5453176b0ea2dbf5))
+
+### 👷 CI
+
+* centralize claude.yml via reusable workflow ([#11](https://github.com/inference-gateway/python-sdk/issues/11)) ([77bbbbc](https://github.com/inference-gateway/python-sdk/commit/77bbbbc59fe291db657addda63eaf6f387df90fd))
+* **claude:** Add maintainer skill ([8422207](https://github.com/inference-gateway/python-sdk/commit/842220711d0b2c6269da7116f333494e38304b5e))
+* **claude:** change effort to max ([0e74a66](https://github.com/inference-gateway/python-sdk/commit/0e74a66937f3c2b2ccd2e01e5be6efd153712f63))
+* **claude:** download all maintainer skill assets ([0dafb85](https://github.com/inference-gateway/python-sdk/commit/0dafb850f007e5120c499953978aebd0bf0e654e))
+* **claude:** remove system prompt - use default community maintained prompt ([8fe582f](https://github.com/inference-gateway/python-sdk/commit/8fe582fb5497cf98f478353e3d0e00019c3f1ee8))
+* **claude:** standardize workflow + task-based branch prefix ([4076688](https://github.com/inference-gateway/python-sdk/commit/4076688327ca38d0b1b91dbf94e255521b452560))
+* **dependabot:** Add dependabot to help with dependecies upgrades ([1833f82](https://github.com/inference-gateway/python-sdk/commit/1833f8277a5b20a1429e7f15f488b17303db8384))
+* **deps:** Bump anthropics/claude-code-action ([#8](https://github.com/inference-gateway/python-sdk/issues/8)) ([e324b2a](https://github.com/inference-gateway/python-sdk/commit/e324b2a51f3de50fd9bc58e1113d63e025388e0d))
+* **deps:** Bump anthropics/claude-code-action in the github-actions group ([#10](https://github.com/inference-gateway/python-sdk/issues/10)) ([a14ee0c](https://github.com/inference-gateway/python-sdk/commit/a14ee0c7d1e60f5846bf05065fd183c58224c91f))
+* **deps:** Bump anthropics/claude-code-action in the github-actions group ([#9](https://github.com/inference-gateway/python-sdk/issues/9)) ([1686d61](https://github.com/inference-gateway/python-sdk/commit/1686d6168744273cd1a056cb9fe3ab9ff0d8f66e))
+* **deps:** Bump inference-gateway/.github/.github/workflows/claude.yml ([#12](https://github.com/inference-gateway/python-sdk/issues/12)) ([5c58a39](https://github.com/inference-gateway/python-sdk/commit/5c58a39d71e7ca77df54030db108cabcb523bf6f))
+* **deps:** Update Claude Code Action to version 1.0.131 ([bfc24d4](https://github.com/inference-gateway/python-sdk/commit/bfc24d4d0b4256f7279ea0a3ebbb83eba689b0fd))
+* **deps:** Update claude-code-action to version 1.0.130 ([cdafa20](https://github.com/inference-gateway/python-sdk/commit/cdafa2074f3b782e474d724afbee1c0bffd8e336))
+* Enable display report for Claude Code action ([aaca7b2](https://github.com/inference-gateway/python-sdk/commit/aaca7b24eabc7ed7cc247a149329a4f8f28724d0))
+* **release:** Remove conventional-changelog-cli from semantic release installation ([d3ae551](https://github.com/inference-gateway/python-sdk/commit/d3ae5517e74bf90fa13261e4cc13d88d3dd4e835))
+* Replace curl installation of task with action setup ([7c88698](https://github.com/inference-gateway/python-sdk/commit/7c88698e6874bd67c109743876d2f9705ad7228a))
+
+### 🔧 Miscellaneous
+
+* **deps:** Bump claude-code and add infer cli to flox environment ([d995d9b](https://github.com/inference-gateway/python-sdk/commit/d995d9b35b92b3ab103d37352427cea8b7da8062))
+* **deps:** Bump dev dependencies ([5bf6ef5](https://github.com/inference-gateway/python-sdk/commit/5bf6ef57233ee30176e336eeafeaf509b8ca01ab))
+* **deps:** Update claude-code to version 2.1.141 and infer to version 0.109.8 ([2c83cc2](https://github.com/inference-gateway/python-sdk/commit/2c83cc2453a88acc24a00273d400b50e80e88560))
+* **deps:** Update claude-code version to 2.1.141 and infer.flake to v0.109.11 and some other deps ([e5a811e](https://github.com/inference-gateway/python-sdk/commit/e5a811efe4de7b702aec4b3fd599de3a35d6b5eb))
+* **docs:** Generate AGENTS.md file ([527e032](https://github.com/inference-gateway/python-sdk/commit/527e032061b035c9dbc601fa1190d37d5490b95b))
+* **docs:** Generate CLAUDE.md file ([5469c03](https://github.com/inference-gateway/python-sdk/commit/5469c03d44c91f2ea667ab059076270443b49109))
+* **flox:** Bump schema version ([1a274a3](https://github.com/inference-gateway/python-sdk/commit/1a274a3b8e5bac44b1e7f314a7e7213748db34b0))
+* **license:** Update license to Apache 2.0 ([0498bec](https://github.com/inference-gateway/python-sdk/commit/0498becbf4473eaa9840318a9dd92389f7de5849))
+* **openapi:** Sync vendored OpenAPI spec with canonical schemas ([#7](https://github.com/inference-gateway/python-sdk/issues/7)) ([1a58167](https://github.com/inference-gateway/python-sdk/commit/1a581671a59588bfcaa55c7bb0cc55c6f918a922)), closes [#6](https://github.com/inference-gateway/python-sdk/issues/6)
+* Replace em dash with regular dash ([8c55d26](https://github.com/inference-gateway/python-sdk/commit/8c55d261acc8dbdbfce7875ad2c83e64f1345983))
+
 ## [0.6.2](https://github.com/inference-gateway/python-sdk/compare/v0.6.1...v0.6.2) (2026-05-07)
 
 ### 👷 CI
