@@ -7,7 +7,7 @@ Before starting with the examples, ensure you have the inference-gateway up and 
 2. Run the Docker container:
 
 ```
-docker run --rm -it -p 8080:8080 --env-file .env -e $LLM_NAME ghcr.io/inference-gateway/inference-gateway:latest
+docker run --rm -it -p 8080:8080 --env-file .env -e LLM_NAME=$LLM_NAME ghcr.io/inference-gateway/inference-gateway:latest
 ```
 
 3. In a new terminal, set your preferred Large Language Model (LLM) provider for the examples:
