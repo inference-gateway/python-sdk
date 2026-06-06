@@ -63,8 +63,6 @@ def main() -> None:
                     # Parse the raw JSON data
                     data = json.loads(chunk.data)
 
-                    # Unmarshal to the structured model for type safety. The first
-                    # chunk carries only `role` (no content) and validates fine.
                     structured_chunk = CreateChatCompletionStreamResponse.model_validate(data)
 
                     if structured_chunk.choices and len(structured_chunk.choices) > 0:
