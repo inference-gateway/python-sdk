@@ -11,6 +11,7 @@ from inference_gateway.client import (
     InferenceGatewayValidationError,
 )
 from inference_gateway.models import (
+    ChatCompletionStreamResponseDelta,
     CreateChatCompletionRequest,
     CreateChatCompletionResponse,
     ListModelsResponse,
@@ -346,6 +347,19 @@ def test_create_chat_completion_stream_openai_format(mock_request, client):
 
     chunk_2_data = json.loads(chunks[2].data)
     assert chunk_2_data["choices"][0]["delta"]["content"] == " world!"
+
+
+def test_stream_response_delta_allows_missing_content():
+    """Regression test for #29.
+
+    The first streaming chunk's delta typically carries only ``role`` and no
+    ``content``. ``ChatCompletionStreamResponseDelta.content`` must therefore be
+    optional, so ``model_validate`` does not raise on the initial chunk.
+    """
+    delta = ChatCompletionStreamResponseDelta.model_validate({"role": "assistant"})
+
+    assert delta.content is None
+    assert delta.role.root == "assistant"
 
 
 @pytest.mark.parametrize(

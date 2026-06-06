@@ -531,7 +531,7 @@ class ChatCompletionStreamResponseDelta(BaseModel):
     model_config = ConfigDict(
         populate_by_name=True,
     )
-    content: str
+    content: str | None = None
     """
     The contents of the chunk message.
     """

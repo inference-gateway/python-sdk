@@ -1,8 +1,6 @@
 import json
 import os
 
-from pydantic import ValidationError
-
 from inference_gateway import InferenceGatewayClient, Message
 from inference_gateway.client import InferenceGatewayAPIError, InferenceGatewayError
 from inference_gateway.models import CreateChatCompletionStreamResponse, SSEvent
@@ -59,32 +57,23 @@ def main() -> None:
         )
 
         for chunk in stream:
-            # All chunks are now SSEvent objects
+            # All chunks are SSEvent objects
             if chunk.data:
                 try:
                     # Parse the raw JSON data
                     data = json.loads(chunk.data)
 
-                    # Try to unmarshal to structured model for type safety
-                    try:
-                        structured_chunk = CreateChatCompletionStreamResponse.model_validate(data)
+                    # Unmarshal to the structured model for type safety. The first
+                    # chunk carries only `role` (no content) and validates fine.
+                    structured_chunk = CreateChatCompletionStreamResponse.model_validate(data)
 
-                        # Use the structured model for better type safety and IDE support
-                        if structured_chunk.choices and len(structured_chunk.choices) > 0:
-                            choice = structured_chunk.choices[0]
-                            if hasattr(choice.delta, "content") and choice.delta.content:
-                                print(choice.delta.content, end="", flush=True)
+                    if structured_chunk.choices and len(structured_chunk.choices) > 0:
+                        choice = structured_chunk.choices[0]
+                        if choice.delta.content:
+                            print(choice.delta.content, end="", flush=True)
 
-                            # Optionally show other information
-                            if choice.finish_reason and choice.finish_reason.root != "null":
-                                print(f"\n[Finished: {choice.finish_reason.root}]")
-
-                    except ValidationError:
-                        # Fallback to manual parsing for non-standard chunks
-                        if "choices" in data and len(data["choices"]) > 0:
-                            delta = data["choices"][0].get("delta", {})
-                            if "content" in delta and delta["content"]:
-                                print(delta["content"], end="", flush=True)
+                        if choice.finish_reason and choice.finish_reason.root != "null":
+                            print(f"\n[Finished: {choice.finish_reason.root}]")
 
                 except json.JSONDecodeError:
                     # Handle non-JSON SSE data
