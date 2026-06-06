@@ -1,3 +1,34 @@
+## [0.7.0](https://github.com/inference-gateway/python-sdk/compare/v0.6.3...v0.7.0) (2026-06-06)
+
+### ✨ Features
+
+* add reasoning_format as explicit parameter to create_chat_completion methods ([#34](https://github.com/inference-gateway/python-sdk/issues/34)) ([c2ea888](https://github.com/inference-gateway/python-sdk/commit/c2ea8889944ec50f4f1eb75aef55e9db875211f2))
+
+### 🐛 Bug Fixes
+
+* correct docker run -e syntax in examples/README.md ([#33](https://github.com/inference-gateway/python-sdk/issues/33)) ([9c756d9](https://github.com/inference-gateway/python-sdk/commit/9c756d926ad7263d025ab5f6c85473ccb5565836)), closes [#27](https://github.com/inference-gateway/python-sdk/issues/27)
+* derive __version__ from package metadata to prevent drift ([#30](https://github.com/inference-gateway/python-sdk/issues/30)) ([c150560](https://github.com/inference-gateway/python-sdk/commit/c150560d69d29cacf4e9deade20e3b9680bf09a9))
+* make streaming delta content optional ([#31](https://github.com/inference-gateway/python-sdk/issues/31)) ([1c6c533](https://github.com/inference-gateway/python-sdk/commit/1c6c5330b6bd54237e6c89238266fe7c677c278b))
+
+### 👷 CI
+
+* centralize claude.yml via reusable workflow ([#13](https://github.com/inference-gateway/python-sdk/issues/13)) ([d0df597](https://github.com/inference-gateway/python-sdk/commit/d0df597d05e7fbff45bd4921965e4150403d88d2))
+* centralize claude.yml via reusable workflow ([#14](https://github.com/inference-gateway/python-sdk/issues/14)) ([f50da35](https://github.com/inference-gateway/python-sdk/commit/f50da35a12076bbfd48245d1fc74ce8472ead0ca))
+* centralize infer.yml + bump infer CLI and sync .infer config ([#17](https://github.com/inference-gateway/python-sdk/issues/17)) ([126c41f](https://github.com/inference-gateway/python-sdk/commit/126c41f2d57b7a421eddaa65433fc172940cdb6e))
+* centralize infer.yml + sync .infer config ([#16](https://github.com/inference-gateway/python-sdk/issues/16)) ([b1166ff](https://github.com/inference-gateway/python-sdk/commit/b1166ff0fc99d9a099622388f97ad94052941753))
+* centralize infer.yml via reusable workflow ([#15](https://github.com/inference-gateway/python-sdk/issues/15)) ([4c9a38d](https://github.com/inference-gateway/python-sdk/commit/4c9a38d91e20290e131ada860813ad6ab1365f85))
+* **infer:** centralize infer.yml + bump infer CLI and sync .infer config ([#18](https://github.com/inference-gateway/python-sdk/issues/18)) ([7ae73a6](https://github.com/inference-gateway/python-sdk/commit/7ae73a60781a9af7259c1badf15340b54e88d502))
+
+### 🔧 Miscellaneous
+
+* **deps:** bump claude-code 2.1.148 -> 2.1.158 ([#20](https://github.com/inference-gateway/python-sdk/issues/20)) ([eeb796b](https://github.com/inference-gateway/python-sdk/commit/eeb796bc3e394a7b4a208f14fbe7ccf34b460db1))
+* **deps:** bump codex 0.133.0 -> 0.135.0 ([#23](https://github.com/inference-gateway/python-sdk/issues/23)) ([d20f9a2](https://github.com/inference-gateway/python-sdk/commit/d20f9a2ae1801dc545917e063e81d326fb4d818e))
+* **deps:** bump infer CLI v0.117.0 -> v0.117.1, infer-action v0.9.1 -> v0.11.1 ([#19](https://github.com/inference-gateway/python-sdk/issues/19)) ([7377902](https://github.com/inference-gateway/python-sdk/commit/7377902158d2c6543bdd22fec1a0fd1e7a2283a2))
+* **deps:** bump infer CLI v0.117.1 -> v0.119.0, infer-action v0.11.2 -> v0.11.4 ([#24](https://github.com/inference-gateway/python-sdk/issues/24)) ([ecc2634](https://github.com/inference-gateway/python-sdk/commit/ecc2634fecc45cdd219f174fabe55dfdb34490c8))
+* **deps:** bump infer-action v0.11.1 -> v0.11.2 ([#22](https://github.com/inference-gateway/python-sdk/issues/22)) ([c348db4](https://github.com/inference-gateway/python-sdk/commit/c348db4d4e5d1f7f5160464bd5b51dcfa9398824))
+* **flox:** add missing manifest.lock file ([ad15f9f](https://github.com/inference-gateway/python-sdk/commit/ad15f9f469e0d760f35b80c53a3b0262a3ddc886))
+* trim requirements.txt to runtime dependencies only ([#32](https://github.com/inference-gateway/python-sdk/issues/32)) ([0c95d4c](https://github.com/inference-gateway/python-sdk/commit/0c95d4c72009ef8a53d5a452eedcdff330e9e3fb))
+
 ## [0.6.3](https://github.com/inference-gateway/python-sdk/compare/v0.6.2...v0.6.3) (2026-05-30)
 
 ### ♻️ Improvements
