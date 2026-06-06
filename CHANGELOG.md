@@ -1,3 +1,9 @@
+## [0.7.1](https://github.com/inference-gateway/python-sdk/compare/v0.7.0...v0.7.1) (2026-06-06)
+
+### 👷 CI
+
+* switch to trusted publishing for pypi ([7f954d3](https://github.com/inference-gateway/python-sdk/commit/7f954d3cf10c2c543b16c4dd1fd78689e08e04af))
+
 ## [0.7.0](https://github.com/inference-gateway/python-sdk/compare/v0.6.3...v0.7.0) (2026-06-06)
 
 ### ✨ Features
