@@ -71,6 +71,12 @@ jobs:
     needs: github_release
     runs-on: ubuntu-24.04
     if: needs.github_release.outputs.new_release_published == 'true'
+    permissions:
+      contents: read
+      id-token: write
+    environment:
+      name: pypi
+      url: https://pypi.org/p/inference-gateway
     steps:
       - name: Check out the code
         uses: actions/checkout@v6.0.2
@@ -90,15 +96,11 @@ jobs:
       - name: Install dependencies
         run: |
           python3 -m pip install --upgrade pip
-          python3 -m pip install build twine --user
+          python3 -m pip install build --user
 
       - name: Build the package
         run: |
           python -m build
 
       - name: Publish to PyPI
-        env:
-          TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
-        run: |
-          twine upload dist/*
+        uses: pypa/gh-action-pypi-publish@v1.14.0
