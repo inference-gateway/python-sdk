@@ -4,6 +4,8 @@ A modern Python SDK for the Inference Gateway API with full OpenAPI support
 and type safety using Pydantic v2.
 """
 
+from importlib.metadata import PackageNotFoundError, version
+
 from inference_gateway.client import (
     InferenceGatewayAPIError,
     InferenceGatewayClient,
@@ -34,7 +36,11 @@ from inference_gateway.models import (
     ToolCallExtraContent,
 )
 
-__version__ = "0.5.0"
+try:
+    __version__ = version("inference-gateway")
+except PackageNotFoundError:  # pragma: no cover
+    __version__ = "0.0.0"
+
 __all__ = [
     # Client classes
     "InferenceGatewayClient",
