@@ -235,6 +235,7 @@ class InferenceGatewayClient:
         max_tokens: Optional[int] = None,
         stream: bool = False,
         tools: Optional[List[ChatCompletionTool]] = None,
+        reasoning_format: Optional[str] = None,
         **kwargs: Any,
     ) -> CreateChatCompletionResponse:
         """Generate a chat completion.
@@ -246,6 +247,7 @@ class InferenceGatewayClient:
             max_tokens: Maximum number of tokens to generate
             stream: Whether to stream the response
             tools: List of tools the model may call (using ChatCompletionTool models)
+            reasoning_format: Format of the reasoning content. Can be `raw` or `parsed`
             **kwargs: Additional parameters to pass to the API
 
         Returns:
@@ -273,6 +275,8 @@ class InferenceGatewayClient:
                 request_data["max_tokens"] = max_tokens
             if tools:
                 request_data["tools"] = [tool.model_dump(exclude_none=True) for tool in tools]
+            if reasoning_format is not None:
+                request_data["reasoning_format"] = reasoning_format
 
             request_data.update(kwargs)
 
@@ -294,6 +298,7 @@ class InferenceGatewayClient:
         provider: Optional[Union[Provider, str]] = None,
         max_tokens: Optional[int] = None,
         tools: Optional[List[ChatCompletionTool]] = None,
+        reasoning_format: Optional[str] = None,
         **kwargs: Any,
     ) -> Generator[SSEvent, None, None]:
         """Stream a chat completion.
@@ -304,6 +309,7 @@ class InferenceGatewayClient:
             provider: Optional provider specification
             max_tokens: Maximum number of tokens to generate
             tools: List of tools the model may call (using ChatCompletionTool models)
+            reasoning_format: Format of the reasoning content. Can be `raw` or `parsed`
             **kwargs: Additional parameters to pass to the API
 
         Yields:
@@ -331,6 +337,8 @@ class InferenceGatewayClient:
                 request_data["max_tokens"] = max_tokens
             if tools:
                 request_data["tools"] = [tool.model_dump(exclude_none=True) for tool in tools]
+            if reasoning_format is not None:
+                request_data["reasoning_format"] = reasoning_format
 
             request_data.update(kwargs)
 
