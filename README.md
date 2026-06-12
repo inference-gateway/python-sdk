@@ -460,6 +460,7 @@ The SDK supports the following LLM providers:
 - Anthropic (`"anthropic"`)
 - Google (`"google"`)
 - Mistral AI (`"mistral"`)
+- MiniMax (`"minimax"`)
 - Moonshot (`"moonshot"`)
 
 ## License
