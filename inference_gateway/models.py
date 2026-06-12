@@ -23,6 +23,7 @@ class Provider(
             "deepseek",
             "google",
             "mistral",
+            "minimax",
             "moonshot",
         ]
     ]
@@ -38,6 +39,7 @@ class Provider(
         "deepseek",
         "google",
         "mistral",
+        "minimax",
         "moonshot",
     ]
 
