@@ -282,9 +282,6 @@ class InferenceGatewayClient:
 
             request = CreateChatCompletionRequest.model_validate(request_data)
 
-            # exclude_unset keeps spec-default values (temperature, top_p, n,
-            # parallel_tool_calls, ...) out of the payload unless the caller set
-            # them explicitly, so we only send what was actually requested.
             response = self._make_request(
                 "POST",
                 url,
@@ -350,9 +347,6 @@ class InferenceGatewayClient:
 
             request = CreateChatCompletionRequest.model_validate(request_data)
 
-            # exclude_unset keeps spec-default values (temperature, top_p, n,
-            # parallel_tool_calls, ...) out of the payload unless the caller set
-            # them explicitly, so we only send what was actually requested.
             if self.use_httpx:
                 with self.client.stream(
                     "POST",
