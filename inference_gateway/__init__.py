@@ -15,6 +15,8 @@ from inference_gateway.client import (
 from inference_gateway.models import (
     ChatCompletionMessageToolCall,
     ChatCompletionMessageToolCallChunk,
+    ChatCompletionNamedToolChoice,
+    ChatCompletionToolChoiceOption,
     CompletionUsage,
     ContentPart,
     CreateChatCompletionRequest,
@@ -31,6 +33,9 @@ from inference_gateway.models import (
     MessageRole,
     Model,
     Provider,
+    ResponseFormatJsonObject,
+    ResponseFormatJsonSchema,
+    ResponseFormatText,
     SSEvent,
     TextContentPart,
     ToolCallExtraContent,
@@ -66,6 +71,13 @@ __all__ = [
     "FinishReason",
     "ToolCallExtraContent",
     "Google",
+    # Tool choice
+    "ChatCompletionToolChoiceOption",
+    "ChatCompletionNamedToolChoice",
+    # Structured outputs / response format
+    "ResponseFormatText",
+    "ResponseFormatJsonObject",
+    "ResponseFormatJsonSchema",
     # Multimodal content
     "ContentPart",
     "TextContentPart",

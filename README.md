@@ -250,6 +250,56 @@ if response.choices[0].message.reasoning:
     print("Reasoning:", response.choices[0].message.reasoning)
 ```
 
+### Sampling and Output Controls
+
+`create_chat_completion` and `create_chat_completion_stream` accept the full set of
+OpenAI-compatible request parameters as keyword arguments. The SDK only sends the
+parameters you set explicitly - spec defaults you do not specify are left off the
+request so each provider applies its own.
+
+```python
+from inference_gateway import InferenceGatewayClient, Message
+
+client = InferenceGatewayClient("http://localhost:8080/v1")
+
+response = client.create_chat_completion(
+    model="openai/gpt-4o",
+    messages=[Message(role="user", content="Describe Python as a JSON object.")],
+    temperature=0.2,            # 0-2, sampling temperature
+    top_p=0.9,                  # 0-1, nucleus sampling
+    n=1,                        # 1-128, number of choices to generate
+    stop=["\n\n"],              # a string, or up to 4 strings
+    frequency_penalty=0.0,      # -2..2
+    presence_penalty=0.0,       # -2..2
+    seed=42,                    # best-effort determinism
+    max_completion_tokens=512,  # preferred over the deprecated max_tokens
+    response_format={"type": "json_object"},
+    reasoning_effort="medium",  # minimal | low | medium | high
+)
+```
+
+`response_format` and `tool_choice` are `oneOf` unions. You can pass plain dicts (they
+are validated for you) or use the exported typed models:
+
+```python
+from inference_gateway import (
+    ChatCompletionNamedToolChoice,
+    ResponseFormatJsonObject,
+)
+
+response = client.create_chat_completion(
+    model="openai/gpt-4o",
+    messages=[Message(role="user", content="What's the weather in Paris?")],
+    response_format=ResponseFormatJsonObject(type="json_object"),
+    tool_choice=ChatCompletionNamedToolChoice(
+        type="function",
+        function={"name": "get_weather"},
+    ),
+)
+```
+
+> **Note:** `max_tokens` is deprecated in favor of `max_completion_tokens`.
+
 ### Streaming Content
 
 To generate content using streaming mode, use the `create_chat_completion_stream` method. It yields `SSEvent` objects:
