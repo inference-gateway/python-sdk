@@ -282,8 +282,14 @@ class InferenceGatewayClient:
 
             request = CreateChatCompletionRequest.model_validate(request_data)
 
+            # exclude_unset keeps spec-default values (temperature, top_p, n,
+            # parallel_tool_calls, ...) out of the payload unless the caller set
+            # them explicitly, so we only send what was actually requested.
             response = self._make_request(
-                "POST", url, params=params, json=request.model_dump(exclude_none=True)
+                "POST",
+                url,
+                params=params,
+                json=request.model_dump(exclude_none=True, exclude_unset=True),
             )
 
             return CreateChatCompletionResponse.model_validate(response.json())
@@ -344,9 +350,15 @@ class InferenceGatewayClient:
 
             request = CreateChatCompletionRequest.model_validate(request_data)
 
+            # exclude_unset keeps spec-default values (temperature, top_p, n,
+            # parallel_tool_calls, ...) out of the payload unless the caller set
+            # them explicitly, so we only send what was actually requested.
             if self.use_httpx:
                 with self.client.stream(
-                    "POST", url, params=params, json=request.model_dump(exclude_none=True)
+                    "POST",
+                    url,
+                    params=params,
+                    json=request.model_dump(exclude_none=True, exclude_unset=True),
                 ) as response:
                     try:
                         response.raise_for_status()
@@ -355,7 +367,10 @@ class InferenceGatewayClient:
                     yield from self._process_stream_response(response)
             else:
                 requests_response = self.session.post(
-                    url, params=params, json=request.model_dump(exclude_none=True), stream=True
+                    url,
+                    params=params,
+                    json=request.model_dump(exclude_none=True, exclude_unset=True),
+                    stream=True,
                 )
                 try:
                     requests_response.raise_for_status()
