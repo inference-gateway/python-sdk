@@ -512,6 +512,7 @@ The SDK supports the following LLM providers:
 - Mistral AI (`"mistral"`)
 - MiniMax (`"minimax"`)
 - Moonshot (`"moonshot"`)
+- NVIDIA (`"nvidia"`)
 
 ## License
 
