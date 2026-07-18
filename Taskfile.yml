@@ -160,7 +160,7 @@ tasks:
       - task: install
       - task: oas-download
       - task: generate
-      - task: pre-commit:install
+      - task: precommit:install
       - task: test
       - echo "✅ Development environment setup complete"
 
@@ -173,23 +173,15 @@ tasks:
       - task: build
       - echo "✅ All CI checks passed"
 
-  pre-commit:install:
-    desc: Install pre-commit hooks
+  precommit:install:
+    desc: Install the git pre-commit hook (.githooks)
     cmds:
-      - echo "Installing pre-commit hooks..."
-      - pre-commit install
-      - echo "✅ Pre-commit hooks installed"
+      - echo "Installing pre-commit hook..."
+      - git config core.hooksPath .githooks
+      - chmod +x .githooks/pre-commit
+      - echo "✅ pre-commit hook installed (core.hooksPath -> .githooks)"
 
-  pre-commit:run:
-    desc: Run pre-commit hooks on all files
+  precommit:run:
+    desc: Run the pre-commit hook directly
     cmds:
-      - echo "Running pre-commit hooks on all files..."
-      - pre-commit run --all-files
-      - echo "✅ Pre-commit hooks completed"
-
-  pre-commit:update:
-    desc: Update pre-commit hook versions
-    cmds:
-      - echo "Updating pre-commit hook versions..."
-      - pre-commit autoupdate
-      - echo "✅ Pre-commit hooks updated"
+      - ./.githooks/pre-commit

@@ -1,0 +1,27 @@
+#!/bin/sh
+#
+# Plain git pre-commit hook (no pip pre-commit framework).
+#
+# Runs `task format` (black + isort) and blocks the commit if any staged
+# Python file gets reformatted, so unformatted code is caught here instead
+# of in CI. Install with: task precommit:install
+#
+set -e
+
+if ! command -v task >/dev/null 2>&1; then
+  echo "pre-commit: 'task' not found on PATH; install it from https://taskfile.dev" >&2
+  exit 1
+fi
+
+staged_py="$(git diff --cached --name-only --diff-filter=ACM -- '*.py')"
+if [ -z "$staged_py" ]; then
+  exit 0
+fi
+
+task format
+
+if ! git diff --quiet -- $staged_py; then
+  echo "pre-commit: staged Python files were reformatted by 'task format'." >&2
+  echo "pre-commit: review the changes, 'git add' them, then commit again." >&2
+  exit 1
+fi
