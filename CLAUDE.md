@@ -19,11 +19,13 @@ Tasks are orchestrated with [`task`](https://taskfile.dev) (`Taskfile.yml`):
 - `task format` — apply black + isort
 - `task generate` — regenerate `inference_gateway/models.py` from `openapi.yaml` (depends on `oas-download` → fetches the latest spec from `inference-gateway/schemas`)
 - `task build` — runs `clean` + `lint` + `test`, then `python -m build`
-- `task dev:setup` — full environment bootstrap (install, download OAS, generate, install pre-commit, test)
+- `task dev:setup` — full environment bootstrap (install, download OAS, generate, install pre-commit hook, test)
+- `task precommit:install` — point git at the `.githooks/` pre-commit hook (`git config core.hooksPath .githooks`)
+- `task precommit:run` — run `.githooks/pre-commit` directly
 
 Run a single test: `pytest tests/test_client.py::test_list_models -v`
 
-Note: CI (`.github/workflows/ci.yml`) only runs `black --check .` and `pytest tests/` — it does NOT run mypy or isort. `task lint` is stricter than CI; pre-commit (`.pre-commit-config.yaml`) catches the rest locally.
+Note: CI (`.github/workflows/ci.yml`) only runs `black --check .` and `pytest tests/` — it does NOT run mypy or isort. `task lint` is stricter than CI. The `.githooks/pre-commit` hook (a plain shell script, no pip `pre-commit` framework) runs `task format` on staged Python files at commit time and blocks the commit if anything was reformatted — install it once with `task precommit:install`.
 
 ## Architecture
 

@@ -34,7 +34,6 @@ dev = [
     "isort>=8.0.1",
     "mypy>=1.20.2",
     "datamodel-code-generator>=0.56.1",
-    "pre-commit>=4.6.0",
     "types-requests>=2.33.0.20260503",
 ]
 

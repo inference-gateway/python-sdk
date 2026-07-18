@@ -15,6 +15,8 @@ Use `task` commands from `Taskfile.yml`:
 - `task test:coverage` adds terminal and HTML coverage reports.
 - `task generate` downloads and validates the OpenAPI spec, then regenerates `inference_gateway/models.py`.
 - `task build` cleans, lints, tests, and builds the package.
+- `task precommit:install` points git at the `.githooks/` pre-commit hook that runs `task format` on staged Python files at commit time.
+- `task precommit:run` runs that hook directly.
 
 For a focused test, use `pytest tests/test_client.py::test_list_models -v`.
 
