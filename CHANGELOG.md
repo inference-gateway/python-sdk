@@ -1,3 +1,60 @@
+## [0.8.0](https://github.com/inference-gateway/python-sdk/compare/v0.7.1...v0.8.0) (2026-07-18)
+
+### ✨ Features
+
+* add llamacpp provider to Provider enum ([#75](https://github.com/inference-gateway/python-sdk/issues/75)) ([bb7bc9c](https://github.com/inference-gateway/python-sdk/commit/bb7bc9c30df7c8d0a6069dea26512760fa03b187))
+* add minimax to the provider enum ([#43](https://github.com/inference-gateway/python-sdk/issues/43)) ([c28e450](https://github.com/inference-gateway/python-sdk/commit/c28e450a043e5ee30f0718f0d18e4a8d09499116))
+* add nvidia provider to Provider enum ([#60](https://github.com/inference-gateway/python-sdk/issues/60)) ([5cf8954](https://github.com/inference-gateway/python-sdk/commit/5cf8954ffabebb89524e4bceb4014a8ee0f335d7)), closes [#59](https://github.com/inference-gateway/python-sdk/issues/59)
+* regenerate SDK with OpenAI-compatible chat params (schemas[#71](https://github.com/inference-gateway/python-sdk/issues/71)) ([#50](https://github.com/inference-gateway/python-sdk/issues/50)) ([61aa10b](https://github.com/inference-gateway/python-sdk/commit/61aa10bb3958555ccc40c961114b3ec2d23edaa1)), closes [#29](https://github.com/inference-gateway/python-sdk/issues/29)
+* sync SDK to schemas v0.6.2 (zai provider + Responses API) ([#77](https://github.com/inference-gateway/python-sdk/issues/77)) ([3660d1d](https://github.com/inference-gateway/python-sdk/commit/3660d1db02c87db7188ede66fd00a57711525aa6))
+
+### 👷 CI
+
+* centralize claude.yml via reusable workflow ([#41](https://github.com/inference-gateway/python-sdk/issues/41)) ([1e620cb](https://github.com/inference-gateway/python-sdk/commit/1e620cbbb1c39c6e5df84f41c4c3a445f7cfb891))
+* **claude:** centralize claude.yml via reusable workflow ([#71](https://github.com/inference-gateway/python-sdk/issues/71)) ([9b7481e](https://github.com/inference-gateway/python-sdk/commit/9b7481e17bc8b46c19b82e9cf05dbc5012e02184))
+* **deps:** bump actions/setup-node in the github-actions group ([#79](https://github.com/inference-gateway/python-sdk/issues/79)) ([ab6a229](https://github.com/inference-gateway/python-sdk/commit/ab6a22904f273f33cc610889f200ae43678ab36b))
+* **deps:** bump the github-actions group with 2 updates ([#37](https://github.com/inference-gateway/python-sdk/issues/37)) ([e7ecffe](https://github.com/inference-gateway/python-sdk/commit/e7ecffe6b9a57a62e2ede73328fddfc5bdffb0c2))
+* **deps:** bump the github-actions group with 2 updates ([#44](https://github.com/inference-gateway/python-sdk/issues/44)) ([c050d02](https://github.com/inference-gateway/python-sdk/commit/c050d0234ef27986712496d52e3b4d9a6d17ed58))
+* **deps:** bump the github-actions group with 2 updates ([#53](https://github.com/inference-gateway/python-sdk/issues/53)) ([11bc31f](https://github.com/inference-gateway/python-sdk/commit/11bc31f3f56c1a955f36bfd14ca7450226ceea96))
+* **deps:** bump the github-actions group with 2 updates ([#58](https://github.com/inference-gateway/python-sdk/issues/58)) ([4c713e6](https://github.com/inference-gateway/python-sdk/commit/4c713e6093937d45b53b128237452c067aa25e35))
+* **deps:** bump the github-actions group with 3 updates ([#55](https://github.com/inference-gateway/python-sdk/issues/55)) ([8429e7e](https://github.com/inference-gateway/python-sdk/commit/8429e7e24fc986f3609a285b3e7681b0191847a6))
+* **deps:** upgrade actions/checkout from v6.0.3 to v7.0.0 across workflows ([8aecc57](https://github.com/inference-gateway/python-sdk/commit/8aecc57ed8d96914698df8c9bf49f1f776b2bef1))
+* **infer:** centralize infer.yml + sync .infer config ([#52](https://github.com/inference-gateway/python-sdk/issues/52)) ([0c811d7](https://github.com/inference-gateway/python-sdk/commit/0c811d75e52ad9e2095deeef702660925688f384))
+* **infer:** centralize infer.yml via reusable workflow ([#68](https://github.com/inference-gateway/python-sdk/issues/68)) ([7f43f8a](https://github.com/inference-gateway/python-sdk/commit/7f43f8a5f3fb78e7300ccebbc352845f08625df3))
+* **infer:** centralize infer.yml via reusable workflow ([#69](https://github.com/inference-gateway/python-sdk/issues/69)) ([ffb5088](https://github.com/inference-gateway/python-sdk/commit/ffb5088bd7ec314ad7d8001bded3bcfd26146454))
+* **release:** update semantic release and plugins to latest versions with local installation ([cbd1fbf](https://github.com/inference-gateway/python-sdk/commit/cbd1fbf1350f374beca5185fa10aa27694382f89))
+* restrict default workflow token permissions to contents: read ([#67](https://github.com/inference-gateway/python-sdk/issues/67)) ([f0e051a](https://github.com/inference-gateway/python-sdk/commit/f0e051a6fc747cd13ba7a1fea55569f08563ff27))
+
+### 🔧 Miscellaneous
+
+* **deps:** bump claude-code 2.1.158 -> 2.1.161 ([#38](https://github.com/inference-gateway/python-sdk/issues/38)) ([8a9ebdf](https://github.com/inference-gateway/python-sdk/commit/8a9ebdf9aaa5a512528c697bb8d65cdcbbf83d7d))
+* **deps:** bump claude-code 2.1.161 -> 2.1.170 ([#45](https://github.com/inference-gateway/python-sdk/issues/45)) ([7432928](https://github.com/inference-gateway/python-sdk/commit/7432928f137f8b51ac127c185e1df77b91138812))
+* **deps:** bump claude-code 2.1.170 -> 2.1.177, claude-code-action v1.0.142 -> v1.0.150 ([#47](https://github.com/inference-gateway/python-sdk/issues/47)) ([1da5c4b](https://github.com/inference-gateway/python-sdk/commit/1da5c4b8e902676d17af59a3ab15efbbd6aeec6f))
+* **deps:** bump claude-code 2.1.177 -> 2.1.197, claude-code-action v1.0.164 -> v1.0.165 ([#61](https://github.com/inference-gateway/python-sdk/issues/61)) ([bec7ff2](https://github.com/inference-gateway/python-sdk/commit/bec7ff2e698539e3438555445091d505f1fe2231))
+* **deps:** bump claude-code 2.1.197 -> 2.1.201 ([#62](https://github.com/inference-gateway/python-sdk/issues/62)) ([b5e4b72](https://github.com/inference-gateway/python-sdk/commit/b5e4b723143d225f4756986f0f962bccd92f705d))
+* **deps:** bump claude-code-action v1.0.150 -> v1.0.152 ([#51](https://github.com/inference-gateway/python-sdk/issues/51)) ([3e482ec](https://github.com/inference-gateway/python-sdk/commit/3e482ec50c1aa34c777388d595a318df3787aaaa))
+* **deps:** bump claude-code-action v1.0.165 -> v1.0.169 ([#70](https://github.com/inference-gateway/python-sdk/issues/70)) ([d75f954](https://github.com/inference-gateway/python-sdk/commit/d75f9541a47cf4b317d62c09eabb50041ed10c54))
+* **deps:** bump infer CLI v0.119.0 -> v0.120.0, infer-action v0.11.4 -> v0.11.6 ([#35](https://github.com/inference-gateway/python-sdk/issues/35)) ([bed8d56](https://github.com/inference-gateway/python-sdk/commit/bed8d567629ce28b3ac0ab232df490b382b08115))
+* **deps:** bump infer CLI v0.120.0 -> v0.120.1, infer-action v0.11.6 -> v0.11.7 ([#36](https://github.com/inference-gateway/python-sdk/issues/36)) ([6fab732](https://github.com/inference-gateway/python-sdk/commit/6fab732c089dc41e4398a35234f63bbb22c54642))
+* **deps:** bump infer CLI v0.120.1 -> v0.121.0 ([#39](https://github.com/inference-gateway/python-sdk/issues/39)) ([73d774c](https://github.com/inference-gateway/python-sdk/commit/73d774c5f1c2307c019b73e93363c57484c7bbfa))
+* **deps:** bump infer CLI v0.121.0 -> v0.121.1, infer-action v0.12.1 -> v0.13.1 ([#46](https://github.com/inference-gateway/python-sdk/issues/46)) ([fec4ec3](https://github.com/inference-gateway/python-sdk/commit/fec4ec39dc668e09e0c925a67f16934c6e1c0715))
+* **deps:** bump infer CLI v0.121.1 -> v0.122.2, infer-action v0.15.1 -> v0.15.4 ([#54](https://github.com/inference-gateway/python-sdk/issues/54)) ([500f248](https://github.com/inference-gateway/python-sdk/commit/500f24877dc3a843436e982d72bf931ebb22bf2b))
+* **deps:** bump infer CLI v0.122.2 -> v0.125.0, infer-action v0.19.0 -> v0.19.1 ([#56](https://github.com/inference-gateway/python-sdk/issues/56)) ([81aabbe](https://github.com/inference-gateway/python-sdk/commit/81aabbe5993a7b2404ce02d0a51564c1fca9e72d))
+* **deps:** bump infer CLI v0.125.0 -> v0.130.1, infer-action v0.19.1 -> v0.23.1 ([#57](https://github.com/inference-gateway/python-sdk/issues/57)) ([55dd93c](https://github.com/inference-gateway/python-sdk/commit/55dd93c033c14b32ae48927c96df366af86d0e3b))
+* **deps:** bump infer CLI v0.130.1 -> v0.133.0, infer-action v0.23.7 -> v0.26.0 ([#63](https://github.com/inference-gateway/python-sdk/issues/63)) ([1857793](https://github.com/inference-gateway/python-sdk/commit/18577931ebceef470fc4164777d011c7f394da12))
+* **deps:** bump infer CLI v0.133.0 -> v0.133.1, infer-action v0.26.0 -> v0.27.1 ([#64](https://github.com/inference-gateway/python-sdk/issues/64)) ([e5782d7](https://github.com/inference-gateway/python-sdk/commit/e5782d7142f434719e42c6158463fea091509476))
+* **deps:** bump infer CLI v0.133.1 -> v0.137.0, infer-action v0.27.1 -> v0.29.0 ([#65](https://github.com/inference-gateway/python-sdk/issues/65)) ([096a508](https://github.com/inference-gateway/python-sdk/commit/096a5080683e546d1b505511fbff92fac1ac84ba))
+* **deps:** bump infer CLI v0.137.0 -> v0.138.0, infer-action v0.29.0 -> v0.30.1 ([#66](https://github.com/inference-gateway/python-sdk/issues/66)) ([3278c1d](https://github.com/inference-gateway/python-sdk/commit/3278c1deb0a6bb05944a6580823e500931390e50))
+* **deps:** bump infer CLI v0.138.0 -> v0.141.0 ([#72](https://github.com/inference-gateway/python-sdk/issues/72)) ([228b82d](https://github.com/inference-gateway/python-sdk/commit/228b82d3b75223c438a6722665850b9a9956bfc7))
+* **deps:** bump infer CLI v0.141.0 -> v0.147.1 ([#73](https://github.com/inference-gateway/python-sdk/issues/73)) ([ab5ead3](https://github.com/inference-gateway/python-sdk/commit/ab5ead3b3849d028a4507ccf53b69a509aeb0021))
+* **deps:** bump infer-action v0.11.7 -> v0.12.1 ([#40](https://github.com/inference-gateway/python-sdk/issues/40)) ([77db342](https://github.com/inference-gateway/python-sdk/commit/77db3429121f7e5e0a20501d209beb67c66fb6ec))
+* **deps:** bump infer-action v0.13.1 -> v0.15.1 ([#48](https://github.com/inference-gateway/python-sdk/issues/48)) ([5db7965](https://github.com/inference-gateway/python-sdk/commit/5db796586d190fc7422ab5768579d6454ea870ac))
+* **deps:** update manifest files to schema version 1.13.0 and bump codex version to ^0.139.0 ([8a1f3ae](https://github.com/inference-gateway/python-sdk/commit/8a1f3ae359d963757425ca0b88d745c97f8de48d))
+* **release:** update GitHub App credentials to use RELEASER_APP_ID and RELEASER_APP_PRIVATE_KEY ([07c185f](https://github.com/inference-gateway/python-sdk/commit/07c185f3748f9d33821bed35a76254e12bf6236a))
+* remove deprecated configuration and shortcut files ([e0ffeec](https://github.com/inference-gateway/python-sdk/commit/e0ffeec42fee330e84ee7282432e01f00d1e9f14))
+* replace pip pre-commit with .githooks hook ([#80](https://github.com/inference-gateway/python-sdk/issues/80)) ([f89d568](https://github.com/inference-gateway/python-sdk/commit/f89d5680b84a088671eaf63b8a76b5b50af37a53))
+* update CI workflow to include permissions ([59987f0](https://github.com/inference-gateway/python-sdk/commit/59987f0936ce2beebfbd9585295a04eb47380fd7))
+
 ## [0.7.1](https://github.com/inference-gateway/python-sdk/compare/v0.7.0...v0.7.1) (2026-06-06)
 
 ### 👷 CI
