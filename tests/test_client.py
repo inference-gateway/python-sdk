@@ -20,6 +20,8 @@ from inference_gateway.models import (
     MessageRole,
     Model,
     Provider,
+    Response,
+    ResponseTool,
     SSEvent,
 )
 
@@ -319,6 +321,9 @@ def test_provider_values():
 
     provider = Provider("llamacpp")
     assert provider.root == "llamacpp"
+
+    provider = Provider("zai")
+    assert provider.root == "zai"
 
     with pytest.raises(ValueError):
         Provider("invalid_provider")
@@ -719,3 +724,141 @@ def test_list_tools_validation_error():
             client.list_tools()
 
         assert "Response validation failed" in str(excinfo.value)
+
+
+def _response_mock(json_data):
+    """Build a mock HTTP response for the Responses API."""
+    mock_response = Mock()
+    mock_response.status_code = 200
+    mock_response.raise_for_status.return_value = None
+    mock_response.json.return_value = json_data
+    return mock_response
+
+
+@patch("requests.Session.request")
+def test_create_response(mock_request, client):
+    """Test the Responses API (POST /responses) with a plain text input."""
+    mock_request.return_value = _response_mock(
+        {
+            "id": "resp-123",
+            "object": "response",
+            "created_at": 1677652288,
+            "status": "completed",
+            "model": "gpt-4o",
+            "output": [
+                {
+                    "type": "message",
+                    "id": "msg-1",
+                    "role": "assistant",
+                    "content": [{"type": "output_text", "text": "Hello!"}],
+                }
+            ],
+            "usage": {"input_tokens": 5, "output_tokens": 3, "total_tokens": 8},
+        }
+    )
+
+    response = client.create_response("gpt-4o", "Hello!", "openai")
+
+    mock_request.assert_called_once_with(
+        "POST",
+        "http://test-api/v1/responses",
+        params={"provider": "openai"},
+        json={"model": "gpt-4o", "input": "Hello!", "stream": False},
+        timeout=30.0,
+    )
+    assert isinstance(response, Response)
+    assert response.id == "resp-123"
+    assert response.status.root == "completed"
+    assert response.output[0].root.content[0].root.text == "Hello!"
+
+
+@patch("requests.Session.request")
+def test_create_response_omits_unset_defaults(mock_request, client):
+    """Spec defaults (store=True, temperature=1, ...) must not leak into the body."""
+    mock_request.return_value = _response_mock(
+        {
+            "id": "resp-1",
+            "object": "response",
+            "created_at": 1,
+            "status": "completed",
+            "model": "gpt-4o",
+            "output": [],
+        }
+    )
+
+    client.create_response("gpt-4o", "Hi")
+
+    sent_json = mock_request.call_args.kwargs["json"]
+    assert sent_json == {"model": "gpt-4o", "input": "Hi", "stream": False}
+    for leaked in ("temperature", "top_p", "store", "background", "parallel_tool_calls"):
+        assert leaked not in sent_json
+
+
+@patch("requests.Session.request")
+def test_create_response_with_input_items_and_tools(mock_request, client):
+    """Structured input items and ResponseTool models serialize into the body."""
+    mock_request.return_value = _response_mock(
+        {
+            "id": "resp-2",
+            "object": "response",
+            "created_at": 1,
+            "status": "completed",
+            "model": "gpt-4o",
+            "output": [],
+        }
+    )
+
+    tools = [ResponseTool(type="function", name="get_weather")]
+    client.create_response(
+        "gpt-4o",
+        [{"role": "user", "content": "Hi"}],
+        max_output_tokens=64,
+        tools=tools,
+    )
+
+    sent_json = mock_request.call_args.kwargs["json"]
+    assert sent_json["input"] == [{"role": "user", "content": "Hi"}]
+    assert sent_json["max_output_tokens"] == 64
+    assert sent_json["tools"] == [{"type": "function", "name": "get_weather", "strict": False}]
+
+
+@patch("requests.Session.request")
+def test_create_response_stream(mock_request, client):
+    """Test streaming the Responses API in SSEvent format."""
+    mock_response = Mock()
+    mock_response.status_code = 200
+    mock_response.raise_for_status.return_value = None
+    mock_response.iter_lines.return_value = [
+        b"event: response.created",
+        b'data: {"type":"response.created","sequence_number":0}',
+        b"",
+        b"event: response.output_text.delta",
+        b'data: {"type":"response.output_text.delta","delta":"Hello"}',
+        b"",
+        b"event: response.completed",
+        b'data: {"type":"response.completed"}',
+        b"",
+        b"data: [DONE]",
+    ]
+    mock_request.return_value = mock_response
+
+    chunks = list(client.create_response_stream("gpt-4o", "Hi", "openai"))
+
+    mock_request.assert_called_once_with(
+        "POST",
+        "http://test-api/v1/responses",
+        data=None,
+        json={"model": "gpt-4o", "input": "Hi", "stream": True},
+        params={"provider": "openai"},
+        stream=True,
+    )
+
+    assert len(chunks) == 3
+    assert all(isinstance(c, SSEvent) for c in chunks)
+    assert chunks[0].event == "response.created"
+    assert chunks[1].event == "response.output_text.delta"
+    assert chunks[2].event == "response.completed"
+
+    import json
+
+    assert json.loads(chunks[1].data)["delta"] == "Hello"

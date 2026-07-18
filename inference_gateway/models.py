@@ -27,6 +27,7 @@ class Provider(
             "minimax",
             "moonshot",
             "nvidia",
+            "zai",
         ]
     ]
 ):
@@ -45,6 +46,7 @@ class Provider(
         "minimax",
         "moonshot",
         "nvidia",
+        "zai",
     ]
 
 
@@ -104,18 +106,7 @@ class SSEvent(BaseModel):
     model_config = ConfigDict(
         populate_by_name=True,
     )
-    event: (
-        Literal[
-            "message-start",
-            "stream-start",
-            "content-start",
-            "content-delta",
-            "content-end",
-            "message-end",
-            "stream-end",
-        ]
-        | None
-    ) = None
+    event: str | None = None
     data: str | None = None
     retry: int | None = None
 
@@ -126,6 +117,7 @@ class Endpoints(BaseModel):
     )
     models: str
     chat: str
+    responses: str | None = None
 
 
 class Error(BaseModel):
@@ -937,3 +929,604 @@ class CreateChatCompletionResponse(BaseModel):
     The object type, which is always `chat.completion`.
     """
     usage: CompletionUsage | None = None
+
+
+class ResponseRole(RootModel[Literal["user", "assistant", "system", "developer"]]):
+    root: Literal["user", "assistant", "system", "developer"]
+    """
+    The role of the message input.
+    """
+
+
+class ResponseInputText(BaseModel):
+    """
+    A text input to the model.
+    """
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+    )
+    type: Literal["input_text"] = "input_text"
+    """
+    The type of the input item. Always `input_text`.
+    """
+    text: str
+    """
+    The text input to the model.
+    """
+
+
+class ResponseInputImage(BaseModel):
+    """
+    An image input to the model.
+    """
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+    )
+    type: Literal["input_image"] = "input_image"
+    """
+    The type of the input item. Always `input_image`.
+    """
+    image_url: str | None = None
+    """
+    The URL of the image (data URLs supported).
+    """
+    detail: Literal["auto", "low", "high"] = "auto"
+    """
+    The detail level of the image to send to the model.
+    """
+
+
+class ResponseInputContentPart(RootModel[ResponseInputText | ResponseInputImage]):
+    root: ResponseInputText | ResponseInputImage
+    """
+    A content part within an input message.
+    """
+
+
+class ResponseInputMessageContent(RootModel[str | Sequence[ResponseInputContentPart]]):
+    root: str | Sequence[ResponseInputContentPart]
+    """
+    Text or multimodal content for an input message. Either a string or a list of content parts.
+    """
+
+
+class ResponseInputItem(BaseModel):
+    """
+    A single input item. Most commonly an input message with a role and content.
+    """
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+    )
+    type: str = "message"
+    """
+    The type of the input item. Defaults to `message`.
+    """
+    role: ResponseRole
+    content: ResponseInputMessageContent
+
+
+class ResponseInput(RootModel[str | Sequence[ResponseInputItem]]):
+    root: str | Sequence[ResponseInputItem]
+    """
+    Text, image, or file inputs to the model. Either a single text prompt or a list of input items representing a (possibly batched) conversation.
+    """
+
+
+class ResponseTool(BaseModel):
+    """
+    A tool the model may call. Only function tools are modeled here. Note the Responses API uses a flattened function tool shape (`name`, `description`, and `parameters` at the top level) rather than nesting them under a `function` object as `/chat/completions` does.
+    """
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+    )
+    type: Literal["function"] = "function"
+    """
+    The type of the tool. Currently only `function`.
+    """
+    name: str
+    """
+    The name of the function to call.
+    """
+    description: str | None = None
+    """
+    A description of the function, used by the model to decide when and how to call it.
+    """
+    parameters: FunctionParameters | None = None
+    strict: bool = False
+    """
+    Whether to enforce strict parameter validation.
+    """
+
+
+class ResponseToolChoiceFunction(BaseModel):
+    """
+    Forces the model to call a specific function tool.
+    """
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+    )
+    type: Literal["function"] = "function"
+    name: str
+
+
+class ResponseToolChoice(
+    RootModel[Literal["none", "auto", "required"] | ResponseToolChoiceFunction]
+):
+    root: Literal["none", "auto", "required"] | ResponseToolChoiceFunction
+    """
+    How the model should select which tool (or tools) to use. Either a mode string (`none`, `auto`, `required`) or an object forcing a specific tool.
+    """
+
+
+class ResponseReasoning(BaseModel):
+    """
+    Configuration options for reasoning models.
+    """
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+    )
+    effort: Literal["minimal", "low", "medium", "high"] | None = "medium"
+    """
+    Constrains the effort on reasoning for reasoning models. Reducing effort can result in faster responses and fewer reasoning tokens.
+    """
+    summary: Literal["auto", "concise", "detailed"] | None = None
+    """
+    A summary of the reasoning performed by the model, useful for debugging and understanding the model's reasoning process.
+    """
+
+
+class Format(BaseModel):
+    """
+    An object specifying the format that the model must output.
+    """
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+    )
+    type: Literal["text", "json_schema", "json_object"]
+    """
+    The type of response format being defined.
+    """
+    name: str | None = None
+    """
+    The name of the response format (used with `json_schema`).
+    """
+    schema_: Annotated[FunctionParameters | None, Field(alias="schema")] = None
+    strict: bool = False
+    """
+    Whether to enable strict schema adherence.
+    """
+
+
+class ResponseTextConfig(BaseModel):
+    """
+    Configuration options for a text response from the model. Can be plain text or structured JSON data.
+    """
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+    )
+    format: Format | None = None
+    """
+    An object specifying the format that the model must output.
+    """
+
+
+class ResponseStatus(
+    RootModel[Literal["completed", "failed", "in_progress", "cancelled", "queued", "incomplete"]]
+):
+    root: Literal["completed", "failed", "in_progress", "cancelled", "queued", "incomplete"]
+    """
+    The status of the response generation.
+    """
+
+
+class ResponseError(BaseModel):
+    """
+    An error object returned when the model fails to generate a response.
+    """
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+    )
+    code: str
+    """
+    The error code for the response.
+    """
+    message: str
+    """
+    A human-readable description of the error.
+    """
+
+
+class ResponseIncompleteDetails(BaseModel):
+    """
+    Details about why the response is incomplete.
+    """
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+    )
+    reason: str | None = None
+    """
+    The reason why the response is incomplete.
+    """
+
+
+class ResponseOutputText(BaseModel):
+    """
+    A text output from the model.
+    """
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+    )
+    type: Literal["output_text"] = "output_text"
+    """
+    The type of the output text. Always `output_text`.
+    """
+    text: str
+    """
+    The text output from the model.
+    """
+
+
+class ResponseOutputRefusal(BaseModel):
+    """
+    A refusal generated by the model.
+    """
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+    )
+    type: Literal["refusal"] = "refusal"
+    """
+    The type of the refusal. Always `refusal`.
+    """
+    refusal: str
+    """
+    The refusal explanation from the model.
+    """
+
+
+class ResponseOutputContent(RootModel[ResponseOutputText | ResponseOutputRefusal]):
+    root: ResponseOutputText | ResponseOutputRefusal
+    """
+    A content part of an output message.
+    """
+
+
+class ResponseOutputMessage(BaseModel):
+    """
+    An output message from the model.
+    """
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+    )
+    type: Literal["message"] = "message"
+    """
+    The type of the output item. Always `message`.
+    """
+    id: str
+    """
+    The unique ID of the output message.
+    """
+    role: Literal["assistant"] = "assistant"
+    """
+    The role of the output message. Always `assistant`.
+    """
+    status: Literal["in_progress", "completed", "incomplete"] | None = None
+    """
+    The status of the message.
+    """
+    content: Sequence[ResponseOutputContent]
+
+
+class ResponseFunctionToolCall(BaseModel):
+    """
+    A tool call to a function generated by the model.
+    """
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+    )
+    type: Literal["function_call"] = "function_call"
+    """
+    The type of the output item. Always `function_call`.
+    """
+    id: str | None = None
+    """
+    The unique ID of the function tool call.
+    """
+    call_id: str
+    """
+    The unique ID of the function tool call generated by the model, used to associate the call with its output.
+    """
+    name: str
+    """
+    The name of the function to run.
+    """
+    arguments: str
+    """
+    A JSON string of the arguments to pass to the function.
+    """
+    status: Literal["in_progress", "completed", "incomplete"] | None = None
+    """
+    The status of the function tool call.
+    """
+
+
+class ResponseReasoningSummaryPart(BaseModel):
+    """
+    A summary part of a reasoning item.
+    """
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+    )
+    type: Literal["summary_text"] = "summary_text"
+    """
+    The type of the summary. Always `summary_text`.
+    """
+    text: str
+    """
+    A summary of the reasoning output from the model.
+    """
+
+
+class ResponseReasoningItem(BaseModel):
+    """
+    A reasoning item describing the model's chain of thought.
+    """
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+    )
+    type: Literal["reasoning"] = "reasoning"
+    """
+    The type of the output item. Always `reasoning`.
+    """
+    id: str
+    """
+    The unique ID of the reasoning item.
+    """
+    summary: Sequence[ResponseReasoningSummaryPart]
+    """
+    Reasoning summary content.
+    """
+    status: Literal["in_progress", "completed", "incomplete"] | None = None
+    """
+    The status of the reasoning item.
+    """
+
+
+class ResponseOutputItem(
+    RootModel[ResponseOutputMessage | ResponseFunctionToolCall | ResponseReasoningItem]
+):
+    root: ResponseOutputMessage | ResponseFunctionToolCall | ResponseReasoningItem
+    """
+    An output item generated by the model: an output message, a function tool call, or a reasoning item.
+    """
+
+
+class InputTokensDetails(BaseModel):
+    """
+    A detailed breakdown of the input tokens.
+    """
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+    )
+    cached_tokens: int = 0
+    """
+    The number of tokens retrieved from the cache.
+    """
+
+
+class OutputTokensDetails(BaseModel):
+    """
+    A detailed breakdown of the output tokens.
+    """
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+    )
+    reasoning_tokens: int = 0
+    """
+    The number of reasoning tokens.
+    """
+
+
+class ResponseUsage(BaseModel):
+    """
+    Token usage details for the response.
+    """
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+    )
+    input_tokens: int = 0
+    """
+    The number of input tokens.
+    """
+    input_tokens_details: InputTokensDetails | None = None
+    """
+    A detailed breakdown of the input tokens.
+    """
+    output_tokens: int = 0
+    """
+    The number of output tokens.
+    """
+    output_tokens_details: OutputTokensDetails | None = None
+    """
+    A detailed breakdown of the output tokens.
+    """
+    total_tokens: int = 0
+    """
+    The total number of tokens used (input + output).
+    """
+
+
+class CreateResponseRequest(BaseModel):
+    """
+    Request body for creating a model response via the Responses API.
+    """
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+    )
+    model: str
+    """
+    Model ID used to generate the response.
+    """
+    input: ResponseInput
+    instructions: str | None = None
+    """
+    A system (or developer) message inserted into the model's context. When used with `previous_response_id`, instructions from previous responses are not carried over.
+    """
+    max_output_tokens: int | None = None
+    """
+    An upper bound for the number of tokens that can be generated for a response, including visible output tokens and reasoning tokens.
+    """
+    stream: bool = False
+    """
+    If set to true, the model response data is streamed to the client as it is generated using [server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format).
+    """
+    temperature: float | None = 1
+    """
+    What sampling temperature to use, between 0 and 2. Higher values make the output more random; lower values make it more focused.
+    """
+    top_p: float | None = 1
+    """
+    An alternative to sampling with temperature, called nucleus sampling, where the model considers the tokens with `top_p` probability mass.
+    """
+    tools: Sequence[ResponseTool] | None = None
+    """
+    An array of tools the model may call while generating a response.
+    """
+    tool_choice: ResponseToolChoice | None = None
+    reasoning: ResponseReasoning | None = None
+    text: ResponseTextConfig | None = None
+    previous_response_id: str | None = None
+    """
+    The unique ID of the previous response to the model. Use this to create multi-turn conversations.
+    """
+    store: bool = True
+    """
+    Whether to store the generated model response for later retrieval.
+    """
+    background: bool = False
+    """
+    Whether to run the model response in the background. Useful for long-running or batched requests.
+    """
+    parallel_tool_calls: bool = True
+    """
+    Whether to allow the model to run tool calls in parallel.
+    """
+    metadata: Mapping[str, str] | None = None
+    """
+    Set of up to 16 key-value pairs that can be attached to the object and returned when retrieving the response.
+    """
+    user: str | None = None
+    """
+    A stable identifier for your end-users, used to help detect and prevent abuse.
+    """
+
+
+class Response(BaseModel):
+    """
+    Represents a model response returned by the Responses API.
+    """
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+    )
+    id: str
+    """
+    Unique identifier for this response.
+    """
+    object: str
+    """
+    The object type, which is always `response`.
+    """
+    created_at: int
+    """
+    Unix timestamp (in seconds) of when the response was created.
+    """
+    status: ResponseStatus
+    model: str
+    """
+    The model used to generate the response.
+    """
+    output: Sequence[ResponseOutputItem]
+    """
+    An array of content items generated by the model.
+    """
+    error: ResponseError | None = None
+    incomplete_details: ResponseIncompleteDetails | None = None
+    instructions: str | None = None
+    """
+    The system/developer message used to generate the response.
+    """
+    max_output_tokens: int | None = None
+    """
+    An upper bound for the number of generated tokens.
+    """
+    previous_response_id: str | None = None
+    """
+    The unique ID of the previous response, if any.
+    """
+    reasoning: ResponseReasoning | None = None
+    temperature: float | None = None
+    top_p: float | None = None
+    tool_choice: ResponseToolChoice | None = None
+    tools: Sequence[ResponseTool] | None = None
+    text: ResponseTextConfig | None = None
+    metadata: Mapping[str, str] | None = None
+    usage: ResponseUsage | None = None
+
+
+class ResponseStreamEvent(BaseModel):
+    """
+    A server-sent event emitted while streaming a response. The Responses API emits a sequence of typed events (for example `response.created`, `response.output_text.delta`, and `response.completed`). This schema models the common event envelope; which fields are populated depends on the event `type`.
+    """
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+    )
+    type: str
+    """
+    The type of the streamed event, for example `response.output_text.delta` or `response.completed`.
+    """
+    sequence_number: int | None = None
+    """
+    The sequence number of this event.
+    """
+    response: Response | None = None
+    item_id: str | None = None
+    """
+    The ID of the output item this event relates to.
+    """
+    output_index: int | None = None
+    """
+    The index of the output item in the response's output array.
+    """
+    content_index: int | None = None
+    """
+    The index of the content part within the output item.
+    """
+    delta: str | None = None
+    """
+    The incremental text delta for `*.delta` events.
+    """
+    text: str | None = None
+    """
+    The finalized text for `*.done` events.
+    """
