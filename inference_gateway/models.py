@@ -1130,9 +1130,7 @@ class ResponseTextConfig(BaseModel):
 
 
 class ResponseStatus(
-    RootModel[
-        Literal["completed", "failed", "in_progress", "cancelled", "queued", "incomplete"]
-    ]
+    RootModel[Literal["completed", "failed", "in_progress", "cancelled", "queued", "incomplete"]]
 ):
     root: Literal["completed", "failed", "in_progress", "cancelled", "queued", "incomplete"]
     """

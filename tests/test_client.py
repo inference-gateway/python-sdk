@@ -819,9 +819,7 @@ def test_create_response_with_input_items_and_tools(mock_request, client):
     sent_json = mock_request.call_args.kwargs["json"]
     assert sent_json["input"] == [{"role": "user", "content": "Hi"}]
     assert sent_json["max_output_tokens"] == 64
-    assert sent_json["tools"] == [
-        {"type": "function", "name": "get_weather", "strict": False}
-    ]
+    assert sent_json["tools"] == [{"type": "function", "name": "get_weather", "strict": False}]
 
 
 @patch("requests.Session.request")
