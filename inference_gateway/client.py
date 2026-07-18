@@ -15,10 +15,14 @@ from inference_gateway.models import (
     ChatCompletionTool,
     CreateChatCompletionRequest,
     CreateChatCompletionResponse,
+    CreateResponseRequest,
     ListModelsResponse,
     ListToolsResponse,
     Message,
     Provider,
+    Response,
+    ResponseInputItem,
+    ResponseTool,
     SSEvent,
 )
 
@@ -409,6 +413,154 @@ class InferenceGatewayClient:
                     yield SSEvent(event="content-delta", data=json.dumps(parsed_data))
                 except Exception:
                     yield SSEvent(event="content-delta", data=line_bytes.decode("utf-8"))
+
+    def create_response(
+        self,
+        model: str,
+        input: Union[str, List[ResponseInputItem], List[Dict[str, Any]]],
+        provider: Optional[Union[Provider, str]] = None,
+        max_output_tokens: Optional[int] = None,
+        tools: Optional[List[ResponseTool]] = None,
+        **kwargs: Any,
+    ) -> Response:
+        """Create a model response via the OpenAI-compatible Responses API.
+
+        Sends a request to `POST /responses`. Not every provider implements the
+        Responses API; requests routed to a provider without support return a
+        400 error - use `create_chat_completion` for those providers.
+
+        Args:
+            model: Name of the model to use
+            input: A text prompt, or a list of input items (dicts or
+                ResponseInputItem models) for a multi-turn/batched conversation
+            provider: Optional provider specification
+            max_output_tokens: Upper bound on the number of tokens to generate
+            tools: List of tools the model may call (using ResponseTool models)
+            **kwargs: Additional parameters to pass to the API
+
+        Returns:
+            Response: The generated model response
+
+        Raises:
+            InferenceGatewayAPIError: If the API request fails
+            InferenceGatewayValidationError: If request/response validation fails
+        """
+        url = f"{self.base_url}/responses"
+        params = {}
+
+        if provider:
+            provider_value = provider.root if hasattr(provider, "root") else str(provider)
+            params["provider"] = provider_value
+
+        try:
+            request_data = {
+                "model": model,
+                "input": input,
+                "stream": False,
+            }
+
+            if max_output_tokens is not None:
+                request_data["max_output_tokens"] = max_output_tokens
+            if tools:
+                request_data["tools"] = [tool.model_dump(exclude_none=True) for tool in tools]
+
+            request_data.update(kwargs)
+
+            request = CreateResponseRequest.model_validate(request_data)
+
+            response = self._make_request(
+                "POST",
+                url,
+                params=params,
+                json=request.model_dump(exclude_none=True, exclude_unset=True),
+            )
+
+            return Response.model_validate(response.json())
+
+        except ValidationError as e:
+            raise InferenceGatewayValidationError(f"Request/response validation failed: {e}")
+
+    def create_response_stream(
+        self,
+        model: str,
+        input: Union[str, List[ResponseInputItem], List[Dict[str, Any]]],
+        provider: Optional[Union[Provider, str]] = None,
+        max_output_tokens: Optional[int] = None,
+        tools: Optional[List[ResponseTool]] = None,
+        **kwargs: Any,
+    ) -> Generator[SSEvent, None, None]:
+        """Stream a model response via the OpenAI-compatible Responses API.
+
+        Sends a streaming request to `POST /responses` and yields `SSEvent`
+        objects. Callers should `json.loads(chunk.data)` and validate against
+        `ResponseStreamEvent` themselves.
+
+        Args:
+            model: Name of the model to use
+            input: A text prompt, or a list of input items (dicts or
+                ResponseInputItem models) for a multi-turn/batched conversation
+            provider: Optional provider specification
+            max_output_tokens: Upper bound on the number of tokens to generate
+            tools: List of tools the model may call (using ResponseTool models)
+            **kwargs: Additional parameters to pass to the API
+
+        Yields:
+            SSEvent: Stream chunks in SSEvent format
+
+        Raises:
+            InferenceGatewayAPIError: If the API request fails
+            InferenceGatewayValidationError: If request validation fails
+        """
+        url = f"{self.base_url}/responses"
+        params = {}
+
+        if provider:
+            provider_value = provider.root if hasattr(provider, "root") else str(provider)
+            params["provider"] = provider_value
+
+        try:
+            request_data = {
+                "model": model,
+                "input": input,
+                "stream": True,
+            }
+
+            if max_output_tokens is not None:
+                request_data["max_output_tokens"] = max_output_tokens
+            if tools:
+                request_data["tools"] = [tool.model_dump(exclude_none=True) for tool in tools]
+
+            request_data.update(kwargs)
+
+            request = CreateResponseRequest.model_validate(request_data)
+
+            if self.use_httpx:
+                with self.client.stream(
+                    "POST",
+                    url,
+                    params=params,
+                    json=request.model_dump(exclude_none=True, exclude_unset=True),
+                ) as response:
+                    try:
+                        response.raise_for_status()
+                    except httpx.HTTPStatusError as e:
+                        raise InferenceGatewayAPIError(f"Request failed: {str(e)}")
+                    yield from self._process_stream_response(response)
+            else:
+                requests_response = self.session.post(
+                    url,
+                    params=params,
+                    json=request.model_dump(exclude_none=True, exclude_unset=True),
+                    stream=True,
+                )
+                try:
+                    requests_response.raise_for_status()
+                except (requests.exceptions.HTTPError, Exception) as e:
+                    raise InferenceGatewayAPIError(f"Request failed: {str(e)}")
+                yield from self._process_stream_response(requests_response)
+
+        except ValidationError as e:
+            raise InferenceGatewayValidationError(f"Request validation failed: {e}")
 
     def proxy_request(
         self,
