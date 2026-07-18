@@ -317,6 +317,9 @@ def test_provider_values():
     provider = Provider("openai")
     assert provider.root == "openai"
 
+    provider = Provider("llamacpp")
+    assert provider.root == "llamacpp"
+
     with pytest.raises(ValueError):
         Provider("invalid_provider")
 
