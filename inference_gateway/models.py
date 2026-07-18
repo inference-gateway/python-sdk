@@ -106,18 +106,7 @@ class SSEvent(BaseModel):
     model_config = ConfigDict(
         populate_by_name=True,
     )
-    event: (
-        Literal[
-            "message-start",
-            "stream-start",
-            "content-start",
-            "content-delta",
-            "content-end",
-            "message-end",
-            "stream-end",
-        ]
-        | None
-    ) = None
+    event: str | None = None
     data: str | None = None
     retry: int | None = None
 
