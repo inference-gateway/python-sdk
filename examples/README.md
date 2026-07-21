@@ -25,4 +25,5 @@ The following examples demonstrate how to use the Inference Gateway SDK for vari
 - [List LLMs](list/README.md)
 - [Chat](chat/README.md)
 - [Tools](tools/README.md)
+- [Messages](messages/README.md)
 - [MCP](mcp/README.md)

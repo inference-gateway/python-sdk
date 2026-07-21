@@ -438,6 +438,81 @@ extra = ToolCallExtraContent(google=Google(thought_signature="..."))
 
 The field is fully optional - providers that don't use it ignore it entirely, and `model_dump(exclude_none=True)` strips it from the wire when unset.
 
+### Messages API (Anthropic-compatible)
+
+The gateway also exposes an Anthropic-compatible Messages API (`POST /messages`). Use `create_message` for standard requests - it returns a validated `MessagesResponse`:
+
+```python
+from inference_gateway import InferenceGatewayClient, MessagesMessage, MessagesTextBlock
+
+client = InferenceGatewayClient("http://localhost:8080/v1")
+
+response = client.create_message(
+    model="anthropic/claude-sonnet-5",
+    messages=[
+        MessagesMessage(role="user", content="Hello! Please introduce yourself briefly."),
+    ],
+    max_tokens=100,
+    system="You are a helpful assistant",
+)
+
+for block in response.content:
+    if isinstance(block.root, MessagesTextBlock):
+        print(block.root.text)
+
+print(f"Stop reason: {response.stop_reason}")
+print(f"Usage: {response.usage.input_tokens} in / {response.usage.output_tokens} out")
+```
+
+`create_message_stream` yields typed `MessagesStreamEvent` objects (`message_start`, `content_block_delta`, `message_stop`, ...) - no manual SSE parsing needed:
+
+```python
+for event in client.create_message_stream(
+    model="anthropic/claude-sonnet-5",
+    messages=[
+        MessagesMessage(role="user", content="Tell me a short story."),
+    ],
+    max_tokens=200,
+):
+    if event.type == "content_block_delta" and event.delta and event.delta.text:
+        print(event.delta.text, end="", flush=True)
+```
+
+Tools use the `MessagesTool` shape, and tool calls come back as `MessagesToolUseBlock` content blocks:
+
+```python
+from inference_gateway import MessagesTool, MessagesToolUseBlock
+from inference_gateway.models import FunctionParameters
+
+tools = [
+    MessagesTool(
+        name="get_current_weather",
+        description="Get the current weather in a given location",
+        input_schema=FunctionParameters(
+            type="object",
+            properties={
+                "location": {"type": "string", "description": "The city, e.g. San Francisco"},
+            },
+            required=["location"],
+        ),
+    ),
+]
+
+response = client.create_message(
+    model="anthropic/claude-sonnet-5",
+    messages=[MessagesMessage(role="user", content="What is the weather in New York?")],
+    max_tokens=200,
+    tools=tools,
+)
+
+for block in response.content:
+    if isinstance(block.root, MessagesToolUseBlock):
+        print(f"Tool called: {block.root.name}")
+        print(f"Input: {block.root.input}")
+```
+
+> **Note:** Not every provider implements the Messages API. Requests routed to a provider without support return a 400 error - use `create_chat_completion` for those providers.
+
 ### Proxy Requests
 
 To proxy a raw request directly to a provider's API through the gateway, use `proxy_request`:
@@ -492,6 +567,7 @@ For more detailed examples and use cases, check out the [examples directory](./e
 - **[List Example](./examples/list/)** - How to list available models
 - **[Chat Example](./examples/chat/)** - Basic and advanced chat completion examples
 - **[Tools Example](./examples/tools/)** - Function calling and tool usage
+- **[Messages Example](./examples/messages/)** - Anthropic-compatible Messages API usage
 - **[MCP Example](./examples/mcp/)** - Model Context Protocol integration examples
 
 Each example includes its own README with specific instructions and explanations.
