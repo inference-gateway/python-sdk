@@ -2,7 +2,8 @@
 version: "3"
 
 vars:
-  OPENAPI_URL: https://raw.githubusercontent.com/inference-gateway/schemas/refs/heads/main/openapi.yaml
+  SCHEMAS_REF: '{{.SCHEMAS_REF | default "refs/heads/main"}}'
+  OPENAPI_URL: https://raw.githubusercontent.com/inference-gateway/schemas/{{.SCHEMAS_REF}}/openapi.yaml
   PYTHON_VERSION: "3.13"
 
 tasks:
@@ -17,7 +18,7 @@ tasks:
       - pip install -e ".[dev]"
 
   oas-download:
-    desc: Download latest OpenAPI specification from inference-gateway repository
+    desc: Download OpenAPI specification (pin with SCHEMAS_REF=refs/tags/vX.Y.Z, a branch ref, or a SHA)
     cmds:
       - echo "Downloading OpenAPI spec from {{.OPENAPI_URL}}..."
       - curl -sSL -o openapi.yaml "{{.OPENAPI_URL}}"
@@ -64,6 +65,11 @@ tasks:
         --use-title-as-name
       - echo "✅ Models generated successfully"
       - task: format
+
+  oas-sync:
+    desc: Fetch the OpenAPI spec (pin with SCHEMAS_REF) and regenerate models
+    cmds:
+      - task: generate
 
   format:
     desc: Format code with black and isort
