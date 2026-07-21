@@ -21,7 +21,7 @@ tasks:
     desc: Download OpenAPI specification (pin with SCHEMAS_REF=refs/tags/vX.Y.Z, a branch ref, or a SHA)
     cmds:
       - echo "Downloading OpenAPI spec from {{.OPENAPI_URL}}..."
-      - curl -sSL -o openapi.yaml "{{.OPENAPI_URL}}"
+      - curl -fsSL -o openapi.yaml "{{.OPENAPI_URL}}"
       - echo "✅ OpenAPI spec downloaded successfully"
 
   oas-validate:
