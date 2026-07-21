@@ -1,3 +1,9 @@
+## [0.9.0](https://github.com/inference-gateway/python-sdk/compare/v0.8.0...v0.9.0) (2026-07-21)
+
+### ✨ Features
+
+* **models:** sync Model types with /v1/models include parameter ([#83](https://github.com/inference-gateway/python-sdk/issues/83)) ([3b7df22](https://github.com/inference-gateway/python-sdk/commit/3b7df22b5831a2d7501052885fd67c114b921d2f))
+
 ## [0.8.0](https://github.com/inference-gateway/python-sdk/compare/v0.7.1...v0.8.0) (2026-07-18)
 
 ### ✨ Features
