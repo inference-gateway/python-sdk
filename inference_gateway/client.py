@@ -15,10 +15,15 @@ from inference_gateway.models import (
     ChatCompletionTool,
     CreateChatCompletionRequest,
     CreateChatCompletionResponse,
+    CreateMessagesRequest,
     CreateResponseRequest,
     ListModelsResponse,
     ListToolsResponse,
     Message,
+    MessagesMessage,
+    MessagesResponse,
+    MessagesStreamEvent,
+    MessagesTool,
     Provider,
     Response,
     ResponseInputItem,
@@ -424,10 +429,10 @@ class InferenceGatewayClient:
                 except Exception:
                     yield SSEvent(event="content-delta", data=line_bytes.decode("utf-8"))
 
-    def _process_responses_stream(
+    def _iter_sse_payloads(
         self, response: Union[requests.Response, httpx.Response]
-    ) -> Generator[ResponseStreamEvent, None, None]:
-        """Process a Responses API SSE stream into ResponseStreamEvent objects."""
+    ) -> Generator[str, None, None]:
+        """Yield the payload of each SSE `data:` frame, skipping [DONE] sentinels."""
         for line in response.iter_lines():
             if not line:
                 continue
@@ -441,7 +446,21 @@ class InferenceGatewayClient:
             if payload.strip() == "[DONE]":
                 continue
 
+            yield payload
+
+    def _process_responses_stream(
+        self, response: Union[requests.Response, httpx.Response]
+    ) -> Generator[ResponseStreamEvent, None, None]:
+        """Process a Responses API SSE stream into ResponseStreamEvent objects."""
+        for payload in self._iter_sse_payloads(response):
             yield ResponseStreamEvent.model_validate_json(payload)
+
+    def _process_messages_stream(
+        self, response: Union[requests.Response, httpx.Response]
+    ) -> Generator[MessagesStreamEvent, None, None]:
+        """Process a Messages API SSE stream into MessagesStreamEvent objects."""
+        for payload in self._iter_sse_payloads(response):
+            yield MessagesStreamEvent.model_validate_json(payload)
 
     def create_response(
         self,
@@ -591,6 +610,163 @@ class InferenceGatewayClient:
 
         except ValidationError as e:
             raise InferenceGatewayValidationError(f"Request validation failed: {e}")
+
+    def create_message(
+        self,
+        model: str,
+        messages: Union[List[MessagesMessage], List[Dict[str, Any]]],
+        max_tokens: int,
+        provider: Optional[Union[Provider, str]] = None,
+        system: Optional[Union[str, List[Dict[str, Any]]]] = None,
+        tools: Optional[List[MessagesTool]] = None,
+        **kwargs: Any,
+    ) -> MessagesResponse:
+        """Create a message via the Anthropic-compatible Messages API.
+
+        Sends a request to `POST /messages`. Not every provider implements the
+        Messages API; requests routed to a provider without support return a
+        400 error - use `create_chat_completion` for those providers.
+
+        Args:
+            model: Name of the model to use
+            messages: List of messages (dicts or MessagesMessage models)
+            max_tokens: Maximum number of tokens to generate before stopping
+            provider: Optional provider specification
+            system: Optional system prompt (string or list of content blocks)
+            tools: List of tools the model may call (using MessagesTool models)
+            **kwargs: Additional parameters to pass to the API
+
+        Returns:
+            MessagesResponse: The generated message response
+
+        Raises:
+            InferenceGatewayAPIError: If the API request fails
+            InferenceGatewayValidationError: If request/response validation fails
+        """
+        url = f"{self.base_url}/messages"
+        params = {}
+
+        if provider:
+            provider_value = provider.root if hasattr(provider, "root") else str(provider)
+            params["provider"] = provider_value
+
+        try:
+            request = CreateMessagesRequest.model_validate(
+                self._build_messages_request(model, messages, max_tokens, system, tools, kwargs)
+            )
+
+            response = self._make_request(
+                "POST",
+                url,
+                params=params,
+                json=request.model_dump(exclude_none=True, exclude_unset=True),
+            )
+
+            return MessagesResponse.model_validate(response.json())
+
+        except ValidationError as e:
+            raise InferenceGatewayValidationError(f"Request/response validation failed: {e}")
+
+    def create_message_stream(
+        self,
+        model: str,
+        messages: Union[List[MessagesMessage], List[Dict[str, Any]]],
+        max_tokens: int,
+        provider: Optional[Union[Provider, str]] = None,
+        system: Optional[Union[str, List[Dict[str, Any]]]] = None,
+        tools: Optional[List[MessagesTool]] = None,
+        **kwargs: Any,
+    ) -> Generator[MessagesStreamEvent, None, None]:
+        """Stream a message via the Anthropic-compatible Messages API.
+
+        Sends a streaming request to `POST /messages` and yields validated
+        `MessagesStreamEvent` objects. The event kind (for example
+        `message_start` or `content_block_delta`) is available on each
+        event's `type` field.
+
+        Args:
+            model: Name of the model to use
+            messages: List of messages (dicts or MessagesMessage models)
+            max_tokens: Maximum number of tokens to generate before stopping
+            provider: Optional provider specification
+            system: Optional system prompt (string or list of content blocks)
+            tools: List of tools the model may call (using MessagesTool models)
+            **kwargs: Additional parameters to pass to the API
+
+        Yields:
+            MessagesStreamEvent: Typed stream events
+
+        Raises:
+            InferenceGatewayAPIError: If the API request fails
+            InferenceGatewayValidationError: If request or event validation fails
+        """
+        url = f"{self.base_url}/messages"
+        params = {}
+
+        if provider:
+            provider_value = provider.root if hasattr(provider, "root") else str(provider)
+            params["provider"] = provider_value
+
+        try:
+            request = CreateMessagesRequest.model_validate(
+                self._build_messages_request(
+                    model, messages, max_tokens, system, tools, kwargs, stream=True
+                )
+            )
+
+            if self.use_httpx:
+                with self.client.stream(
+                    "POST",
+                    url,
+                    params=params,
+                    json=request.model_dump(exclude_none=True, exclude_unset=True),
+                ) as response:
+                    try:
+                        response.raise_for_status()
+                    except httpx.HTTPStatusError as e:
+                        raise InferenceGatewayAPIError(f"Request failed: {str(e)}")
+                    yield from self._process_messages_stream(response)
+            else:
+                requests_response = self.session.post(
+                    url,
+                    params=params,
+                    json=request.model_dump(exclude_none=True, exclude_unset=True),
+                    stream=True,
+                )
+                try:
+                    requests_response.raise_for_status()
+                except (requests.exceptions.HTTPError, Exception) as e:
+                    raise InferenceGatewayAPIError(f"Request failed: {str(e)}")
+                yield from self._process_messages_stream(requests_response)
+
+        except ValidationError as e:
+            raise InferenceGatewayValidationError(f"Request validation failed: {e}")
+
+    @staticmethod
+    def _build_messages_request(
+        model: str,
+        messages: Union[List[MessagesMessage], List[Dict[str, Any]]],
+        max_tokens: int,
+        system: Optional[Union[str, List[Dict[str, Any]]]],
+        tools: Optional[List[MessagesTool]],
+        kwargs: Dict[str, Any],
+        stream: bool = False,
+    ) -> Dict[str, Any]:
+        """Assemble the request payload shared by create_message[_stream]."""
+        request_data: Dict[str, Any] = {
+            "model": model,
+            "messages": messages,
+            "max_tokens": max_tokens,
+            "stream": stream,
+        }
+
+        if system is not None:
+            request_data["system"] = system
+        if tools:
+            request_data["tools"] = [tool.model_dump(exclude_none=True) for tool in tools]
+
+        request_data.update(kwargs)
+        return request_data
 
     def proxy_request(
         self,
