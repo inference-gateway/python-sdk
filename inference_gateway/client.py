@@ -22,6 +22,7 @@ from inference_gateway.models import (
     Provider,
     Response,
     ResponseInputItem,
+    ResponseStreamEvent,
     ResponseTool,
     SSEvent,
 )
@@ -423,6 +424,25 @@ class InferenceGatewayClient:
                 except Exception:
                     yield SSEvent(event="content-delta", data=line_bytes.decode("utf-8"))
 
+    def _process_responses_stream(
+        self, response: Union[requests.Response, httpx.Response]
+    ) -> Generator[ResponseStreamEvent, None, None]:
+        """Process a Responses API SSE stream into ResponseStreamEvent objects."""
+        for line in response.iter_lines():
+            if not line:
+                continue
+
+            line_bytes = line.encode("utf-8") if isinstance(line, str) else line
+
+            if not line_bytes.startswith(b"data: "):
+                continue
+
+            payload = line_bytes[6:].decode("utf-8")
+            if payload.strip() == "[DONE]":
+                continue
+
+            yield ResponseStreamEvent.model_validate_json(payload)
+
     def create_response(
         self,
         model: str,
@@ -497,12 +517,13 @@ class InferenceGatewayClient:
         max_output_tokens: Optional[int] = None,
         tools: Optional[List[ResponseTool]] = None,
         **kwargs: Any,
-    ) -> Generator[SSEvent, None, None]:
+    ) -> Generator[ResponseStreamEvent, None, None]:
         """Stream a model response via the OpenAI-compatible Responses API.
 
-        Sends a streaming request to `POST /responses` and yields `SSEvent`
-        objects. Callers should `json.loads(chunk.data)` and validate against
-        `ResponseStreamEvent` themselves.
+        Sends a streaming request to `POST /responses` and yields validated
+        `ResponseStreamEvent` objects. The event kind (for example
+        `response.created` or `response.output_text.delta`) is available on
+        each event's `type` field.
 
         Args:
             model: Name of the model to use
@@ -514,11 +535,11 @@ class InferenceGatewayClient:
             **kwargs: Additional parameters to pass to the API
 
         Yields:
-            SSEvent: Stream chunks in SSEvent format
+            ResponseStreamEvent: Typed stream events
 
         Raises:
             InferenceGatewayAPIError: If the API request fails
-            InferenceGatewayValidationError: If request validation fails
+            InferenceGatewayValidationError: If request or event validation fails
         """
         url = f"{self.base_url}/responses"
         params = {}
@@ -554,7 +575,7 @@ class InferenceGatewayClient:
                         response.raise_for_status()
                     except httpx.HTTPStatusError as e:
                         raise InferenceGatewayAPIError(f"Request failed: {str(e)}")
-                    yield from self._process_stream_response(response)
+                    yield from self._process_responses_stream(response)
             else:
                 requests_response = self.session.post(
                     url,
@@ -566,7 +587,7 @@ class InferenceGatewayClient:
                     requests_response.raise_for_status()
                 except (requests.exceptions.HTTPError, Exception) as e:
                     raise InferenceGatewayAPIError(f"Request failed: {str(e)}")
-                yield from self._process_stream_response(requests_response)
+                yield from self._process_responses_stream(requests_response)
 
         except ValidationError as e:
             raise InferenceGatewayValidationError(f"Request validation failed: {e}")
