@@ -166,11 +166,17 @@ class InferenceGatewayClient:
         except (requests.RequestException, httpx.RequestError) as e:
             raise InferenceGatewayError(f"Request failed: {str(e)}")
 
-    def list_models(self, provider: Optional[Union[Provider, str]] = None) -> ListModelsResponse:
+    def list_models(
+        self,
+        provider: Optional[Union[Provider, str]] = None,
+        include: Optional[List[str]] = None,
+    ) -> ListModelsResponse:
         """List all available language models.
 
         Args:
             provider: Optional provider to filter models
+            include: Optional list of additional metadata to include.
+                Supported values: "context_window", "pricing".
 
         Returns:
             ListModelsResponse: List of available models
@@ -185,6 +191,9 @@ class InferenceGatewayClient:
         if provider:
             provider_value = provider.root if hasattr(provider, "root") else str(provider)
             params["provider"] = provider_value
+
+        if include:
+            params["include"] = ",".join(include)
 
         try:
             response = self._make_request("GET", url, params=params)
