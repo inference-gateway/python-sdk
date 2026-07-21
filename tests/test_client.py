@@ -21,6 +21,7 @@ from inference_gateway.models import (
     Model,
     Provider,
     Response,
+    ResponseStreamEvent,
     ResponseTool,
     SSEvent,
 )
@@ -824,7 +825,7 @@ def test_create_response_with_input_items_and_tools(mock_request, client):
 
 @patch("requests.Session.request")
 def test_create_response_stream(mock_request, client):
-    """Test streaming the Responses API in SSEvent format."""
+    """Test streaming the Responses API as typed ResponseStreamEvent objects."""
     mock_response = Mock()
     mock_response.status_code = 200
     mock_response.raise_for_status.return_value = None
@@ -854,11 +855,9 @@ def test_create_response_stream(mock_request, client):
     )
 
     assert len(chunks) == 3
-    assert all(isinstance(c, SSEvent) for c in chunks)
-    assert chunks[0].event == "response.created"
-    assert chunks[1].event == "response.output_text.delta"
-    assert chunks[2].event == "response.completed"
-
-    import json
-
-    assert json.loads(chunks[1].data)["delta"] == "Hello"
+    assert all(isinstance(c, ResponseStreamEvent) for c in chunks)
+    assert chunks[0].type == "response.created"
+    assert chunks[0].sequence_number == 0
+    assert chunks[1].type == "response.output_text.delta"
+    assert chunks[1].delta == "Hello"
+    assert chunks[2].type == "response.completed"
