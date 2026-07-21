@@ -18,6 +18,9 @@ from inference_gateway.models import (
     ListModelsResponse,
     Message,
     MessageRole,
+    MessagesResponse,
+    MessagesStreamEvent,
+    MessagesTool,
     Model,
     Provider,
     Response,
@@ -861,3 +864,129 @@ def test_create_response_stream(mock_request, client):
     assert chunks[1].type == "response.output_text.delta"
     assert chunks[1].delta == "Hello"
     assert chunks[2].type == "response.completed"
+
+
+@patch("requests.Session.request")
+def test_create_message(mock_request, client):
+    """Test the Messages API (POST /messages) with a plain text message."""
+    mock_request.return_value = _response_mock(
+        {
+            "id": "msg-123",
+            "type": "message",
+            "role": "assistant",
+            "content": [{"type": "text", "text": "Hello!"}],
+            "model": "claude-sonnet-5",
+            "stop_reason": "end_turn",
+            "usage": {"input_tokens": 5, "output_tokens": 3},
+        }
+    )
+
+    response = client.create_message(
+        "claude-sonnet-5",
+        [{"role": "user", "content": "Hello!"}],
+        max_tokens=1024,
+        provider="anthropic",
+        system="You are helpful.",
+    )
+
+    mock_request.assert_called_once_with(
+        "POST",
+        "http://test-api/v1/messages",
+        params={"provider": "anthropic"},
+        json={
+            "model": "claude-sonnet-5",
+            "max_tokens": 1024,
+            "system": "You are helpful.",
+            "messages": [{"role": "user", "content": "Hello!"}],
+            "stream": False,
+        },
+        timeout=30.0,
+    )
+    assert isinstance(response, MessagesResponse)
+    assert response.id == "msg-123"
+    assert response.stop_reason == "end_turn"
+    assert response.content[0].root.text == "Hello!"
+    assert response.usage.input_tokens == 5
+
+
+@patch("requests.Session.request")
+def test_create_message_with_tools(mock_request, client):
+    """MessagesTool models serialize into the request body."""
+    mock_request.return_value = _response_mock(
+        {
+            "id": "msg-1",
+            "type": "message",
+            "role": "assistant",
+            "content": [],
+            "model": "claude-sonnet-5",
+            "stop_reason": "tool_use",
+            "usage": {"input_tokens": 1, "output_tokens": 1},
+        }
+    )
+
+    tools = [MessagesTool(name="get_weather", input_schema={"type": "object"})]
+    client.create_message(
+        "claude-sonnet-5",
+        [{"role": "user", "content": "Weather?"}],
+        max_tokens=64,
+        tools=tools,
+    )
+
+    sent_json = mock_request.call_args.kwargs["json"]
+    assert sent_json["max_tokens"] == 64
+    assert sent_json["tools"] == [{"name": "get_weather", "input_schema": {"type": "object"}}]
+
+
+@patch("requests.Session.request")
+def test_create_message_stream(mock_request, client):
+    """Test streaming the Messages API as typed MessagesStreamEvent objects."""
+    mock_response = Mock()
+    mock_response.status_code = 200
+    mock_response.raise_for_status.return_value = None
+    mock_response.iter_lines.return_value = [
+        b"event: message_start",
+        b'data: {"type":"message_start","message":{"id":"msg-1","type":"message",'
+        b'"role":"assistant","content":[],"model":"claude-sonnet-5",'
+        b'"stop_reason":"end_turn","usage":{"input_tokens":1,"output_tokens":0}}}',
+        b"",
+        b"event: content_block_delta",
+        b'data: {"type":"content_block_delta","index":0,'
+        b'"delta":{"type":"text_delta","text":"Hello"}}',
+        b"",
+        b"event: message_stop",
+        b'data: {"type":"message_stop"}',
+        b"",
+        b"data: [DONE]",
+    ]
+    mock_request.return_value = mock_response
+
+    chunks = list(
+        client.create_message_stream(
+            "claude-sonnet-5",
+            [{"role": "user", "content": "Hi"}],
+            max_tokens=1024,
+            provider="anthropic",
+        )
+    )
+
+    mock_request.assert_called_once_with(
+        "POST",
+        "http://test-api/v1/messages",
+        data=None,
+        json={
+            "model": "claude-sonnet-5",
+            "max_tokens": 1024,
+            "messages": [{"role": "user", "content": "Hi"}],
+            "stream": True,
+        },
+        params={"provider": "anthropic"},
+        stream=True,
+    )
+
+    assert len(chunks) == 3
+    assert all(isinstance(c, MessagesStreamEvent) for c in chunks)
+    assert chunks[0].type == "message_start"
+    assert chunks[0].message.id == "msg-1"
+    assert chunks[1].type == "content_block_delta"
+    assert chunks[1].delta.text == "Hello"
+    assert chunks[2].type == "message_stop"
