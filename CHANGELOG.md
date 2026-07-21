@@ -1,3 +1,13 @@
+## [0.10.0](https://github.com/inference-gateway/python-sdk/compare/v0.9.0...v0.10.0) (2026-07-21)
+
+### ✨ Features
+
+* sync generated types with schemas v0.10.0 ([#85](https://github.com/inference-gateway/python-sdk/issues/85)) ([8f397d3](https://github.com/inference-gateway/python-sdk/commit/8f397d35d0fcafe2b3d07d90481bfaac20895823))
+
+### 👷 CI
+
+* add deterministic schemas type sync ([#84](https://github.com/inference-gateway/python-sdk/issues/84)) ([ad894d1](https://github.com/inference-gateway/python-sdk/commit/ad894d1f4c64ebcc2e26068f92964a50bc47f964))
+
 ## [0.9.0](https://github.com/inference-gateway/python-sdk/compare/v0.8.0...v0.9.0) (2026-07-21)
 
 ### ✨ Features
