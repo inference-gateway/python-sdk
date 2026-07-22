@@ -32,6 +32,14 @@ Tests use pytest and `unittest.mock`. Keep network calls mocked; existing client
 
 Do not edit `inference_gateway/models.py` directly. Update the upstream schema or local `openapi.yaml`/templates as appropriate, then run `task generate`. If new generated models should be public, update `inference_gateway/__init__.py`. Keep the requests and httpx client paths behaviorally aligned.
 
+## Working without the code generator
+
+`task generate` downloads the schema and runs `datamodel-codegen`, so it cannot run where outbound network or the dev toolchain (`datamodel-codegen`, `pydantic`, `black`, `isort`, `pytest`) is unavailable. When you must change `inference_gateway/models.py` in that situation:
+
+- Make surgical hand-edits that match `datamodel-codegen` output, syntax-check with `python -m py_compile inference_gateway/models.py`, and let PR CI run the real suite. `models.py` starts with `from __future__ import annotations`, so forward references are lazy strings and appended classes may be added in any order (no need to interleave them in schema order).
+- To satisfy `black --check` by hand, match the formatting of existing black-compliant code in this repo: a `class X(RootModel[Literal[...]]):` too long for one line wraps with `RootModel[Literal[...]]` on one indented line when it fits in 100 columns; black does not hug brackets; a single-element collection with no trailing comma collapses to one line if it fits; long lines inside docstrings and string field descriptions are not wrapped.
+- CI runs `black --check .` before `pytest`, so a formatting failure hides test failures. After fixing formatting, expect a follow-up run that may surface a real test failure.
+
 ## Commit & Pull Request Guidelines
 
 Recent history follows Conventional Commits, such as `chore(deps): ...`, `ci(release): ...`, and `fix: ...`. Use `feat:` for new behavior and `fix:` for bug fixes; use `docs:`, `test:`, `chore:`, `ci:`, `build:`, or `refactor:` where appropriate. Pull requests should describe the change, note tests run, link related issues, and call out generated-code updates or API compatibility concerns.
