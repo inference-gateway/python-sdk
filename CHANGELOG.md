@@ -1,3 +1,27 @@
+## [0.12.0](https://github.com/inference-gateway/python-sdk/compare/v0.11.0...v0.12.0) (2026-07-27)
+
+### ✨ Features
+
+* sync generated types with schemas v0.13.0 ([#91](https://github.com/inference-gateway/python-sdk/issues/91)) ([efae006](https://github.com/inference-gateway/python-sdk/commit/efae006b4de08bb916aaa7c7804f69536c560a46))
+
+### 📦 Improvements
+
+* **deps:** update codex and infer versions to 0.142.3 and 0.153.1 respectively ([a447b4f](https://github.com/inference-gateway/python-sdk/commit/a447b4f80ae66274bea3bffa37a27c321b632d7d))
+
+### 🐛 Bug Fixes
+
+* **ci:** update maintainer app ID to client ID in workflows and documentation ([4e31a42](https://github.com/inference-gateway/python-sdk/commit/4e31a42454b4fdfd2caa39bc7720be87e037a31d))
+
+### 👷 CI
+
+* **claude:** centralize claude.yml via reusable workflow ([#88](https://github.com/inference-gateway/python-sdk/issues/88)) ([f4483fa](https://github.com/inference-gateway/python-sdk/commit/f4483fa0ab926022a220591976650796c5ebad90))
+* **claude:** centralize claude.yml via reusable workflow ([#89](https://github.com/inference-gateway/python-sdk/issues/89)) ([86d04c3](https://github.com/inference-gateway/python-sdk/commit/86d04c3b480651cc4bf4a47cf571a43cf864d40b))
+* **deps:** bump the github-actions group with 3 updates ([#90](https://github.com/inference-gateway/python-sdk/issues/90)) ([8fc19f7](https://github.com/inference-gateway/python-sdk/commit/8fc19f7e4edd8911a253c3de953294db45d56f92))
+
+### 🔧 Miscellaneous
+
+* sync generated types with schemas v0.14.0 ([#92](https://github.com/inference-gateway/python-sdk/issues/92)) ([c3d35f2](https://github.com/inference-gateway/python-sdk/commit/c3d35f2ffe8b48756d59fd809e1e6ee73381f958))
+
 ## [0.11.0](https://github.com/inference-gateway/python-sdk/compare/v0.10.0...v0.11.0) (2026-07-21)
 
 ### ✨ Features
