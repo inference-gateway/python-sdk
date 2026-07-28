@@ -1,3 +1,13 @@
+## [0.13.0](https://github.com/inference-gateway/python-sdk/compare/v0.12.1...v0.13.0) (2026-07-28)
+
+### ✨ Features
+
+* sync generated types with schemas v0.16.0 ([#96](https://github.com/inference-gateway/python-sdk/issues/96)) ([d9efe8b](https://github.com/inference-gateway/python-sdk/commit/d9efe8b9ea9fcec78a9f7e638bf10b3354d5c648))
+
+### 🔧 Miscellaneous
+
+* sync generated types with schemas v0.15.3 ([#95](https://github.com/inference-gateway/python-sdk/issues/95)) ([7edd8a4](https://github.com/inference-gateway/python-sdk/commit/7edd8a41f1e933fda53864b95c41d4d80e739c60))
+
 ## [0.12.1](https://github.com/inference-gateway/python-sdk/compare/v0.12.0...v0.12.1) (2026-07-28)
 
 ### 👷 CI
