@@ -63,6 +63,7 @@ tasks:
         --use-default
         --use-default-kwarg
         --use-title-as-name
+      - sed -i '/^#   timestamp:/d' inference_gateway/models.py
       - echo "✅ Models generated successfully"
       - task: format
 
