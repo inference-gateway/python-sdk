@@ -1344,77 +1344,20 @@ class Thinking(BaseModel):
     """
 
 
-class CreateMessagesRequest(BaseModel):
+class MessagesOutputConfig(BaseModel):
     """
-    Request body for creating a message via the Anthropic-compatible
-    Messages API.
+    Output configuration for a Messages API request.
 
     """
 
     model_config = ConfigDict(
         populate_by_name=True,
     )
-    model: str
+    effort: Literal["low", "medium", "high", "xhigh", "max"] | None = None
     """
-    The model to use for generating the message.
-    """
-    max_tokens: int
-    """
-    The maximum number of tokens to generate before stopping.
-
-    """
-    system: str | Sequence[MessagesTextBlock] | None = None
-    """
-    The system prompt. Can be a string or an array of system content
-    blocks (for prompt caching).
-
-    """
-    messages: Sequence[MessagesMessage]
-    """
-    The messages to generate a response for. Each message has a
-    `role` (user or assistant) and `content`.
-
-    """
-    tools: Sequence[MessagesTool] | None = None
-    """
-    Definitions of tools the model may call. Each tool can include
-    `cache_control` for prompt caching.
-
-    """
-    tool_choice: MessagesToolChoice | None = None
-    stream: bool = False
-    """
-    Whether to stream the response using server-sent events.
-
-    """
-    temperature: float | None = None
-    """
-    Amount of randomness injected into the response. Ranges from
-    0.0 to 1.0. Use closer to 0 for analytical / multiple choice,
-    closer to 1 for creative and generative tasks.
-
-    """
-    top_p: float | None = None
-    """
-    Use nucleus sampling. Only consider the tokens with top_p
-    probability mass.
-
-    """
-    top_k: int | None = None
-    """
-    Only sample from the top K options for each subsequent token.
-
-    """
-    stop_sequences: Sequence[str] | None = None
-    """
-    Custom text sequences that will cause the model to stop
-    generating.
-
-    """
-    metadata: MessagesMetadata | None = None
-    thinking: Thinking | None = None
-    """
-    Configuration for extended thinking.
+    Constrains how much effort the model spends on reasoning.
+    Lower effort yields faster responses and fewer reasoning
+    tokens.
 
     """
 
@@ -1825,6 +1768,82 @@ class ResponseReasoningItem(BaseModel):
     """
     The status of the reasoning item.
     """
+
+
+class CreateMessagesRequest(BaseModel):
+    """
+    Request body for creating a message via the Anthropic-compatible
+    Messages API.
+
+    """
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+    )
+    model: str
+    """
+    The model to use for generating the message.
+    """
+    max_tokens: int
+    """
+    The maximum number of tokens to generate before stopping.
+
+    """
+    system: str | Sequence[MessagesTextBlock] | None = None
+    """
+    The system prompt. Can be a string or an array of system content
+    blocks (for prompt caching).
+
+    """
+    messages: Sequence[MessagesMessage]
+    """
+    The messages to generate a response for. Each message has a
+    `role` (user or assistant) and `content`.
+
+    """
+    tools: Sequence[MessagesTool] | None = None
+    """
+    Definitions of tools the model may call. Each tool can include
+    `cache_control` for prompt caching.
+
+    """
+    tool_choice: MessagesToolChoice | None = None
+    stream: bool = False
+    """
+    Whether to stream the response using server-sent events.
+
+    """
+    temperature: float | None = None
+    """
+    Amount of randomness injected into the response. Ranges from
+    0.0 to 1.0. Use closer to 0 for analytical / multiple choice,
+    closer to 1 for creative and generative tasks.
+
+    """
+    top_p: float | None = None
+    """
+    Use nucleus sampling. Only consider the tokens with top_p
+    probability mass.
+
+    """
+    top_k: int | None = None
+    """
+    Only sample from the top K options for each subsequent token.
+
+    """
+    stop_sequences: Sequence[str] | None = None
+    """
+    Custom text sequences that will cause the model to stop
+    generating.
+
+    """
+    metadata: MessagesMetadata | None = None
+    thinking: Thinking | None = None
+    """
+    Configuration for extended thinking.
+
+    """
+    output_config: MessagesOutputConfig | None = None
 
 
 class ContentPart(RootModel[TextContentPart | ImageContentPart]):
