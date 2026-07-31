@@ -15,8 +15,10 @@ from inference_gateway.models import (
     ChatCompletionTool,
     CreateChatCompletionRequest,
     CreateChatCompletionResponse,
+    CreateImageRequest,
     CreateMessagesRequest,
     CreateResponseRequest,
+    ImagesResponse,
     ListModelsResponse,
     ListToolsResponse,
     Message,
@@ -663,6 +665,75 @@ class InferenceGatewayClient:
             )
 
             return MessagesResponse.model_validate(response.json())
+
+        except ValidationError as e:
+            raise InferenceGatewayValidationError(f"Request/response validation failed: {e}")
+
+    def create_image(
+        self,
+        prompt: str,
+        model: Optional[str] = None,
+        provider: Optional[Union[Provider, str]] = None,
+        n: Optional[int] = None,
+        size: Optional[str] = None,
+        quality: Optional[str] = None,
+        response_format: Optional[str] = None,
+        **kwargs: Any,
+    ) -> ImagesResponse:
+        """Generate images via the OpenAI-compatible Images API.
+
+        Sends a request to `POST /images/generations`.
+
+        Args:
+            prompt: A text description of the desired image
+            model: Optional model ID to use for image generation
+            provider: Optional provider specification
+            n: Number of images to generate (1-10)
+            size: Size of the generated images (e.g. `1024x1024`)
+            quality: Quality of the image (e.g. `standard`, `hd`, `high`)
+            response_format: Format of the returned images (`url` or `b64_json`)
+            **kwargs: Additional parameters to pass to the API
+
+        Returns:
+            ImagesResponse: The generated images
+
+        Raises:
+            InferenceGatewayAPIError: If the API request fails
+            InferenceGatewayValidationError: If request/response validation fails
+        """
+        url = f"{self.base_url}/images/generations"
+        params = {}
+
+        if provider:
+            provider_value = provider.root if hasattr(provider, "root") else str(provider)
+            params["provider"] = provider_value
+
+        try:
+            request_data: Dict[str, Any] = {"prompt": prompt}
+
+            if model is not None:
+                request_data["model"] = model
+            if n is not None:
+                request_data["n"] = n
+            if size is not None:
+                request_data["size"] = size
+            if quality is not None:
+                request_data["quality"] = quality
+            if response_format is not None:
+                request_data["response_format"] = response_format
+
+            request_data.update(kwargs)
+
+            request = CreateImageRequest.model_validate(request_data)
+
+            response = self._make_request(
+                "POST",
+                url,
+                params=params,
+                json=request.model_dump(exclude_none=True, exclude_unset=True),
+            )
+
+            return ImagesResponse.model_validate(response.json())
 
         except ValidationError as e:
             raise InferenceGatewayValidationError(f"Request/response validation failed: {e}")
