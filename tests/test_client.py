@@ -15,6 +15,7 @@ from inference_gateway.models import (
     ChatCompletionStreamResponseDelta,
     CreateChatCompletionRequest,
     CreateChatCompletionResponse,
+    ImagesResponse,
     ListModelsResponse,
     Message,
     MessageRole,
@@ -990,3 +991,41 @@ def test_create_message_stream(mock_request, client):
     assert chunks[1].type == "content_block_delta"
     assert chunks[1].delta.text == "Hello"
     assert chunks[2].type == "message_stop"
+
+
+@patch("requests.Session.request")
+def test_create_image(mock_request, client):
+    """Test the Images API (POST /images/generations)."""
+    mock_request.return_value = _response_mock(
+        {
+            "created": 1677652288,
+            "data": [{"url": "https://example.com/image.png"}],
+            "usage": {"total_tokens": 100, "input_tokens": 10, "output_tokens": 90},
+        }
+    )
+
+    response = client.create_image(
+        prompt="A cat riding a bicycle",
+        model="dall-e-3",
+        provider="openai",
+        n=1,
+        size="1024x1024",
+        quality="hd",
+    )
+
+    mock_request.assert_called_once_with(
+        "POST",
+        "http://test-api/v1/images/generations",
+        params={"provider": "openai"},
+        json={
+            "prompt": "A cat riding a bicycle",
+            "model": "dall-e-3",
+            "n": 1,
+            "size": "1024x1024",
+            "quality": "hd",
+        },
+        timeout=30.0,
+    )
+    assert isinstance(response, ImagesResponse)
+    assert response.data[0].url == "https://example.com/image.png"
+    assert response.usage.total_tokens == 100

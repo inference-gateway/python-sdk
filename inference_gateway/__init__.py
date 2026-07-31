@@ -24,13 +24,17 @@ from inference_gateway.models import (
     CreateChatCompletionRequest,
     CreateChatCompletionResponse,
     CreateChatCompletionStreamResponse,
+    CreateImageRequest,
     CreateMessagesRequest,
     CreateResponseRequest,
     FinishReason,
     FunctionObject,
     Google,
+    Image,
     ImageContentPart,
+    ImagesResponse,
     ImageURL,
+    InputTokensDetails,
     ListModelsResponse,
     Message,
     MessageContent,
@@ -83,6 +87,7 @@ from inference_gateway.models import (
     TextContentPart,
     Thinking,
     ToolCallExtraContent,
+    Usage,
 )
 
 try:
@@ -127,6 +132,12 @@ __all__ = [
     "TextContentPart",
     "ImageContentPart",
     "ImageURL",
+    # Images API
+    "CreateImageRequest",
+    "ImagesResponse",
+    "Image",
+    "Usage",
+    "InputTokensDetails",
     # Responses API
     "CreateResponseRequest",
     "Response",
