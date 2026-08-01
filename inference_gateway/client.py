@@ -738,6 +738,131 @@ class InferenceGatewayClient:
         except ValidationError as e:
             raise InferenceGatewayValidationError(f"Request/response validation failed: {e}")
 
+    def create_image_edit(
+        self,
+        image: Any,
+        prompt: str,
+        mask: Optional[Any] = None,
+        model: Optional[str] = None,
+        provider: Optional[Union[Provider, str]] = None,
+        n: Optional[int] = None,
+        size: Optional[str] = None,
+        quality: Optional[str] = None,
+        response_format: Optional[str] = None,
+        **kwargs: Any,
+    ) -> ImagesResponse:
+        """Edit or extend an image via the OpenAI-compatible Images API.
+
+        Sends a `multipart/form-data` request to `POST /images/edits`.
+
+        Args:
+            image: The image to edit (bytes, file-like object, or a
+                `(filename, fileobj)` tuple as accepted by requests/httpx)
+            prompt: A text description of the desired image
+            mask: Optional mask image whose transparent areas indicate where
+                the image should be edited
+            model: Optional model ID to use for image editing
+            provider: Optional provider specification
+            n: Number of images to generate (1-10)
+            size: Size of the generated images (e.g. `1024x1024`)
+            quality: Quality of the edited image (e.g. `auto`, `standard`, `high`)
+            response_format: Format of the returned images (`url` or `b64_json`)
+            **kwargs: Additional form fields to pass to the API
+
+        Returns:
+            ImagesResponse: The edited images
+
+        Raises:
+            InferenceGatewayAPIError: If the API request fails
+            InferenceGatewayValidationError: If response validation fails
+        """
+        url = f"{self.base_url}/images/edits"
+        params = {}
+
+        if provider:
+            provider_value = provider.root if hasattr(provider, "root") else str(provider)
+            params["provider"] = provider_value
+
+        files: Dict[str, Any] = {"image": image}
+        if mask is not None:
+            files["mask"] = mask
+
+        data: Dict[str, Any] = {"prompt": prompt}
+        if model is not None:
+            data["model"] = model
+        if n is not None:
+            data["n"] = n
+        if size is not None:
+            data["size"] = size
+        if quality is not None:
+            data["quality"] = quality
+        if response_format is not None:
+            data["response_format"] = response_format
+        data.update(kwargs)
+
+        try:
+            response = self._make_request("POST", url, params=params, files=files, data=data)
+            return ImagesResponse.model_validate(response.json())
+        except ValidationError as e:
+            raise InferenceGatewayValidationError(f"Response validation failed: {e}")
+
+    def create_image_variation(
+        self,
+        image: Any,
+        model: Optional[str] = None,
+        provider: Optional[Union[Provider, str]] = None,
+        n: Optional[int] = None,
+        size: Optional[str] = None,
+        response_format: Optional[str] = None,
+        **kwargs: Any,
+    ) -> ImagesResponse:
+        """Create a variation of an image via the OpenAI-compatible Images API.
+
+        Sends a `multipart/form-data` request to `POST /images/variations`.
+
+        Args:
+            image: The image to use as the basis for the variation (bytes,
+                file-like object, or a `(filename, fileobj)` tuple)
+            model: Optional model ID to use for image variation
+            provider: Optional provider specification
+            n: Number of images to generate (1-10)
+            size: Size of the generated images (e.g. `1024x1024`)
+            response_format: Format of the returned images (`url` or `b64_json`)
+            **kwargs: Additional form fields to pass to the API
+
+        Returns:
+            ImagesResponse: The image variations
+
+        Raises:
+            InferenceGatewayAPIError: If the API request fails
+            InferenceGatewayValidationError: If response validation fails
+        """
+        url = f"{self.base_url}/images/variations"
+        params = {}
+
+        if provider:
+            provider_value = provider.root if hasattr(provider, "root") else str(provider)
+            params["provider"] = provider_value
+
+        files: Dict[str, Any] = {"image": image}
+
+        data: Dict[str, Any] = {}
+        if model is not None:
+            data["model"] = model
+        if n is not None:
+            data["n"] = n
+        if size is not None:
+            data["size"] = size
+        if response_format is not None:
+            data["response_format"] = response_format
+        data.update(kwargs)
+
+        try:
+            response = self._make_request("POST", url, params=params, files=files, data=data)
+            return ImagesResponse.model_validate(response.json())
+        except ValidationError as e:
+            raise InferenceGatewayValidationError(f"Response validation failed: {e}")
+
     def create_message_stream(
         self,
         model: str,
