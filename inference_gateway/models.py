@@ -129,6 +129,8 @@ class Endpoints(BaseModel):
     chat: str
     responses: str | None = None
     images: str | None = None
+    images_edits: str | None = None
+    images_variations: str | None = None
 
 
 class Error(BaseModel):
