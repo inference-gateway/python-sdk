@@ -1,3 +1,17 @@
+## [0.15.0](https://github.com/inference-gateway/python-sdk/compare/v0.14.0...v0.15.0) (2026-08-01)
+
+### ✨ Features
+
+* sync generated types with schemas v0.19.1 ([#103](https://github.com/inference-gateway/python-sdk/issues/103)) ([f4b5813](https://github.com/inference-gateway/python-sdk/commit/f4b58133232a769976a0080f5337a03628a72fc8))
+
+### 👷 CI
+
+* **claude:** centralize claude.yml via reusable workflow ([#102](https://github.com/inference-gateway/python-sdk/issues/102)) ([0054089](https://github.com/inference-gateway/python-sdk/commit/00540893c9e2637dd47d0a61adc3a8b18efcaf4d))
+
+### 🔧 Miscellaneous
+
+* sync generated types with schemas v0.18.1 ([#101](https://github.com/inference-gateway/python-sdk/issues/101)) ([3afdfe3](https://github.com/inference-gateway/python-sdk/commit/3afdfe361377ffb9d8effbf16a7a56a0d3f30f62))
+
 ## [0.14.0](https://github.com/inference-gateway/python-sdk/compare/v0.13.0...v0.14.0) (2026-07-31)
 
 ### ✨ Features
