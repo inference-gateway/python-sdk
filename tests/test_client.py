@@ -1029,3 +1029,65 @@ def test_create_image(mock_request, client):
     assert isinstance(response, ImagesResponse)
     assert response.data[0].url == "https://example.com/image.png"
     assert response.usage.total_tokens == 100
+
+
+@patch("requests.Session.request")
+def test_create_image_edit(mock_request, client):
+    """Test the Images Edits API (POST /images/edits)."""
+    mock_request.return_value = _response_mock(
+        {"created": 1677652288, "data": [{"url": "https://example.com/edited.png"}]}
+    )
+
+    image = b"fake-png-bytes"
+    mask = b"fake-mask-bytes"
+    response = client.create_image_edit(
+        image=image,
+        prompt="Add a hat",
+        mask=mask,
+        model="gpt-image-1",
+        provider="openai",
+        n=2,
+        size="1024x1024",
+        quality="high",
+        response_format="url",
+    )
+
+    mock_request.assert_called_once_with(
+        "POST",
+        "http://test-api/v1/images/edits",
+        params={"provider": "openai"},
+        files={"image": image, "mask": mask},
+        data={
+            "prompt": "Add a hat",
+            "model": "gpt-image-1",
+            "n": 2,
+            "size": "1024x1024",
+            "quality": "high",
+            "response_format": "url",
+        },
+        timeout=30.0,
+    )
+    assert isinstance(response, ImagesResponse)
+    assert response.data[0].url == "https://example.com/edited.png"
+
+
+@patch("requests.Session.request")
+def test_create_image_variation(mock_request, client):
+    """Test the Images Variations API (POST /images/variations)."""
+    mock_request.return_value = _response_mock(
+        {"created": 1677652288, "data": [{"url": "https://example.com/variation.png"}]}
+    )
+
+    image = b"fake-png-bytes"
+    response = client.create_image_variation(image=image, model="dall-e-2", n=1)
+
+    mock_request.assert_called_once_with(
+        "POST",
+        "http://test-api/v1/images/variations",
+        params={},
+        files={"image": image},
+        data={"model": "dall-e-2", "n": 1},
+        timeout=30.0,
+    )
+    assert isinstance(response, ImagesResponse)
+    assert response.data[0].url == "https://example.com/variation.png"
