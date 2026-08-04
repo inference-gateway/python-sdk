@@ -1,3 +1,13 @@
+## [0.15.1](https://github.com/inference-gateway/python-sdk/compare/v0.15.0...v0.15.1) (2026-08-04)
+
+### 👷 CI
+
+* **deps:** bump pypa/gh-action-pypi-publish in the github-actions group ([#104](https://github.com/inference-gateway/python-sdk/issues/104)) ([eba6edb](https://github.com/inference-gateway/python-sdk/commit/eba6edb86124f30440599abae890eec45f2ba71c))
+
+### 📚 Documentation
+
+* **examples:** add include parameter example to list example - schema v0.21.1 ([#105](https://github.com/inference-gateway/python-sdk/issues/105)) ([33e8644](https://github.com/inference-gateway/python-sdk/commit/33e8644f6b97a39c47b710421efd8fd1dca6c508))
+
 ## [0.15.0](https://github.com/inference-gateway/python-sdk/compare/v0.14.0...v0.15.0) (2026-08-01)
 
 ### ✨ Features
