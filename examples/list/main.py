@@ -21,5 +21,5 @@ openai_models = client.list_models(provider=PROVIDER)
 print(f"Provider {PROVIDER} models:", openai_models)
 
 # Include additional metadata (context_window, pricing, modalities)
-detailed_models = client.list_models(include=["context_window", "pricing"])
+detailed_models = client.list_models(include=["context_window", "pricing", "modalities"])
 print("Models with details:", detailed_models)
