@@ -380,6 +380,10 @@ class Model(BaseModel):
     created: int
     owned_by: str
     served_by: Provider
+    modalities: Sequence[Literal["text", "image", "audio", "video"]] | None = None
+    """
+    The modalities the model supports natively (included when `include=modalities`)
+    """
     context_window: ContextWindow | None = None
     """
     Context window information for the model (included when `include=context_window`)
