@@ -5,6 +5,7 @@ This example demonstrates how to use the Inference Gateway Python SDK to list av
 - Connect to the Inference Gateway
 - List all available models
 - Filter models by provider (e.g., OpenAI, Groq, etc.)
+- Include additional model metadata (context_window, pricing, modalities)
 
 Run the example with:
 
