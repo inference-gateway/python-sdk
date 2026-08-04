@@ -184,7 +184,7 @@ class InferenceGatewayClient:
         Args:
             provider: Optional provider to filter models
             include: Optional list of additional metadata to include.
-                Supported values: "context_window", "pricing".
+                Supported values: "context_window", "pricing", "modalities".
 
         Returns:
             ListModelsResponse: List of available models
