@@ -367,44 +367,23 @@ class Pricing(BaseModel):
     """
 
 
-class Model(BaseModel):
+class Modality(RootModel[Literal["text", "image", "audio", "video"]]):
+    root: Literal["text", "image", "audio", "video"]
     """
-    Common model information
+    A single input or output modality
+    """
+
+
+class ModelModalities(BaseModel):
+    """
+    The input and output modalities of a model, mirroring the models.dev dataset shape. Vision models accept `image` in `input`; image-generation models list `image` in `output` — when `output` carries `image` but not `text`, the model only generates images and cannot chat.
     """
 
     model_config = ConfigDict(
         populate_by_name=True,
     )
-    id: str
-    object: str
-    created: int
-    owned_by: str
-    served_by: Provider
-    modalities: Sequence[Literal["text", "image", "audio", "video"]] | None = None
-    """
-    The modalities the model supports natively (included when `include=modalities`)
-    """
-    context_window: ContextWindow | None = None
-    """
-    Context window information for the model (included when `include=context_window`)
-    """
-    pricing: Pricing | None = None
-    """
-    Pricing information for the model (included when `include=pricing`)
-    """
-
-
-class ListModelsResponse(BaseModel):
-    """
-    Response structure for listing models
-    """
-
-    model_config = ConfigDict(
-        populate_by_name=True,
-    )
-    provider: Provider | None = None
-    object: str
-    data: Annotated[Sequence[Model], Field(validate_default=True)] = []
+    input: Sequence[Modality]
+    output: Sequence[Modality]
 
 
 class MCPTool(BaseModel):
@@ -1734,6 +1713,46 @@ class ImageContentPart(BaseModel):
     Content type identifier
     """
     image_url: ImageURL
+
+
+class Model(BaseModel):
+    """
+    Common model information
+    """
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+    )
+    id: str
+    object: str
+    created: int
+    owned_by: str
+    served_by: Provider
+    modalities: ModelModalities | None = None
+    """
+    The input and output modalities of the model (included when `include=modalities`)
+    """
+    context_window: ContextWindow | None = None
+    """
+    Context window information for the model (included when `include=context_window`)
+    """
+    pricing: Pricing | None = None
+    """
+    Pricing information for the model (included when `include=pricing`)
+    """
+
+
+class ListModelsResponse(BaseModel):
+    """
+    Response structure for listing models
+    """
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+    )
+    provider: Provider | None = None
+    object: str
+    data: Annotated[Sequence[Model], Field(validate_default=True)] = []
 
 
 class ListToolsResponse(BaseModel):
