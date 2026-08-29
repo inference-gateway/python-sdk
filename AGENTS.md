@@ -1,37 +1,35 @@
 # Repository Guidelines
 
-## Project Structure & Module Organization
+Python SDK for Inference Gateway — a thin, hand-written synchronous client over auto-generated Pydantic models for the gateway's OpenAI- and Anthropic-compatible APIs. Distributed on PyPI as `inference-gateway`. Requires Python 3.12+.
 
-This repository is the Python SDK for Inference Gateway. The importable package lives in `inference_gateway/`: `client.py` contains the hand-written synchronous client, `models.py` contains generated Pydantic models, and `__init__.py` controls public exports. Tests live in `tests/`, currently centered on client behavior. Runnable usage examples are under `examples/` (`chat`, `list`, `mcp`, `tools`). OpenAPI generation inputs are `openapi.yaml` and `templates/`.
+## Commands
 
-## Build, Test, and Development Commands
+All development runs through `task` (see `Taskfile.yml`):
 
-Use `task` commands from `Taskfile.yml`:
+- `task install` — `pip install -e ".[dev]"`
+- `task format` — Black + isort on `inference_gateway/`, `tests/`, `examples/`
+- `task lint` — Black `--check`, isort `--check-only`, mypy. Stricter than CI, which only runs Black and pytest.
+- `task test` — pytest suite; `task test:coverage` adds terminal + HTML coverage
+- `task generate` — fetches/validates the OpenAPI spec, regenerates `inference_gateway/models.py`
+- `task build` — clean + lint + test, then `python -m build`
+- `task precommit:install` — point git at `.githooks/` (a plain shell script, not the pre-commit framework)
 
-- `task install` installs the package in editable mode with dev dependencies.
-- `task format` runs Black and isort on `inference_gateway/`, `tests/`, and `examples/`.
-- `task lint` checks Black, isort, and mypy.
-- `task test` runs the pytest suite.
-- `task test:coverage` adds terminal and HTML coverage reports.
-- `task generate` downloads and validates the OpenAPI spec, then regenerates `inference_gateway/models.py`.
-- `task build` cleans, lints, tests, and builds the package.
-- `task precommit:install` points git at the `.githooks/` pre-commit hook that runs `task format` on staged Python files at commit time.
-- `task precommit:run` runs that hook directly.
+Focused test: `pytest tests/test_client.py::test_list_models -v`
 
-For a focused test, use `pytest tests/test_client.py::test_list_models -v`.
+## Layout
 
-## Coding Style & Naming Conventions
+- `inference_gateway/client.py` — hand-written `InferenceGatewayClient` with two synchronous backends: `requests.Session` (default) and `httpx.Client` (`use_httpx=True`). Keep both paths behaviorally aligned in `_make_request` and `_process_stream_response`.
+- `inference_gateway/models.py` — **auto-generated, do not edit by hand**. Update the spec upstream in `inference-gateway/schemas` (or local `openapi.yaml`/`templates/`), then `task generate`; pin the spec with `SCHEMAS_REF=refs/tags/vX.Y.Z`. New public models also need `inference_gateway/__init__.py` imports and `__all__` entries.
+- `tests/` — client behavior; `examples/` — runnable usage examples (chat, list, mcp, messages, tools).
 
-Python requires 4-space indentation and LF line endings. YAML and JSON use 2-space indentation. Black and isort are configured for 100-character lines. Prefer typed public functions; mypy is configured with `disallow_untyped_defs = true`. Use `snake_case` for functions, methods, variables, and test names; use `PascalCase` for classes and Pydantic models.
+## Style
 
-## Testing Guidelines
+Black + isort at 100 columns; 4-space indents, LF line endings; YAML/JSON at 2 spaces. mypy with `disallow_untyped_defs = true` and the pydantic plugin. `snake_case` for functions/tests, `PascalCase` for classes and models.
 
-Tests use pytest and `unittest.mock`. Keep network calls mocked; existing client tests patch `requests.Session.request` and assert exact URL, params, JSON body, and timeout. Name files `test_*.py`, classes `Test*`, and functions `test_*`. Add or update tests when changing client request behavior, error handling, streaming, or public models.
+## Testing
 
-## Generated Code & API Schema
+pytest + `unittest.mock` only — never make live network calls. Existing tests patch `requests.Session.request` and assert exact URL, params, JSON body, and timeout; mirror that for new client methods. Streaming yields raw `SSEvent` objects — callers parse `chunk.data` themselves. Never commit real API tokens; examples take configuration from env vars.
 
-Do not edit `inference_gateway/models.py` directly. Update the upstream schema or local `openapi.yaml`/templates as appropriate, then run `task generate`. If new generated models should be public, update `inference_gateway/__init__.py`. Keep the requests and httpx client paths behaviorally aligned.
+## Commits & Releases
 
-## Commit & Pull Request Guidelines
-
-Recent history follows Conventional Commits, such as `chore(deps): ...`, `ci(release): ...`, and `fix: ...`. Use `feat:` for new behavior and `fix:` for bug fixes; use `docs:`, `test:`, `chore:`, `ci:`, `build:`, or `refactor:` where appropriate. Pull requests should describe the change, note tests run, link related issues, and call out generated-code updates or API compatibility concerns.
+Conventional Commits drive semantic-release versioning (`.releaserc.yaml`): `feat:` → minor; `fix:`/`perf:`/`refactor:`/`docs:`/`ci:`/`chore:`/`test:`/`build:` → patch. PRs should note tests run and flag generated-code updates or API compatibility concerns.
