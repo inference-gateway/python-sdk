@@ -143,9 +143,7 @@ __all__ = [
     "Image",
     "Usage",
     "InputTokensDetails",
-    # Audio API
     "CreateSpeechRequest",
-    # Responses API
     "CreateResponseRequest",
     "Response",
     "ResponseStreamEvent",
