@@ -18,6 +18,7 @@ from inference_gateway.models import (
     CreateImageRequest,
     CreateMessagesRequest,
     CreateResponseRequest,
+    CreateSpeechRequest,
     ImagesResponse,
     ListModelsResponse,
     ListToolsResponse,
@@ -503,7 +504,7 @@ class InferenceGatewayClient:
             params["provider"] = provider_value
 
         try:
-            request_data = {
+            request_data: Dict[str, Any] = {
                 "model": model,
                 "input": input,
                 "stream": False,
@@ -570,7 +571,7 @@ class InferenceGatewayClient:
             params["provider"] = provider_value
 
         try:
-            request_data = {
+            request_data: Dict[str, Any] = {
                 "model": model,
                 "input": input,
                 "stream": True,
@@ -862,6 +863,80 @@ class InferenceGatewayClient:
             return ImagesResponse.model_validate(response.json())
         except ValidationError as e:
             raise InferenceGatewayValidationError(f"Response validation failed: {e}")
+
+    def create_speech(
+        self,
+        model: str,
+        input: str,
+        voice: str,
+        provider: Optional[Union[Provider, str]] = None,
+        instructions: Optional[str] = None,
+        response_format: Optional[str] = None,
+        speed: Optional[float] = None,
+        reference_audio: Optional[str] = None,
+        **kwargs: Any,
+    ) -> bytes:
+        """Generate speech audio via the OpenAI-compatible Audio API.
+
+        Sends a request to `POST /audio/speech` and returns the synthesized
+        audio as raw bytes. The audio format is determined by `response_format`
+        (default `mp3`). Not every provider implements the Audio API; requests
+        routed to a provider without support return a 400 error.
+
+        Args:
+            model: Model ID for speech synthesis (e.g. `gpt-4o-mini-tts` or `tts-1`)
+            input: The text to synthesize (4096 characters maximum)
+            voice: The voice to use (e.g. `alloy`, `nova`, `shimmer`)
+            provider: Optional provider specification
+            instructions: Optional voice-control instructions (not supported
+                    by `tts-1` or `tts-1-hd`)
+            response_format: Audio format (`mp3`, `opus`, `aac`, `flac`, `wav`, `pcm`)
+            speed: Playback speed (0.25-4.0)
+            reference_audio: Base64-encoded audio sample for zero-shot voice
+                    cloning (honored only by providers with voice-cloning support)
+            **kwargs: Additional parameters to pass to the API
+
+        Returns:
+            bytes: The synthesized audio
+
+        Raises:
+            InferenceGatewayAPIError: If the API request fails
+            InferenceGatewayValidationError: If request validation fails
+        """
+        url = f"{self.base_url}/audio/speech"
+        params = {}
+
+        if provider:
+            provider_value = provider.root if hasattr(provider, "root") else str(provider)
+            params["provider"] = provider_value
+
+        try:
+            request_data: Dict[str, Any] = {"model": model, "input": input, "voice": voice}
+
+            if instructions is not None:
+                request_data["instructions"] = instructions
+            if response_format is not None:
+                request_data["response_format"] = response_format
+            if speed is not None:
+                request_data["speed"] = speed
+            if reference_audio is not None:
+                request_data["reference_audio"] = reference_audio
+
+            request_data.update(kwargs)
+
+            request = CreateSpeechRequest.model_validate(request_data)
+
+            response = self._make_request(
+                "POST",
+                url,
+                params=params,
+                json=request.model_dump(exclude_none=True, exclude_unset=True),
+            )
+
+            return response.content
+
+        except ValidationError as e:
+            raise InferenceGatewayValidationError(f"Request validation failed: {e}")
 
     def create_message_stream(
         self,

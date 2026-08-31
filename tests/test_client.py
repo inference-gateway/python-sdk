@@ -1091,3 +1091,37 @@ def test_create_image_variation(mock_request, client):
     )
     assert isinstance(response, ImagesResponse)
     assert response.data[0].url == "https://example.com/variation.png"
+
+
+@patch("requests.Session.request")
+def test_create_speech(mock_request, client):
+    """Test the Audio API (POST /audio/speech) returning raw audio bytes."""
+    mock_response = Mock()
+    mock_response.status_code = 200
+    mock_response.raise_for_status.return_value = None
+    mock_response.content = b"\x01\x02fake-mp3-audio"
+    mock_request.return_value = mock_response
+
+    audio = client.create_speech(
+        "tts-1",
+        "Today is a wonderful day to build something people love!",
+        "alloy",
+        provider="openai",
+        response_format="mp3",
+        speed=1.0,
+    )
+
+    mock_request.assert_called_once_with(
+        "POST",
+        "http://test-api/v1/audio/speech",
+        params={"provider": "openai"},
+        json={
+            "model": "tts-1",
+            "input": "Today is a wonderful day to build something people love!",
+            "voice": "alloy",
+            "response_format": "mp3",
+            "speed": 1.0,
+        },
+        timeout=30.0,
+    )
+    assert audio == b"\x01\x02fake-mp3-audio"
