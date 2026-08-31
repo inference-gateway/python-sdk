@@ -1,3 +1,23 @@
+## [0.17.0](https://github.com/inference-gateway/python-sdk/compare/v0.16.0...v0.17.0) (2026-08-31)
+
+### ✨ Features
+
+* implement the Audio API (create_speech) synced from schemas v0.25.0 ([#112](https://github.com/inference-gateway/python-sdk/issues/112)) ([714e41c](https://github.com/inference-gateway/python-sdk/commit/714e41c3403086035c7a66ffec86ab064aa2da28))
+
+### 👷 CI
+
+* **claude:** centralize claude.yml via reusable workflow ([#109](https://github.com/inference-gateway/python-sdk/issues/109)) ([2eed134](https://github.com/inference-gateway/python-sdk/commit/2eed134c56ba089a166dfdb4cdcd3dc54aeb7f88))
+
+### 📚 Documentation
+
+* rewrite AGENTS.md per agents.md standard ([#111](https://github.com/inference-gateway/python-sdk/issues/111)) ([220cc9f](https://github.com/inference-gateway/python-sdk/commit/220cc9faee2979764e165db963616cb82be94144))
+
+### 🔧 Miscellaneous
+
+* **deps:** bump claude-code 2.1.201 -> 2.1.238 ([#108](https://github.com/inference-gateway/python-sdk/issues/108)) ([d100215](https://github.com/inference-gateway/python-sdk/commit/d10021544e76dc640f60327e286b306c4b87737f))
+* **deps:** bump infer CLI v0.155.0 -> v0.164.0 ([#107](https://github.com/inference-gateway/python-sdk/issues/107)) ([ce76479](https://github.com/inference-gateway/python-sdk/commit/ce76479db7369fa2048e2fcca130a6f060ab834f))
+* **deps:** bump infer CLI v0.164.0 -> v0.183.0 ([#110](https://github.com/inference-gateway/python-sdk/issues/110)) ([7b50070](https://github.com/inference-gateway/python-sdk/commit/7b5007014794285da3a5669b137ad20d0885164a))
+
 ## [0.16.0](https://github.com/inference-gateway/python-sdk/compare/v0.15.1...v0.16.0) (2026-08-05)
 
 ### ✨ Features
