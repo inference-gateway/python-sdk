@@ -27,6 +27,7 @@ from inference_gateway.models import (
     CreateImageRequest,
     CreateMessagesRequest,
     CreateResponseRequest,
+    CreateSpeechRequest,
     FinishReason,
     FunctionObject,
     Google,
@@ -142,6 +143,8 @@ __all__ = [
     "Image",
     "Usage",
     "InputTokensDetails",
+    # Audio API
+    "CreateSpeechRequest",
     # Responses API
     "CreateResponseRequest",
     "Response",
