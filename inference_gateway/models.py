@@ -131,6 +131,7 @@ class Endpoints(BaseModel):
     images: str | None = None
     images_edits: str | None = None
     images_variations: str | None = None
+    speech: str | None = None
 
 
 class Error(BaseModel):
@@ -749,6 +750,55 @@ class CreateImageRequest(BaseModel):
     The format in which the generated images are returned. Must be
     one of `url` or `b64_json`.
 
+    """
+
+
+class CreateSpeechRequest(BaseModel):
+    """
+    Request body for generating speech audio via the OpenAI-compatible
+    Audio API.
+
+    """
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+    )
+    model: str
+    """
+    Model ID to use for speech synthesis (e.g. `gpt-4o-mini-tts` or `tts-1`).
+    """
+    input: Annotated[str, Field(max_length=4096)]
+    """
+    The text to synthesize into audio (4096 characters maximum).
+    """
+    instructions: Annotated[str | None, Field(max_length=4096)] = None
+    """
+    Control the voice of your generated audio with additional instructions. Does not work with `tts-1` or `tts-1-hd`.
+
+    """
+    voice: str
+    """
+    The voice to use when generating the audio. OpenAI built-in voices
+    are `alloy`, `ash`, `ballad`, `coral`, `echo`, `fable`, `onyx`,
+    `nova`, `sage`, `shimmer`, `verse`, `marin`, and `cedar`. Other
+    providers accept their own voice identifiers.
+    """
+    response_format: Literal["mp3", "opus", "aac", "flac", "wav", "pcm"] = "mp3"
+    """
+    The audio format of the response.
+    """
+    speed: Annotated[float, Field(ge=0.25, le=4.0)] = 1
+    """
+    The speed of the generated audio.
+    """
+    reference_audio: str | None = None
+    """
+    Base64-encoded audio sample for zero-shot voice cloning. The
+    generated speech mimics the voice in the sample. Best results with
+    a clean mono recording between 1 and 30 seconds; WAV is the safest
+    container. Forwarded to the provider as-is - only providers with
+    voice-cloning support honor it (e.g. Qwen3-TTS-compatible
+    backends); others ignore or reject it. Not supported by OpenAI.
     """
 
 
