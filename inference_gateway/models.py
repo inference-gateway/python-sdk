@@ -377,7 +377,7 @@ class Modality(RootModel[Literal["text", "image", "audio", "video"]]):
 
 class ModelModalities(BaseModel):
     """
-    The input and output modalities of a model, mirroring the models.dev dataset shape. Vision models accept `image` in `input`; image-generation models list `image` in `output` — when `output` carries `image` but not `text`, the model only generates images and cannot chat.
+    The input and output modalities of a model, mirroring the models.dev dataset shape. Vision models accept `image` in `input`; image-generation models list `image` in `output` - when `output` carries `image` but not `text`, the model only generates images and cannot chat.
     """
 
     model_config = ConfigDict(
@@ -790,6 +790,15 @@ class CreateSpeechRequest(BaseModel):
     speed: Annotated[float, Field(ge=0.25, le=4.0)] = 1
     """
     The speed of the generated audio.
+    """
+    language: Annotated[str, Field(pattern="^[a-z]{2}$")] = "en"
+    """
+    ISO 639-1 code for the language of the generated speech.
+    Non-standard extension: OpenAI's speech API has no language field
+    (the name matches its transcription API). Forwarded to the
+    provider as-is; the gateway's built-in local engine
+    (`local/qwen3-tts`) supports `zh`, `en`, `de`, `it`, `pt`, `es`,
+    `ja`, `ko`, `fr` and `ru`, and rejects other codes.
     """
     reference_audio: str | None = None
     """
