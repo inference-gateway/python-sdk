@@ -1,3 +1,14 @@
+## [0.18.1](https://github.com/inference-gateway/python-sdk/compare/v0.18.0...v0.18.1) (2026-09-04)
+
+### ♻️ Improvements
+
+* change gateway env var ENABLE_IMAGES -> IMAGES_ENABLED ([#115](https://github.com/inference-gateway/python-sdk/issues/115)) ([747ae99](https://github.com/inference-gateway/python-sdk/commit/747ae99e2aa2348109a20c78b9810e0523533e3f))
+
+### 🔧 Miscellaneous
+
+* **deps:** bump claude-code 2.1.238 -> 2.1.245 ([#114](https://github.com/inference-gateway/python-sdk/issues/114)) ([7719b9f](https://github.com/inference-gateway/python-sdk/commit/7719b9f6f388378d682eb2dc7cbeefc20b768820))
+* sync generated types with schemas v0.27.4 ([#116](https://github.com/inference-gateway/python-sdk/issues/116)) ([9788ed5](https://github.com/inference-gateway/python-sdk/commit/9788ed5e2fa3e60f3a3945ad9f21d38102e4fa91))
+
 ## [0.18.0](https://github.com/inference-gateway/python-sdk/compare/v0.17.0...v0.18.0) (2026-09-01)
 
 ### ✨ Features
