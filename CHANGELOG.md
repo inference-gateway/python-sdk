@@ -1,3 +1,9 @@
+## [0.19.1](https://github.com/inference-gateway/python-sdk/compare/v0.19.0...v0.19.1) (2026-09-23)
+
+### ♻️ Improvements
+
+* remove image variations support (schemas v0.31.1) ([#125](https://github.com/inference-gateway/python-sdk/issues/125)) ([7f83990](https://github.com/inference-gateway/python-sdk/commit/7f83990c96d56c0f156528fa797b1d52da29f100))
+
 ## [0.19.0](https://github.com/inference-gateway/python-sdk/compare/v0.18.1...v0.19.0) (2026-09-23)
 
 ### ✨ Features
