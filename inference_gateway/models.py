@@ -21,6 +21,7 @@ class Provider(
             "cohere",
             "anthropic",
             "deepseek",
+            "elevenlabs",
             "google",
             "mistral",
             "minimax",
@@ -40,6 +41,7 @@ class Provider(
         "cohere",
         "anthropic",
         "deepseek",
+        "elevenlabs",
         "google",
         "mistral",
         "minimax",
@@ -132,6 +134,10 @@ class Endpoints(BaseModel):
     images_edits: str | None = None
     images_variations: str | None = None
     speech: str | None = None
+    music: str | None = None
+    sfx: str | None = None
+    videos: str | None = None
+    videos_retrieve: str | None = None
 
 
 class Error(BaseModel):
@@ -781,7 +787,8 @@ class CreateSpeechRequest(BaseModel):
     The voice to use when generating the audio. OpenAI built-in voices
     are `alloy`, `ash`, `ballad`, `coral`, `echo`, `fable`, `onyx`,
     `nova`, `sage`, `shimmer`, `verse`, `marin`, and `cedar`. Other
-    providers accept their own voice identifiers.
+    providers accept their own voice identifiers - for ElevenLabs this
+    is a voice id, including the id of a previously cloned voice.
     """
     response_format: Literal["mp3", "opus", "aac", "flac", "wav", "pcm"] = "mp3"
     """
@@ -808,6 +815,211 @@ class CreateSpeechRequest(BaseModel):
     container. Forwarded to the provider as-is - only providers with
     voice-cloning support honor it (e.g. Qwen3-TTS-compatible
     backends); others ignore or reject it. Not supported by OpenAI.
+    """
+
+
+class CreateSFXRequest(BaseModel):
+    """
+    Request body for generating a non-speech audio clip - a sound effect
+    or ambience - from a text prompt.
+
+    """
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+    )
+    model: str
+    """
+    Model ID to use for sound-effect generation (e.g. `elevenlabs/eleven_text_to_sound_v2`).
+    """
+    prompt: str
+    """
+    Description of the sound to generate (e.g. `distant thunder rolling over a valley`).
+    """
+    duration_seconds: Annotated[float | None, Field(ge=0.5, le=30.0)] = None
+    """
+    Length of the generated clip in seconds. Omit to let the provider
+    pick a length that fits the prompt.
+    """
+    prompt_influence: Annotated[float | None, Field(ge=0.0, le=1.0)] = None
+    """
+    How closely the generation follows the prompt. Higher values stay
+    closer to the prompt, lower values allow more variation. Omit to
+    use the provider default.
+    """
+    loop: bool | None = None
+    """
+    Whether to generate a clip that loops seamlessly.
+    """
+    response_format: Literal["mp3", "opus", "aac", "flac", "pcm"] = "mp3"
+    """
+    The audio format of the response.
+    """
+
+
+class CreateMusicRequest(BaseModel):
+    """
+    Request body for composing a music clip from a text prompt.
+
+    """
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+    )
+    model: str
+    """
+    Model ID to use for music generation (e.g. `elevenlabs/music_v2_5`).
+    """
+    prompt: str
+    """
+    Description of the music to compose - genre, mood, instruments, tempo.
+    """
+    duration_seconds: Annotated[float | None, Field(ge=3.0, le=600.0)] = None
+    """
+    Length of the clip in seconds. Omit to let the provider pick a
+    length that fits the prompt.
+    """
+    instrumental: bool = False
+    """
+    Guarantee the generated clip has no vocals.
+    """
+    response_format: Literal["mp3", "opus", "aac", "flac", "pcm"] = "mp3"
+    """
+    The audio format of the response.
+    """
+
+
+class CreateVideoRequest(BaseModel):
+    """
+    Request body for creating a video generation job via the
+    OpenAI-compatible Videos API. Sent as `multipart/form-data`.
+
+    """
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+    )
+    model: str
+    """
+    Model ID to use for video generation (e.g. `elevenlabs/creatify-aurora`).
+    """
+    prompt: str | None = None
+    """
+    Text description of the video to generate. Optional for
+    audio-driven avatar models, where the dialogue comes from `audio`
+    and the prompt only describes framing, never the spoken words.
+    """
+    input_reference: bytes | None = None
+    """
+    Optional image used as the first frame or, for avatar models, the
+    portrait to animate.
+    """
+    reference_images: Sequence[bytes] | None = None
+    """
+    Non-standard extension (OpenAI's Videos API has no reference-images
+    field): optional reference images of the subject (e.g. the same
+    person from several angles), sent as repeated `reference_images`
+    parts. Used by providers that keep a character consistent across
+    shots (e.g. ElevenLabs `veo-3.1-*`, `bytedance-seedance-v2*`).
+    Distinct from `input_reference`, which stays the first frame or,
+    for avatar models, the portrait to animate - avatar models ignore
+    this field. Providers without reference-image support ignore or
+    reject it.
+    """
+    audio: bytes | None = None
+    """
+    Non-standard extension (OpenAI's Videos API has no audio field):
+    an audio clip - `audio/wav` or `audio/mpeg` - that drives the
+    render. When present, the model lip-syncs `input_reference` to it
+    and the generated video lasts as long as the clip, so `seconds` is
+    ignored. Forwarded to the provider as-is; only providers with
+    talking-avatar support honor it (e.g. ElevenLabs
+    `creatify-aurora`), others ignore or reject it.
+    """
+    seconds: str | None = None
+    """
+    Requested duration of the generated video in seconds, as a string
+    (e.g. `4`, `8`, `12`). Providers accept a limited set of values;
+    omit to use the provider default. Ignored when `audio` is present.
+    """
+    size: str | None = None
+    """
+    Requested output resolution as `widthxheight` (e.g. `720x1280`).
+    Providers accept a limited set of values - ElevenLabs
+    `creatify-aurora` maps to `480p` and `720p`. Omit to use the
+    provider default.
+    """
+
+
+class Error1(BaseModel):
+    """
+    The error that caused the job to fail, null otherwise.
+    """
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+    )
+    code: str | None = None
+    """
+    Machine-readable error code.
+    """
+    message: str | None = None
+    """
+    Human-readable error message.
+    """
+
+
+class VideoJob(BaseModel):
+    """
+    A video generation job. Returned by `POST /videos` and
+    `GET /videos/{video_id}`.
+
+    """
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+    )
+    id: str
+    """
+    Identifier of the video generation job. Opaque to clients - it may
+    encode the provider - and must be sent back verbatim to
+    `GET /videos/{video_id}`.
+    """
+    object: Literal["video"] = "video"
+    """
+    The object type, which is always `video`.
+    """
+    model: str
+    """
+    The model used to generate the video.
+    """
+    status: Literal["queued", "in_progress", "completed", "failed"]
+    """
+    Current status of the job.
+    """
+    progress: Annotated[int | None, Field(ge=0, le=100)] = None
+    """
+    Completion percentage of the render.
+    """
+    created_at: int
+    """
+    Unix timestamp (in seconds) of when the job was created.
+    """
+    completed_at: int | None = None
+    """
+    Unix timestamp (in seconds) of when the job finished, null while it is still running.
+    """
+    seconds: str | None = None
+    """
+    Duration of the generated video in seconds, as a string.
+    """
+    size: str | None = None
+    """
+    Resolution of the generated video as `widthxheight`.
+    """
+    error: Error1 | None = None
+    """
+    The error that caused the job to fail, null otherwise.
     """
 
 
@@ -1139,7 +1351,7 @@ class ResponseUsage(BaseModel):
     """
 
 
-class Error1(BaseModel):
+class Error2(BaseModel):
     """
     The error details.
     """
@@ -1170,7 +1382,7 @@ class MessagesError(BaseModel):
     """
     Always `error`.
     """
-    error: Error1
+    error: Error2
     """
     The error details.
     """

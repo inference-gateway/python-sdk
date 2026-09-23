@@ -5,11 +5,11 @@ supporting multiple AI providers with a unified interface.
 """
 
 import json
-from typing import Any, Dict, Generator, List, Optional, Union
+from typing import Any, Dict, Generator, List, Optional, Type, Union
 
 import httpx
 import requests
-from pydantic import ValidationError
+from pydantic import BaseModel, ValidationError
 
 from inference_gateway.models import (
     ChatCompletionTool,
@@ -17,7 +17,9 @@ from inference_gateway.models import (
     CreateChatCompletionResponse,
     CreateImageRequest,
     CreateMessagesRequest,
+    CreateMusicRequest,
     CreateResponseRequest,
+    CreateSFXRequest,
     CreateSpeechRequest,
     ImagesResponse,
     ListModelsResponse,
@@ -929,6 +931,133 @@ class InferenceGatewayClient:
             response = self._make_request(
                 "POST",
                 url,
+                params=params,
+                json=request.model_dump(exclude_none=True, exclude_unset=True),
+            )
+
+            return response.content
+
+        except ValidationError as e:
+            raise InferenceGatewayValidationError(f"Request validation failed: {e}")
+
+    def create_sfx(
+        self,
+        model: str,
+        prompt: str,
+        provider: Optional[Union[Provider, str]] = None,
+        duration_seconds: Optional[float] = None,
+        prompt_influence: Optional[float] = None,
+        loop: Optional[bool] = None,
+        response_format: Optional[str] = None,
+        **kwargs: Any,
+    ) -> bytes:
+        """Generate a sound effect via the Audio API.
+
+        Sends a request to `POST /audio/sfx` and returns the generated audio
+        as raw bytes. The audio format is determined by `response_format`
+        (default `mp3`). Only providers with sound-effect support implement
+        this endpoint; others return a 400 error.
+
+        Args:
+            model: Model ID for sound-effect generation
+                    (e.g. `elevenlabs/eleven_text_to_sound_v2`)
+            prompt: Description of the sound to generate
+            provider: Optional provider specification
+            duration_seconds: Length of the clip in seconds (0.5-30)
+            prompt_influence: How closely generation follows the prompt (0.0-1.0)
+            loop: Whether to generate a seamlessly looping clip
+            response_format: Audio format (`mp3`, `opus`, `aac`, `flac`, `pcm`)
+            **kwargs: Additional parameters to pass to the API
+
+        Returns:
+            bytes: The generated audio
+
+        Raises:
+            InferenceGatewayAPIError: If the API request fails
+            InferenceGatewayValidationError: If request validation fails
+        """
+        request_data: Dict[str, Any] = {"model": model, "prompt": prompt}
+
+        if duration_seconds is not None:
+            request_data["duration_seconds"] = duration_seconds
+        if prompt_influence is not None:
+            request_data["prompt_influence"] = prompt_influence
+        if loop is not None:
+            request_data["loop"] = loop
+        if response_format is not None:
+            request_data["response_format"] = response_format
+
+        request_data.update(kwargs)
+
+        return self._post_audio("/audio/sfx", CreateSFXRequest, request_data, provider)
+
+    def create_music(
+        self,
+        model: str,
+        prompt: str,
+        provider: Optional[Union[Provider, str]] = None,
+        duration_seconds: Optional[float] = None,
+        instrumental: Optional[bool] = None,
+        response_format: Optional[str] = None,
+        **kwargs: Any,
+    ) -> bytes:
+        """Compose a music clip via the Audio API.
+
+        Sends a request to `POST /audio/music` and returns the generated audio
+        as raw bytes. The audio format is determined by `response_format`
+        (default `mp3`). Only providers with music support implement this
+        endpoint; others return a 400 error.
+
+        Args:
+            model: Model ID for music generation (e.g. `elevenlabs/music_v2_5`)
+            prompt: Description of the music to compose - genre, mood,
+                    instruments, tempo
+            provider: Optional provider specification
+            duration_seconds: Length of the clip in seconds (3-600)
+            instrumental: Guarantee the generated clip has no vocals
+            response_format: Audio format (`mp3`, `opus`, `aac`, `flac`, `pcm`)
+            **kwargs: Additional parameters to pass to the API
+
+        Returns:
+            bytes: The generated audio
+
+        Raises:
+            InferenceGatewayAPIError: If the API request fails
+            InferenceGatewayValidationError: If request validation fails
+        """
+        request_data: Dict[str, Any] = {"model": model, "prompt": prompt}
+
+        if duration_seconds is not None:
+            request_data["duration_seconds"] = duration_seconds
+        if instrumental is not None:
+            request_data["instrumental"] = instrumental
+        if response_format is not None:
+            request_data["response_format"] = response_format
+
+        request_data.update(kwargs)
+
+        return self._post_audio("/audio/music", CreateMusicRequest, request_data, provider)
+
+    def _post_audio(
+        self,
+        path: str,
+        request_model: Type[BaseModel],
+        request_data: Dict[str, Any],
+        provider: Optional[Union[Provider, str]],
+    ) -> bytes:
+        """Validate an audio request body, POST it and return the raw audio bytes."""
+        params = {}
+
+        if provider:
+            provider_value = provider.root if hasattr(provider, "root") else str(provider)
+            params["provider"] = provider_value
+
+        try:
+            request = request_model.model_validate(request_data)
+
+            response = self._make_request(
+                "POST",
+                f"{self.base_url}{path}",
                 params=params,
                 json=request.model_dump(exclude_none=True, exclude_unset=True),
             )

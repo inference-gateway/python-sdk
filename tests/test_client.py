@@ -1125,3 +1125,80 @@ def test_create_speech(mock_request, client):
         timeout=30.0,
     )
     assert audio == b"\x01\x02fake-mp3-audio"
+
+
+@patch("requests.Session.request")
+def test_create_sfx(mock_request, client):
+    """Test the Audio API (POST /audio/sfx) returning raw audio bytes."""
+    mock_response = Mock()
+    mock_response.status_code = 200
+    mock_response.raise_for_status.return_value = None
+    mock_response.content = b"\x01\x02fake-sfx-audio"
+    mock_request.return_value = mock_response
+
+    audio = client.create_sfx(
+        "elevenlabs/eleven_text_to_sound_v2",
+        "distant thunder rolling over a valley",
+        provider="elevenlabs",
+        duration_seconds=5.0,
+        prompt_influence=0.5,
+        loop=False,
+        response_format="mp3",
+    )
+
+    mock_request.assert_called_once_with(
+        "POST",
+        "http://test-api/v1/audio/sfx",
+        params={"provider": "elevenlabs"},
+        json={
+            "model": "elevenlabs/eleven_text_to_sound_v2",
+            "prompt": "distant thunder rolling over a valley",
+            "duration_seconds": 5.0,
+            "prompt_influence": 0.5,
+            "loop": False,
+            "response_format": "mp3",
+        },
+        timeout=30.0,
+    )
+    assert audio == b"\x01\x02fake-sfx-audio"
+
+
+@patch("requests.Session.request")
+def test_create_music(mock_request, client):
+    """Test the Audio API (POST /audio/music) returning raw audio bytes."""
+    mock_response = Mock()
+    mock_response.status_code = 200
+    mock_response.raise_for_status.return_value = None
+    mock_response.content = b"\x01\x02fake-music-audio"
+    mock_request.return_value = mock_response
+
+    audio = client.create_music(
+        "elevenlabs/music_v2_5",
+        "upbeat synthwave with driving bass",
+        provider="elevenlabs",
+        duration_seconds=30.0,
+        instrumental=True,
+    )
+
+    mock_request.assert_called_once_with(
+        "POST",
+        "http://test-api/v1/audio/music",
+        params={"provider": "elevenlabs"},
+        json={
+            "model": "elevenlabs/music_v2_5",
+            "prompt": "upbeat synthwave with driving bass",
+            "duration_seconds": 30.0,
+            "instrumental": True,
+        },
+        timeout=30.0,
+    )
+    assert audio == b"\x01\x02fake-music-audio"
+
+
+@patch("requests.Session.request")
+def test_create_sfx_validation_error(mock_request, client):
+    """Test that an out-of-range duration is rejected before any request."""
+    with pytest.raises(InferenceGatewayValidationError):
+        client.create_sfx("elevenlabs/eleven_text_to_sound_v2", "thunder", duration_seconds=99.0)
+
+    mock_request.assert_not_called()
