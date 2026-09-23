@@ -1,3 +1,16 @@
+## [0.19.0](https://github.com/inference-gateway/python-sdk/compare/v0.18.1...v0.19.0) (2026-09-23)
+
+### ✨ Features
+
+* sync types with schemas v0.31.0 and add sfx/music audio methods ([#120](https://github.com/inference-gateway/python-sdk/issues/120)) ([bf0ebc0](https://github.com/inference-gateway/python-sdk/commit/bf0ebc0d244c1c99e6a1d516d5a1eeb083c13245))
+
+### 🔧 Miscellaneous
+
+* **deps:** bump claude-code 2.1.245 -> 2.1.266 ([#118](https://github.com/inference-gateway/python-sdk/issues/118)) ([aa8fcfc](https://github.com/inference-gateway/python-sdk/commit/aa8fcfcfd8d7dc8d0569e59a14c5580b1efe312b))
+* **deps:** bump claude-code 2.1.266 -> 2.1.278 ([#124](https://github.com/inference-gateway/python-sdk/issues/124)) ([e0b5fce](https://github.com/inference-gateway/python-sdk/commit/e0b5fce1eef4c53d3df08b3c0ede73dcb2a5795e))
+* **deps:** bump infer CLI v0.183.0 -> v0.192.0 ([#119](https://github.com/inference-gateway/python-sdk/issues/119)) ([e71b0f2](https://github.com/inference-gateway/python-sdk/commit/e71b0f2ccb3ee1ef2032827f6b97d6d0de3857f7))
+* sync generated types with schemas v0.28.0 ([#117](https://github.com/inference-gateway/python-sdk/issues/117)) ([8b2cae4](https://github.com/inference-gateway/python-sdk/commit/8b2cae49c237ab313cfacdd5049a2dbd0311d360))
+
 ## [0.18.1](https://github.com/inference-gateway/python-sdk/compare/v0.18.0...v0.18.1) (2026-09-04)
 
 ### ♻️ Improvements
