@@ -1072,28 +1072,6 @@ def test_create_image_edit(mock_request, client):
 
 
 @patch("requests.Session.request")
-def test_create_image_variation(mock_request, client):
-    """Test the Images Variations API (POST /images/variations)."""
-    mock_request.return_value = _response_mock(
-        {"created": 1677652288, "data": [{"url": "https://example.com/variation.png"}]}
-    )
-
-    image = b"fake-png-bytes"
-    response = client.create_image_variation(image=image, model="dall-e-2", n=1)
-
-    mock_request.assert_called_once_with(
-        "POST",
-        "http://test-api/v1/images/variations",
-        params={},
-        files={"image": image},
-        data={"model": "dall-e-2", "n": 1},
-        timeout=30.0,
-    )
-    assert isinstance(response, ImagesResponse)
-    assert response.data[0].url == "https://example.com/variation.png"
-
-
-@patch("requests.Session.request")
 def test_create_speech(mock_request, client):
     """Test the Audio API (POST /audio/speech) returning raw audio bytes."""
     mock_response = Mock()

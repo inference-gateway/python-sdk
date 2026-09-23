@@ -132,7 +132,6 @@ class Endpoints(BaseModel):
     responses: str | None = None
     images: str | None = None
     images_edits: str | None = None
-    images_variations: str | None = None
     speech: str | None = None
     music: str | None = None
     sfx: str | None = None

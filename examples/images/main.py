@@ -6,7 +6,7 @@ from inference_gateway.client import InferenceGatewayAPIError, InferenceGatewayE
 
 def main() -> None:
     """
-    Simple demo of image generation, edits, and variations via the
+    Simple demo of image generation and edits via the
     OpenAI-compatible Images API using the Inference Gateway Python SDK.
     """
     client = InferenceGatewayClient("http://localhost:8080/v1")
@@ -32,8 +32,8 @@ def main() -> None:
         if response.usage:
             print(f"Usage: {response.usage.total_tokens} total tokens")
 
-        # Image edits and variations (POST /images/edits, /images/variations)
-        # need a source image file - set INPUT_IMAGE to try them.
+        # Image edits (POST /images/edits) need a source image file -
+        # set INPUT_IMAGE to try them.
         input_image = os.getenv("INPUT_IMAGE")
         if input_image:
             with open(input_image, "rb") as f:
@@ -45,18 +45,8 @@ def main() -> None:
                     size="1024x1024",
                 )
             print(f"Edited image: {edited.data[0].url or '[base64 data]'}")
-
-            with open(input_image, "rb") as f:
-                variation = client.create_image_variation(
-                    image=("image.png", f),
-                    model=MODEL,
-                    provider="openai",
-                    n=1,
-                    size="1024x1024",
-                )
-            print(f"Variation: {variation.data[0].url or '[base64 data]'}")
         else:
-            print("Set INPUT_IMAGE=/path/to/image.png to demo edits and variations")
+            print("Set INPUT_IMAGE=/path/to/image.png to demo edits")
 
     except (InferenceGatewayAPIError, InferenceGatewayError) as e:
         print(f"Error: {e}")
