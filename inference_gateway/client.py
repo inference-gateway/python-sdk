@@ -809,63 +809,6 @@ class InferenceGatewayClient:
         except ValidationError as e:
             raise InferenceGatewayValidationError(f"Response validation failed: {e}")
 
-    def create_image_variation(
-        self,
-        image: Any,
-        model: Optional[str] = None,
-        provider: Optional[Union[Provider, str]] = None,
-        n: Optional[int] = None,
-        size: Optional[str] = None,
-        response_format: Optional[str] = None,
-        **kwargs: Any,
-    ) -> ImagesResponse:
-        """Create a variation of an image via the OpenAI-compatible Images API.
-
-        Sends a `multipart/form-data` request to `POST /images/variations`.
-
-        Args:
-            image: The image to use as the basis for the variation (bytes,
-                file-like object, or a `(filename, fileobj)` tuple)
-            model: Optional model ID to use for image variation
-            provider: Optional provider specification
-            n: Number of images to generate (1-10)
-            size: Size of the generated images (e.g. `1024x1024`)
-            response_format: Format of the returned images (`url` or `b64_json`)
-            **kwargs: Additional form fields to pass to the API
-
-        Returns:
-            ImagesResponse: The image variations
-
-        Raises:
-            InferenceGatewayAPIError: If the API request fails
-            InferenceGatewayValidationError: If response validation fails
-        """
-        url = f"{self.base_url}/images/variations"
-        params = {}
-
-        if provider:
-            provider_value = provider.root if hasattr(provider, "root") else str(provider)
-            params["provider"] = provider_value
-
-        files: Dict[str, Any] = {"image": image}
-
-        data: Dict[str, Any] = {}
-        if model is not None:
-            data["model"] = model
-        if n is not None:
-            data["n"] = n
-        if size is not None:
-            data["size"] = size
-        if response_format is not None:
-            data["response_format"] = response_format
-        data.update(kwargs)
-
-        try:
-            response = self._make_request("POST", url, params=params, files=files, data=data)
-            return ImagesResponse.model_validate(response.json())
-        except ValidationError as e:
-            raise InferenceGatewayValidationError(f"Response validation failed: {e}")
-
     def create_speech(
         self,
         model: str,
