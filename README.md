@@ -24,6 +24,7 @@ Connect to multiple LLM providers through a unified interface • Stream respons
     - [Creating a Client](#creating-a-client)
     - [Listing Models](#listing-models)
     - [Listing MCP Tools](#listing-mcp-tools)
+    - [MCP JSON-RPC Endpoint](#mcp-json-rpc-endpoint)
     - [Generating Content](#generating-content)
     - [Vision Support](#vision-support)
     - [Using ReasoningFormat](#using-reasoningformat)
@@ -115,6 +116,45 @@ The SDK currently supports listing available MCP tools, which is particularly us
 - **Automatic Tool Injection**: Tools are automatically inferred and injected into requests by the Inference Gateway server
 - **Simplified Client Code**: No need to manually manage or configure tools in your client application
 - **Transparent Tool Calls**: During streaming chat completions with configured MCP servers, tool calls appear in the response stream - no special handling required except optionally displaying them to users
+
+### MCP JSON-RPC Endpoint
+
+The gateway exposes itself as an MCP server at `POST /mcp`, aggregating every server in `MCP_SERVERS` behind one JSON-RPC 2.0 endpoint. Use `mcp_jsonrpc` to call it; the required `params._meta` block and the `MCP-Protocol-Version` / `Mcp-Method` / `Mcp-Name` headers are filled in for you:
+
+```python
+# Discover the supported protocol versions and capabilities
+discover = client.mcp_jsonrpc("server/discover")
+print(discover.result)
+
+# List the aggregated, namespaced tools of every healthy MCP server
+tools = client.mcp_jsonrpc("tools/list")
+
+# Call a tool - names are namespaced mcp_<server alias>_<tool name>
+response = client.mcp_jsonrpc(
+    "tools/call",
+    {
+        "name": "mcp_deepwiki_ask_question",
+        "arguments": {
+            "repoName": "inference-gateway/inference-gateway",
+            "question": "How is MCP wired up?",
+        },
+    },
+)
+
+if response.error:
+    print(f"JSON-RPC error {response.error.code}: {response.error.message}")
+else:
+    print(response.result)
+```
+
+Protocol-level failures come back as JSON-RPC `error` envelopes on the response object rather than as exceptions. The endpoint lives at the root, not under `/v1`, so a `/v1` suffix on the client's base URL is stripped automatically. It requires `MCP_ENABLED=true` and `MCP_EXPOSE=true` on the server.
+
+When the gateway runs with authentication enabled, MCP clients can discover its authorization server through the RFC 9728 metadata document:
+
+```python
+metadata = client.get_mcp_protected_resource_metadata()
+print(metadata.resource, metadata.authorization_servers)
+```
 
 ### Generating Content
 

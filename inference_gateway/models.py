@@ -392,6 +392,135 @@ class ModelModalities(BaseModel):
     output: Sequence[Modality]
 
 
+class MCPJSONRPCRequest(BaseModel):
+    """
+    A JSON-RPC 2.0 request sent to `POST /mcp`, MCP protocol version
+    `2026-07-28`. A message without `id` is a notification; this protocol
+    version defines none over HTTP, so the gateway acknowledges it with `202`
+    and ignores it.
+
+    `params` and the corresponding `result` follow the vendored MCP spec
+    types in `mcp/mcp-schema.yaml`. Every request's `params._meta` is a
+    `RequestMetaObject` (`io.modelcontextprotocol/protocolVersion`,
+    `io.modelcontextprotocol/clientInfo`,
+    `io.modelcontextprotocol/clientCapabilities`); `server/discover` takes
+    nothing else, `tools/list` takes an optional `cursor` and `tools/call`
+    takes `CallToolRequestParams`.
+
+    Tool names are namespaced `mcp_<server alias>_<tool name>`, e.g.
+    `mcp_deepwiki_ask_question`. The alias comes from the `alias=url` syntax
+    in `MCP_SERVERS` and is derived from the URL host when omitted; it must
+    match `^[a-z0-9_-]+$` so the resulting tool name stays valid across all
+    LLM providers. The same namespacing applies to the tools injected into
+    `/v1/chat/completions`. `mcp_tools_get` and `mcp_tools_execute` are
+    reserved for the gateway's own selector meta-tools and cannot be used by
+    a configured server.
+
+    """
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+    )
+    jsonrpc: Annotated[Literal["2.0"], Field(examples=["2.0"])] = "2.0"
+    """
+    JSON-RPC protocol version, always "2.0"
+    """
+    id: Annotated[str | int | None, Field(examples=[1])] = None
+    """
+    Request identifier echoed back in the response. Absent for
+    notifications.
+
+    """
+    method: Annotated[
+        Literal["server/discover", "tools/list", "tools/call"], Field(examples=["tools/call"])
+    ]
+    """
+    The MCP method to invoke
+    """
+    params: Annotated[
+        Mapping[str, Any] | None,
+        Field(
+            examples=[
+                {
+                    "name": "mcp_deepwiki_ask_question",
+                    "arguments": {
+                        "repoName": "inference-gateway/inference-gateway",
+                        "question": "How is MCP wired up?",
+                    },
+                    "_meta": {
+                        "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+                        "io.modelcontextprotocol/clientInfo": {
+                            "name": "opencode",
+                            "version": "1.0.0",
+                        },
+                        "io.modelcontextprotocol/clientCapabilities": {},
+                    },
+                }
+            ]
+        ),
+    ] = None
+    """
+    Method parameters, as defined by the MCP specification
+    """
+
+
+class MCPJSONRPCError(BaseModel):
+    """
+    A JSON-RPC 2.0 error object
+    """
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+    )
+    code: Annotated[int, Field(examples=[-32602])]
+    """
+    JSON-RPC error code: `-32700` parse error, `-32600` invalid request,
+    `-32601` method not found, `-32602` invalid params, `-32603` internal
+    error (including upstream MCP server failures), `-32001` request
+    blocked by guardrails at any phase (`pre_call`, `tool_args`,
+    `tool_output`), answered with HTTP `403` and the policy message,
+    `-32020` header mismatch, `-32022` unsupported protocol version
+    (`data` carries `requested` and `supported`).
+
+    """
+    message: Annotated[str, Field(examples=["unknown tool: mcp_deepwiki_missing_tool"])]
+    """
+    Short description of the error
+    """
+    data: Any | None = None
+    """
+    Optional additional error detail
+    """
+
+
+class OAuthProtectedResourceMetadata(BaseModel):
+    """
+    OAuth 2.0 Protected Resource Metadata (RFC 9728) for the gateway's MCP
+    endpoint. Only the fields a client needs to find the authorization
+    server are published.
+
+    """
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+    )
+    resource: Annotated[str, Field(examples=["https://gateway.example.com/mcp"])]
+    """
+    The canonical public URL of the protected resource
+    """
+    authorization_servers: Annotated[
+        Sequence[str],
+        Field(examples=[["https://keycloak.example.com/realms/inference-gateway-realm"]]),
+    ]
+    """
+    Issuer identifiers of the authorization servers that mint tokens for this resource
+    """
+    bearer_methods_supported: Annotated[Sequence[str], Field(examples=[["header"]])]
+    """
+    How a bearer token may be sent; the gateway reads the Authorization header only
+    """
+
+
 class MCPTool(BaseModel):
     """
     An MCP tool definition
@@ -2023,6 +2152,34 @@ class ListModelsResponse(BaseModel):
     provider: Provider | None = None
     object: str
     data: Annotated[Sequence[Model], Field(validate_default=True)] = []
+
+
+class MCPJSONRPCResponse(BaseModel):
+    """
+    A JSON-RPC 2.0 response envelope. Exactly one of `result` or `error` is
+    present. `result` carries the MCP result type for the requested method
+    (`DiscoverResult` for `server/discover`, `ListToolsResult` for
+    `tools/list`, `CallToolResult` for `tools/call`) as defined in
+    `mcp/mcp-schema.yaml`.
+
+    """
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+    )
+    jsonrpc: Annotated[Literal["2.0"], Field(examples=["2.0"])] = "2.0"
+    """
+    JSON-RPC protocol version, always "2.0"
+    """
+    id: Annotated[str | int, Field(examples=[1])]
+    """
+    The `id` of the request this responds to
+    """
+    result: Mapping[str, Any] | None = None
+    """
+    The method result, present on success
+    """
+    error: MCPJSONRPCError | None = None
 
 
 class ListToolsResponse(BaseModel):
