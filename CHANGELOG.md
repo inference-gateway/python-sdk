@@ -1,3 +1,9 @@
+## [0.21.0](https://github.com/inference-gateway/python-sdk/compare/v0.20.0...v0.21.0) (2026-09-25)
+
+### ✨ Features
+
+* sync schemas v0.34.2 and remove list_tools ([#129](https://github.com/inference-gateway/python-sdk/issues/129)) ([a8f5c8c](https://github.com/inference-gateway/python-sdk/commit/a8f5c8c31e8428b6838d47cdda85aa82f73a3dcd))
+
 ## [0.20.0](https://github.com/inference-gateway/python-sdk/compare/v0.19.1...v0.20.0) (2026-09-25)
 
 ### ✨ Features
