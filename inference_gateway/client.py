@@ -4,6 +4,7 @@ This module provides a comprehensive client for interacting with the Inference G
 supporting multiple AI providers with a unified interface.
 """
 
+import base64
 import json
 from typing import Any, Dict, Generator, List, Optional, Type, Union
 
@@ -24,11 +25,14 @@ from inference_gateway.models import (
     ImagesResponse,
     ListModelsResponse,
     ListToolsResponse,
+    MCPJSONRPCRequest,
+    MCPJSONRPCResponse,
     Message,
     MessagesMessage,
     MessagesResponse,
     MessagesStreamEvent,
     MessagesTool,
+    OAuthProtectedResourceMetadata,
     Provider,
     Response,
     ResponseInputItem,
@@ -36,6 +40,9 @@ from inference_gateway.models import (
     ResponseTool,
     SSEvent,
 )
+
+MCP_PROTOCOL_VERSION = "2026-07-28"
+_MCP_META_PREFIX = "io.modelcontextprotocol/"
 
 
 class InferenceGatewayError(Exception):
@@ -227,6 +234,113 @@ class InferenceGatewayClient:
         try:
             response = self._make_request("GET", url)
             return ListToolsResponse.model_validate(response.json())
+        except ValidationError as e:
+            raise InferenceGatewayValidationError(f"Response validation failed: {e}")
+
+    @property
+    def _root_url(self) -> str:
+        """Base URL without the `/v1` prefix, for routes that live at the root."""
+        return self.base_url[: -len("/v1")] if self.base_url.endswith("/v1") else self.base_url
+
+    def mcp_jsonrpc(
+        self,
+        method: str,
+        params: Optional[Dict[str, Any]] = None,
+        request_id: Union[str, int] = 1,
+        client_info: Optional[Dict[str, Any]] = None,
+    ) -> MCPJSONRPCResponse:
+        """Call the gateway's MCP JSON-RPC endpoint (`POST /mcp`).
+
+        The endpoint lives at the root, not under `/v1`, so a `/v1` suffix on
+        `base_url` is stripped. Requires `MCP_ENABLED=true` and
+        `MCP_EXPOSE=true` on the gateway; otherwise it answers 403.
+
+        The `params._meta` block and the `MCP-Protocol-Version` / `Mcp-Method` /
+        `Mcp-Name` headers the protocol requires are filled in automatically; a
+        `_meta` passed in `params` is left untouched.
+
+        Args:
+            method: `server/discover`, `tools/list` or `tools/call`
+            params: Method parameters, e.g. `{"name": ..., "arguments": {...}}`
+                for `tools/call` or `{"cursor": ...}` for `tools/list`
+            request_id: JSON-RPC request id echoed back in the response
+            client_info: Optional `{"name": ..., "version": ...}` override
+                identifying the calling client
+
+        Returns:
+            MCPJSONRPCResponse: The JSON-RPC envelope, carrying `result` or `error`
+
+        Raises:
+            InferenceGatewayAPIError: If the API request fails
+            InferenceGatewayValidationError: If request/response validation fails
+        """
+        from inference_gateway import __version__
+
+        request_params: Dict[str, Any] = dict(params or {})
+        request_params.setdefault(
+            "_meta",
+            {
+                f"{_MCP_META_PREFIX}protocolVersion": MCP_PROTOCOL_VERSION,
+                f"{_MCP_META_PREFIX}clientInfo": client_info
+                or {"name": "inference-gateway-python-sdk", "version": __version__},
+                f"{_MCP_META_PREFIX}clientCapabilities": {},
+            },
+        )
+
+        headers = {
+            "MCP-Protocol-Version": MCP_PROTOCOL_VERSION,
+            "Mcp-Method": method,
+        }
+
+        if method == "tools/call":
+            name = request_params.get("name")
+            if not name:
+                raise InferenceGatewayValidationError("tools/call requires params['name']")
+            headers["Mcp-Name"] = (
+                name if name.isascii() else f"=?base64?{base64.b64encode(name.encode()).decode()}?="
+            )
+
+        try:
+            request = MCPJSONRPCRequest.model_validate(
+                {
+                    "jsonrpc": "2.0",
+                    "id": request_id,
+                    "method": method,
+                    "params": request_params,
+                }
+            )
+
+            response = self._make_request(
+                "POST",
+                f"{self._root_url}/mcp",
+                json=request.model_dump(exclude_none=True),
+                headers=headers,
+            )
+
+            return MCPJSONRPCResponse.model_validate(response.json())
+
+        except ValidationError as e:
+            raise InferenceGatewayValidationError(f"Request/response validation failed: {e}")
+
+    def get_mcp_protected_resource_metadata(self) -> OAuthProtectedResourceMetadata:
+        """Fetch the OAuth 2.0 Protected Resource Metadata for `POST /mcp`.
+
+        Sends a request to `GET /.well-known/oauth-protected-resource/mcp` (RFC
+        9728), which needs no token. The gateway returns 404 unless auth is
+        enabled and the MCP endpoint is exposed.
+
+        Returns:
+            OAuthProtectedResourceMetadata: The metadata document
+
+        Raises:
+            InferenceGatewayAPIError: If the API request fails
+            InferenceGatewayValidationError: If response validation fails
+        """
+        url = f"{self._root_url}/.well-known/oauth-protected-resource/mcp"
+
+        try:
+            response = self._make_request("GET", url)
+            return OAuthProtectedResourceMetadata.model_validate(response.json())
         except ValidationError as e:
             raise InferenceGatewayValidationError(f"Response validation failed: {e}")
 
