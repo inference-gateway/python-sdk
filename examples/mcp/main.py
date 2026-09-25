@@ -3,6 +3,6 @@ from inference_gateway import InferenceGatewayClient
 # Initialize client
 client = InferenceGatewayClient("http://localhost:8080/v1")
 
-# List available MCP tools works when MCP_ENABLE and MCP_EXPOSE are set on the gateway
+# List available MCP tools works when MCP_ENABLED and MCP_EXPOSE are set on the gateway
 tools = client.mcp_jsonrpc("tools/list")
 print("Available tools:", tools.result)
