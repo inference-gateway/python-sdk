@@ -97,7 +97,7 @@ print("OpenAI models:", openai_models)
 
 ### Listing MCP Tools
 
-MCP (Model Context Protocol) tools are listed over the MCP JSON-RPC endpoint with `mcp_jsonrpc("tools/list")` - see [MCP JSON-RPC Endpoint](#mcp-json-rpc-endpoint) below. This is only available when `MCP_ENABLE` and `MCP_EXPOSE` are set on the Inference Gateway server.
+MCP (Model Context Protocol) tools are listed over the MCP JSON-RPC endpoint with `mcp_jsonrpc("tools/list")` - see [MCP JSON-RPC Endpoint](#mcp-json-rpc-endpoint) below. This is only available when `MCP_ENABLED` and `MCP_EXPOSE` are set on the Inference Gateway server.
 
 **Server-Side Tool Management**
 
@@ -254,8 +254,6 @@ Message(
 - `"auto"`: Automatic detail level (default)
 - `"low"`: Lower resolution, faster and cheaper
 - `"high"`: Higher resolution, better quality but more expensive
-
-For a complete example, see the [chat example](examples/chat/).
 
 ### Using ReasoningFormat
 
@@ -596,6 +594,7 @@ For more detailed examples and use cases, check out the [examples directory](./e
 
 - **[List Example](./examples/list/)** - How to list available models
 - **[Chat Example](./examples/chat/)** - Basic and advanced chat completion examples
+- **[Images Example](./examples/images/)** - Image generation and editing via the Images API
 - **[Tools Example](./examples/tools/)** - Function calling and tool usage
 - **[Messages Example](./examples/messages/)** - Anthropic-compatible Messages API usage
 - **[MCP Example](./examples/mcp/)** - Model Context Protocol integration examples
@@ -609,8 +608,10 @@ The SDK supports the following LLM providers:
 - Ollama (`"ollama"`)
 - Ollama Cloud (`"ollama_cloud"`)
 - Groq (`"groq"`)
+- LlamaCPP (`"llamacpp"`)
 - OpenAI (`"openai"`)
 - DeepSeek (`"deepseek"`)
+- ElevenLabs (`"elevenlabs"`)
 - Cloudflare (`"cloudflare"`)
 - Cohere (`"cohere"`)
 - Anthropic (`"anthropic"`)
@@ -619,6 +620,7 @@ The SDK supports the following LLM providers:
 - MiniMax (`"minimax"`)
 - Moonshot (`"moonshot"`)
 - NVIDIA (`"nvidia"`)
+- Z.AI (`"zai"`)
 
 ## License
 
