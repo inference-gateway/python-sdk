@@ -97,21 +97,11 @@ print("OpenAI models:", openai_models)
 
 ### Listing MCP Tools
 
-To list available MCP (Model Context Protocol) tools, use the `list_tools` method. This functionality is only available when `MCP_ENABLE` and `MCP_EXPOSE` are set on the Inference Gateway server:
-
-```python
-tools = client.list_tools()
-
-print(f"Found {len(tools.data)} MCP tools:")
-for tool in tools.data:
-    print(f"- {tool.name}: {tool.description} (Server: {tool.server})")
-```
-
-> **Note:** The MCP tools endpoint requires authentication and is only accessible when the server has `MCP_EXPOSE=true` configured.
+MCP (Model Context Protocol) tools are listed over the MCP JSON-RPC endpoint with `mcp_jsonrpc("tools/list")` - see [MCP JSON-RPC Endpoint](#mcp-json-rpc-endpoint) below. This is only available when `MCP_ENABLE` and `MCP_EXPOSE` are set on the Inference Gateway server.
 
 **Server-Side Tool Management**
 
-The SDK currently supports listing available MCP tools, which is particularly useful for UI applications that need to display connected tools to users. The key advantage is that tools are managed server-side:
+Listing the connected tools is particularly useful for UI applications that need to display them to users. The key advantage is that tools are managed server-side:
 
 - **Automatic Tool Injection**: Tools are automatically inferred and injected into requests by the Inference Gateway server
 - **Simplified Client Code**: No need to manually manage or configure tools in your client application

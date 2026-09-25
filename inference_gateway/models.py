@@ -521,45 +521,6 @@ class OAuthProtectedResourceMetadata(BaseModel):
     """
 
 
-class MCPTool(BaseModel):
-    """
-    An MCP tool definition
-    """
-
-    model_config = ConfigDict(
-        populate_by_name=True,
-    )
-    name: Annotated[str, Field(examples=["read_file"])]
-    """
-    The name of the tool
-    """
-    description: Annotated[str, Field(examples=["Read content from a file"])]
-    """
-    A description of what the tool does
-    """
-    server: Annotated[str, Field(examples=["http://mcp-filesystem-server:8083/mcp"])]
-    """
-    The MCP server that provides this tool
-    """
-    input_schema: Annotated[
-        Mapping[str, Any] | None,
-        Field(
-            examples=[
-                {
-                    "type": "object",
-                    "properties": {
-                        "file_path": {"type": "string", "description": "Path to the file to read"}
-                    },
-                    "required": ["file_path"],
-                }
-            ]
-        ),
-    ] = None
-    """
-    JSON schema for the tool's input parameters
-    """
-
-
 class FunctionParameters(BaseModel):
     """
     The parameters the functions accepts, described as a JSON Schema object. See the [guide](/docs/guides/function-calling) for examples, and the [JSON Schema reference](https://json-schema.org/understanding-json-schema/) for documentation about the format.
@@ -2180,24 +2141,6 @@ class MCPJSONRPCResponse(BaseModel):
     The method result, present on success
     """
     error: MCPJSONRPCError | None = None
-
-
-class ListToolsResponse(BaseModel):
-    """
-    Response structure for listing MCP tools
-    """
-
-    model_config = ConfigDict(
-        populate_by_name=True,
-    )
-    object: Annotated[str, Field(examples=["list"])]
-    """
-    Always "list"
-    """
-    data: Annotated[Sequence[MCPTool], Field(validate_default=True)] = []
-    """
-    Array of available MCP tools
-    """
 
 
 class FunctionObject(BaseModel):

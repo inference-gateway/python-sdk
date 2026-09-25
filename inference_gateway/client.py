@@ -24,7 +24,6 @@ from inference_gateway.models import (
     CreateSpeechRequest,
     ImagesResponse,
     ListModelsResponse,
-    ListToolsResponse,
     MCPJSONRPCRequest,
     MCPJSONRPCResponse,
     Message,
@@ -216,24 +215,6 @@ class InferenceGatewayClient:
         try:
             response = self._make_request("GET", url, params=params)
             return ListModelsResponse.model_validate(response.json())
-        except ValidationError as e:
-            raise InferenceGatewayValidationError(f"Response validation failed: {e}")
-
-    def list_tools(self) -> ListToolsResponse:
-        """List all available MCP tools.
-
-        Returns:
-            ListToolsResponse: List of available MCP tools
-
-        Raises:
-            InferenceGatewayAPIError: If the API request fails
-            InferenceGatewayValidationError: If response validation fails
-        """
-        url = f"{self.base_url}/mcp/tools"
-
-        try:
-            response = self._make_request("GET", url)
-            return ListToolsResponse.model_validate(response.json())
         except ValidationError as e:
             raise InferenceGatewayValidationError(f"Response validation failed: {e}")
 
