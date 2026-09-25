@@ -82,6 +82,19 @@ def test_client_initialization():
     assert client_with_token.session.headers["Authorization"] == "Bearer test-token"
 
 
+def test_close_closes_http_backends():
+    """close() releases the underlying HTTP client on both backends (#134)."""
+    requests_client = InferenceGatewayClient("http://test-api/v1")
+    with patch.object(requests_client.session, "close") as mock_close:
+        requests_client.close()
+        mock_close.assert_called_once()
+
+    httpx_client = InferenceGatewayClient("http://test-api/v1", use_httpx=True)
+    with patch.object(httpx_client.client, "close") as mock_close:
+        httpx_client.close()
+        mock_close.assert_called_once()
+
+
 @patch("requests.Session.request")
 def test_list_models(mock_request, client, mock_response):
     """Test listing available models"""
@@ -403,6 +416,7 @@ def test_create_chat_completion_stream(mock_request, client):
         },
         params={"provider": "openai"},
         stream=True,
+        timeout=30.0,
     )
 
     assert len(chunks) == 4
@@ -448,6 +462,7 @@ def test_create_chat_completion_stream_openai_format(mock_request, client):
         },
         params={"provider": "openai"},
         stream=True,
+        timeout=30.0,
     )
 
     assert len(chunks) == 3
@@ -545,6 +560,7 @@ def test_create_chat_completion_stream_error(mock_request, client, test_params, 
         },
         params={"provider": test_params["provider"]},
         stream=True,
+        timeout=30.0,
     )
 
 
@@ -779,6 +795,7 @@ def test_create_response_stream(mock_request, client):
         json={"model": "gpt-4o", "input": "Hi", "stream": True},
         params={"provider": "openai"},
         stream=True,
+        timeout=30.0,
     )
 
     assert len(chunks) == 3
@@ -905,6 +922,7 @@ def test_create_message_stream(mock_request, client):
         },
         params={"provider": "anthropic"},
         stream=True,
+        timeout=30.0,
     )
 
     assert len(chunks) == 3

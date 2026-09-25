@@ -148,6 +148,8 @@ class InferenceGatewayClient:
         """Close the HTTP client."""
         if self.use_httpx and hasattr(self, "client"):
             self.client.close()
+        elif hasattr(self, "session"):
+            self.session.close()
 
     def _make_request(
         self, method: str, url: str, **kwargs: Any
@@ -484,6 +486,7 @@ class InferenceGatewayClient:
                     params=params,
                     json=request.model_dump(exclude_none=True, exclude_unset=True),
                     stream=True,
+                    timeout=self._timeout,
                 )
                 try:
                     requests_response.raise_for_status()
@@ -701,6 +704,7 @@ class InferenceGatewayClient:
                     params=params,
                     json=request.model_dump(exclude_none=True, exclude_unset=True),
                     stream=True,
+                    timeout=self._timeout,
                 )
                 try:
                     requests_response.raise_for_status()
@@ -1170,6 +1174,7 @@ class InferenceGatewayClient:
                     params=params,
                     json=request.model_dump(exclude_none=True, exclude_unset=True),
                     stream=True,
+                    timeout=self._timeout,
                 )
                 try:
                     requests_response.raise_for_status()
