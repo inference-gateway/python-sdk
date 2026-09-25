@@ -151,6 +151,27 @@ class InferenceGatewayClient:
         elif hasattr(self, "session"):
             self.session.close()
 
+    def _api_error(
+        self,
+        e: Exception,
+        response: Optional[Union[requests.Response, httpx.Response]],
+    ) -> InferenceGatewayAPIError:
+        """Build an InferenceGatewayAPIError carrying the HTTP status and error body.
+
+        Note: ``requests.Response.__bool__`` returns ``self.ok``, so every failed
+        response is falsy - always test ``is not None`` before reading from it.
+        """
+        status_code = response.status_code if response is not None else 0
+        error_data: Dict[str, Any] = {}
+        if response is not None:
+            try:
+                error_data = response.json() if response.content else {}
+            except (json.JSONDecodeError, ValueError):
+                error_data = {}
+        return InferenceGatewayAPIError(
+            f"Request failed: {str(e)}", status_code=status_code, response_data=error_data
+        )
+
     def _make_request(
         self, method: str, url: str, **kwargs: Any
     ) -> Union[requests.Response, httpx.Response]:
@@ -171,19 +192,9 @@ class InferenceGatewayClient:
                 raise InferenceGatewayError("No response received")
 
         except (requests.HTTPError, httpx.HTTPStatusError) as e:
-            try:
-                error_data = response.json() if response and response.content else {}
-            except (json.JSONDecodeError, ValueError):
-                error_data = {}
-
-            status_code = response.status_code if response else 0
-            raise InferenceGatewayAPIError(
-                f"Request failed: {str(e)}",
-                status_code=status_code,
-                response_data=error_data,
-            )
+            raise self._api_error(e, response) from e
         except (requests.RequestException, httpx.RequestError) as e:
-            raise InferenceGatewayError(f"Request failed: {str(e)}")
+            raise InferenceGatewayError(f"Request failed: {str(e)}") from e
 
     def list_models(
         self,
@@ -469,30 +480,36 @@ class InferenceGatewayClient:
             request = CreateChatCompletionRequest.model_validate(request_data)
 
             if self.use_httpx:
-                with self.client.stream(
-                    "POST",
-                    url,
-                    params=params,
-                    json=request.model_dump(exclude_none=True, exclude_unset=True),
-                ) as response:
-                    try:
-                        response.raise_for_status()
-                    except httpx.HTTPStatusError as e:
-                        raise InferenceGatewayAPIError(f"Request failed: {str(e)}")
-                    yield from self._process_stream_response(response)
-            else:
-                requests_response = self.session.post(
-                    url,
-                    params=params,
-                    json=request.model_dump(exclude_none=True, exclude_unset=True),
-                    stream=True,
-                    timeout=self._timeout,
-                )
                 try:
+                    with self.client.stream(
+                        "POST",
+                        url,
+                        params=params,
+                        json=request.model_dump(exclude_none=True, exclude_unset=True),
+                    ) as response:
+                        try:
+                            response.raise_for_status()
+                        except httpx.HTTPStatusError as e:
+                            response.read()
+                            raise self._api_error(e, response) from e
+                        yield from self._process_stream_response(response)
+                except httpx.RequestError as e:
+                    raise InferenceGatewayError(f"Request failed: {str(e)}") from e
+            else:
+                try:
+                    requests_response = self.session.post(
+                        url,
+                        params=params,
+                        json=request.model_dump(exclude_none=True, exclude_unset=True),
+                        stream=True,
+                        timeout=self._timeout,
+                    )
                     requests_response.raise_for_status()
-                except (requests.exceptions.HTTPError, Exception) as e:
-                    raise InferenceGatewayAPIError(f"Request failed: {str(e)}")
-                yield from self._process_stream_response(requests_response)
+                    yield from self._process_stream_response(requests_response)
+                except requests.HTTPError as e:
+                    raise self._api_error(e, requests_response) from e
+                except requests.RequestException as e:
+                    raise InferenceGatewayError(f"Request failed: {str(e)}") from e
 
         except ValidationError as e:
             raise InferenceGatewayValidationError(f"Request validation failed: {e}")
@@ -687,30 +704,36 @@ class InferenceGatewayClient:
             request = CreateResponseRequest.model_validate(request_data)
 
             if self.use_httpx:
-                with self.client.stream(
-                    "POST",
-                    url,
-                    params=params,
-                    json=request.model_dump(exclude_none=True, exclude_unset=True),
-                ) as response:
-                    try:
-                        response.raise_for_status()
-                    except httpx.HTTPStatusError as e:
-                        raise InferenceGatewayAPIError(f"Request failed: {str(e)}")
-                    yield from self._process_responses_stream(response)
-            else:
-                requests_response = self.session.post(
-                    url,
-                    params=params,
-                    json=request.model_dump(exclude_none=True, exclude_unset=True),
-                    stream=True,
-                    timeout=self._timeout,
-                )
                 try:
+                    with self.client.stream(
+                        "POST",
+                        url,
+                        params=params,
+                        json=request.model_dump(exclude_none=True, exclude_unset=True),
+                    ) as response:
+                        try:
+                            response.raise_for_status()
+                        except httpx.HTTPStatusError as e:
+                            response.read()
+                            raise self._api_error(e, response) from e
+                        yield from self._process_responses_stream(response)
+                except httpx.RequestError as e:
+                    raise InferenceGatewayError(f"Request failed: {str(e)}") from e
+            else:
+                try:
+                    requests_response = self.session.post(
+                        url,
+                        params=params,
+                        json=request.model_dump(exclude_none=True, exclude_unset=True),
+                        stream=True,
+                        timeout=self._timeout,
+                    )
                     requests_response.raise_for_status()
-                except (requests.exceptions.HTTPError, Exception) as e:
-                    raise InferenceGatewayAPIError(f"Request failed: {str(e)}")
-                yield from self._process_responses_stream(requests_response)
+                    yield from self._process_responses_stream(requests_response)
+                except requests.HTTPError as e:
+                    raise self._api_error(e, requests_response) from e
+                except requests.RequestException as e:
+                    raise InferenceGatewayError(f"Request failed: {str(e)}") from e
 
         except ValidationError as e:
             raise InferenceGatewayValidationError(f"Request validation failed: {e}")
@@ -1157,30 +1180,36 @@ class InferenceGatewayClient:
             )
 
             if self.use_httpx:
-                with self.client.stream(
-                    "POST",
-                    url,
-                    params=params,
-                    json=request.model_dump(exclude_none=True, exclude_unset=True),
-                ) as response:
-                    try:
-                        response.raise_for_status()
-                    except httpx.HTTPStatusError as e:
-                        raise InferenceGatewayAPIError(f"Request failed: {str(e)}")
-                    yield from self._process_messages_stream(response)
-            else:
-                requests_response = self.session.post(
-                    url,
-                    params=params,
-                    json=request.model_dump(exclude_none=True, exclude_unset=True),
-                    stream=True,
-                    timeout=self._timeout,
-                )
                 try:
+                    with self.client.stream(
+                        "POST",
+                        url,
+                        params=params,
+                        json=request.model_dump(exclude_none=True, exclude_unset=True),
+                    ) as response:
+                        try:
+                            response.raise_for_status()
+                        except httpx.HTTPStatusError as e:
+                            response.read()
+                            raise self._api_error(e, response) from e
+                        yield from self._process_messages_stream(response)
+                except httpx.RequestError as e:
+                    raise InferenceGatewayError(f"Request failed: {str(e)}") from e
+            else:
+                try:
+                    requests_response = self.session.post(
+                        url,
+                        params=params,
+                        json=request.model_dump(exclude_none=True, exclude_unset=True),
+                        stream=True,
+                        timeout=self._timeout,
+                    )
                     requests_response.raise_for_status()
-                except (requests.exceptions.HTTPError, Exception) as e:
-                    raise InferenceGatewayAPIError(f"Request failed: {str(e)}")
-                yield from self._process_messages_stream(requests_response)
+                    yield from self._process_messages_stream(requests_response)
+                except requests.HTTPError as e:
+                    raise self._api_error(e, requests_response) from e
+                except requests.RequestException as e:
+                    raise InferenceGatewayError(f"Request failed: {str(e)}") from e
 
         except ValidationError as e:
             raise InferenceGatewayValidationError(f"Request validation failed: {e}")

@@ -1,6 +1,7 @@
 from typing import Any, Dict, List
 from unittest.mock import Mock, patch
 
+import httpx
 import pytest
 import requests
 from pydantic import ValidationError
@@ -513,7 +514,11 @@ def test_stream_response_delta_allows_missing_content():
 @pytest.mark.parametrize(
     "error_scenario",
     [
-        {"status_code": 500, "error": Exception("API Error"), "expected_match": "Request failed"},
+        {
+            "status_code": 500,
+            "error": requests.exceptions.ConnectionError("Connection refused"),
+            "expected_match": "Request failed",
+        },
         {
             "status_code": 401,
             "error": requests.exceptions.HTTPError("Unauthorized"),
@@ -562,6 +567,122 @@ def test_create_chat_completion_stream_error(mock_request, client, test_params, 
         stream=True,
         timeout=30.0,
     )
+
+
+_MSGS = [{"role": "user", "content": "Hi"}]
+
+
+def _http_error_response(status_code: int, body: bytes) -> requests.Response:
+    """Build a real requests.Response that raise_for_status() rejects.
+
+    Mock() objects are always truthy, which hid issue #132: a real
+    requests.Response is falsy for every 4xx/5xx because its __bool__
+    returns self.ok.
+    """
+    response = requests.Response()
+    response.status_code = status_code
+    response._content = body
+    response.headers["Content-Type"] = "application/json"
+    response.url = "http://test-api/v1/chat/completions"
+    return response
+
+
+@patch("requests.Session.request")
+def test_api_error_carries_status_and_body(mock_request, client):
+    """Non-streaming (requests backend): status and parsed body reach the caller (#132)."""
+    mock_request.return_value = _http_error_response(401, b'{"error":"Invalid token"}')
+
+    with pytest.raises(InferenceGatewayAPIError) as exc_info:
+        client.create_chat_completion("gpt-4", [Message(role="user", content="Hi")])
+
+    assert exc_info.value.status_code == 401
+    assert exc_info.value.response_data == {"error": "Invalid token"}
+
+
+@patch("requests.Session.request")
+def test_api_error_non_json_body_falls_back_to_empty_dict(mock_request, client):
+    """A non-JSON error body yields response_data == {} without crashing (#132)."""
+    mock_request.return_value = _http_error_response(502, b"Bad Gateway")
+
+    with pytest.raises(InferenceGatewayAPIError) as exc_info:
+        client.list_models()
+
+    assert exc_info.value.status_code == 502
+    assert exc_info.value.response_data == {}
+
+
+@patch("requests.Session.request")
+def test_stream_error_carries_status_and_body(mock_request, client):
+    """Streaming (requests backend): status and parsed body reach the caller (#132)."""
+    mock_request.return_value = _http_error_response(401, b'{"error":"Invalid token"}')
+    messages = [Message(role="user", content="Hi")]
+
+    for stream in [
+        lambda: client.create_chat_completion_stream("gpt-4", messages),
+        lambda: client.create_response_stream("gpt-4o", "Hi"),
+        lambda: client.create_message_stream("claude-sonnet-5", _MSGS, max_tokens=64),
+    ]:
+        with pytest.raises(InferenceGatewayAPIError) as exc_info:
+            list(stream())
+        assert exc_info.value.status_code == 401
+        assert exc_info.value.response_data == {"error": "Invalid token"}
+
+
+@patch("requests.Session.request")
+def test_stream_connection_failure_raises_gateway_error(mock_request, client):
+    """Streaming connection failures surface as InferenceGatewayError, not raw requests (#132)."""
+    mock_request.side_effect = requests.exceptions.ConnectionError("Connection refused")
+    messages = [Message(role="user", content="Hi")]
+
+    for stream in [
+        lambda: client.create_chat_completion_stream("gpt-4", messages),
+        lambda: client.create_response_stream("gpt-4o", "Hi"),
+        lambda: client.create_message_stream("claude-sonnet-5", _MSGS, max_tokens=64),
+    ]:
+        with pytest.raises(InferenceGatewayError) as exc_info:
+            list(stream())
+        assert not isinstance(exc_info.value, InferenceGatewayAPIError)
+        assert "Request failed" in str(exc_info.value)
+
+
+def test_stream_error_httpx_backend_carries_status_and_body():
+    """Streaming (httpx backend): status and parsed body reach the caller (#132)."""
+    client = InferenceGatewayClient("http://test-api/v1", use_httpx=True)
+    messages = [Message(role="user", content="Hi")]
+
+    mock_response = Mock()
+    mock_response.status_code = 401
+    mock_response.json.return_value = {"error": "Invalid token"}
+    mock_response.content = b'{"error":"Invalid token"}'
+    mock_response.raise_for_status.side_effect = httpx.HTTPStatusError(
+        "Client error '401 Unauthorized'", request=Mock(), response=mock_response
+    )
+
+    with patch("httpx.Client.stream") as mock_stream:
+        mock_stream.return_value.__enter__.return_value = mock_response
+        with pytest.raises(InferenceGatewayAPIError) as exc_info:
+            list(client.create_chat_completion_stream("gpt-4", messages))
+
+    assert exc_info.value.status_code == 401
+    assert exc_info.value.response_data == {"error": "Invalid token"}
+
+
+def test_stream_connection_failure_httpx_backend():
+    """Streaming connection failures surface as InferenceGatewayError, not raw httpx (#132)."""
+    client = InferenceGatewayClient("http://test-api/v1", use_httpx=True)
+    messages = [Message(role="user", content="Hi")]
+    connect_error = httpx.ConnectError("Connection refused")
+
+    with patch.object(client.client, "stream", side_effect=connect_error):
+        for stream in [
+            lambda: client.create_chat_completion_stream("gpt-4", messages),
+            lambda: client.create_response_stream("gpt-4o", "Hi"),
+            lambda: client.create_message_stream("claude-sonnet-5", _MSGS, max_tokens=64),
+        ]:
+            with pytest.raises(InferenceGatewayError) as exc_info:
+                list(stream())
+            assert not isinstance(exc_info.value, InferenceGatewayAPIError)
+            assert "Request failed" in str(exc_info.value)
 
 
 @patch("requests.Session.request")
