@@ -1,3 +1,17 @@
+## [0.20.0](https://github.com/inference-gateway/python-sdk/compare/v0.19.1...v0.20.0) (2026-09-25)
+
+### ✨ Features
+
+* support the MCP JSON-RPC endpoint (schemas v0.34.0) ([#128](https://github.com/inference-gateway/python-sdk/issues/128)) ([18a4ea5](https://github.com/inference-gateway/python-sdk/commit/18a4ea57f5071413adabe6fa72e9a102664fc01a))
+
+### 👷 CI
+
+* **claude:** centralize claude.yml via reusable workflow ([#127](https://github.com/inference-gateway/python-sdk/issues/127)) ([9905311](https://github.com/inference-gateway/python-sdk/commit/99053110ff1911777cf24eef61a990234ed3b56a))
+
+### 🔧 Miscellaneous
+
+* **deps:** bump infer CLI v0.192.0 -> v0.205.3 ([#126](https://github.com/inference-gateway/python-sdk/issues/126)) ([6b486c5](https://github.com/inference-gateway/python-sdk/commit/6b486c55683dcb842736feb51d9ab0b257c128b4))
+
 ## [0.19.1](https://github.com/inference-gateway/python-sdk/compare/v0.19.0...v0.19.1) (2026-09-23)
 
 ### ♻️ Improvements
