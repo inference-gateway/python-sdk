@@ -308,6 +308,20 @@ def test_health_check(mock_request):
     assert health_client.health_check() is False
 
 
+@patch("requests.Session.request")
+def test_health_check_with_v1_base_url(mock_request):
+    """Health check targets the root route even when base_url ends in /v1"""
+    health_client = InferenceGatewayClient("http://test-api/v1")
+
+    mock_response = Mock()
+    mock_response.status_code = 200
+    mock_response.raise_for_status.return_value = None
+    mock_request.return_value = mock_response
+
+    assert health_client.health_check() is True
+    mock_request.assert_called_once_with("GET", "http://test-api/health", timeout=30.0)
+
+
 def test_message_model():
     """Test Message model creation and serialization"""
     message = Message(role="user", content="Hello!")
@@ -557,6 +571,25 @@ def test_proxy_request(mock_request):
     )
 
     assert response == {"response": "test"}
+
+
+@patch("requests.Session.request")
+def test_proxy_request_with_v1_base_url(mock_request):
+    """Proxy requests target the root route even when base_url ends in /v1"""
+    proxy_client = InferenceGatewayClient("http://test-api/v1")
+
+    mock_resp = Mock()
+    mock_resp.status_code = 200
+    mock_resp.json.return_value = {"data": []}
+    mock_resp.raise_for_status.return_value = None
+    mock_request.return_value = mock_resp
+
+    response = proxy_client.proxy_request(provider="openai", path="/v1/models", method="GET")
+
+    mock_request.assert_called_once_with(
+        "GET", "http://test-api/proxy/openai/v1/models", timeout=30.0
+    )
+    assert response == {"data": []}
 
 
 def test_exception_hierarchy():

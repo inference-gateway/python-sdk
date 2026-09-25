@@ -1216,6 +1216,9 @@ class InferenceGatewayClient:
     ) -> Dict[str, Any]:
         """Proxy a request to a provider's API.
 
+        The route lives at the gateway root (`/proxy/{provider}/{path}`), not
+        under `/v1`, so a `/v1` suffix on `base_url` is stripped.
+
         Args:
             provider: The provider to route to
             path: Path segment after the provider
@@ -1231,7 +1234,7 @@ class InferenceGatewayClient:
             ValueError: If an unsupported HTTP method is used
         """
         provider_value = provider.root if hasattr(provider, "root") else str(provider)
-        url = f"{self.base_url}/proxy/{provider_value}/{path.lstrip('/')}"
+        url = f"{self._root_url}/proxy/{provider_value}/{path.lstrip('/')}"
 
         method = method.upper()
         if method not in ["GET", "POST", "PUT", "DELETE", "PATCH"]:
@@ -1248,11 +1251,14 @@ class InferenceGatewayClient:
     def health_check(self) -> bool:
         """Check if the API is healthy.
 
+        The route lives at the gateway root (`/health`), not under `/v1`,
+        so a `/v1` suffix on `base_url` is stripped.
+
         Returns:
             bool: True if the API is healthy, False otherwise
         """
         try:
-            response = self._make_request("GET", f"{self.base_url}/health")
+            response = self._make_request("GET", f"{self._root_url}/health")
             return response.status_code == 200
         except Exception:
             return False
