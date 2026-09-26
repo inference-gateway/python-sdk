@@ -1,3 +1,21 @@
+## [0.21.1](https://github.com/inference-gateway/python-sdk/compare/v0.21.0...v0.21.1) (2026-09-26)
+
+### 🐛 Bug Fixes
+
+* **client:** carry HTTP status and error body into InferenceGatewayAPIError ([#139](https://github.com/inference-gateway/python-sdk/issues/139)) ([d58a54f](https://github.com/inference-gateway/python-sdk/commit/d58a54f2dbe8ccd321c6d3075808315b21ad54c7))
+* **client:** close requests Session in close() and apply timeout to streaming calls ([#138](https://github.com/inference-gateway/python-sdk/issues/138)) ([4a1e48f](https://github.com/inference-gateway/python-sdk/commit/4a1e48f71dab4532fabe3ad4bbf7258c3a29dda6))
+* **client:** route health_check and proxy_request to root-level routes ([#136](https://github.com/inference-gateway/python-sdk/issues/136)) ([ec782ca](https://github.com/inference-gateway/python-sdk/commit/ec782ca4f1bc50b6af3b0ca3d5b019c3fd64b6b8))
+
+### 📚 Documentation
+
+* **readme:** correct MCP_ENABLED env var, provider list, vision reference, and images example ([#137](https://github.com/inference-gateway/python-sdk/issues/137)) ([8cc2ef6](https://github.com/inference-gateway/python-sdk/commit/8cc2ef6c36cb9d4a689ccfacb19b670c474bd1bc))
+* **readme:** document streaming error behavior parity ([#140](https://github.com/inference-gateway/python-sdk/issues/140)) ([23a1d69](https://github.com/inference-gateway/python-sdk/commit/23a1d69eed955e6ef3ab1ffd6abffea9efa4df2d))
+
+### 🔧 Miscellaneous
+
+* **deps:** bump claude-code 2.1.278 -> 2.1.280 ([#130](https://github.com/inference-gateway/python-sdk/issues/130)) ([2a73e16](https://github.com/inference-gateway/python-sdk/commit/2a73e16d27210fb35daebe70c29b056321367f64))
+* **deps:** bump infer CLI v0.205.3 -> v0.208.0 ([#131](https://github.com/inference-gateway/python-sdk/issues/131)) ([703f184](https://github.com/inference-gateway/python-sdk/commit/703f1840794014c4eeb91f6c096b1e19e0b94034))
+
 ## [0.21.0](https://github.com/inference-gateway/python-sdk/compare/v0.20.0...v0.21.0) (2026-09-25)
 
 ### ✨ Features
