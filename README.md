@@ -588,6 +588,24 @@ except InferenceGatewayError as e:
     print(f"General Error: {e}")
 ```
 
+The streaming methods (`create_chat_completion_stream`, `create_response_stream`, `create_message_stream`) follow the same rules on both the `requests` and `httpx` backends: an HTTP error raises `InferenceGatewayAPIError` with `status_code` and `response_data` populated, while a connection failure raises `InferenceGatewayError`. Streams are generators, so these errors surface when you start iterating - wrap the loop itself:
+
+```python
+try:
+    for chunk in client.create_chat_completion_stream(
+        model="ollama/llama2",
+        messages=[Message(role="user", content="Tell me a story.")],
+    ):
+        print(chunk.data, end="")
+except InferenceGatewayAPIError as e:
+    print(f"API Error: {e} (Status: {e.status_code})")
+    print("Response:", e.response_data)
+except InferenceGatewayValidationError as e:
+    print(f"Validation Error: {e}")
+except InferenceGatewayError as e:
+    print(f"General Error: {e}")
+```
+
 ## Examples
 
 For more detailed examples and use cases, check out the [examples directory](./examples/). The examples include:
