@@ -1,6 +1,8 @@
 import json
 import os
 
+from pydantic import ValidationError
+
 from inference_gateway import InferenceGatewayClient, Message
 from inference_gateway.client import InferenceGatewayAPIError, InferenceGatewayError
 from inference_gateway.models import CreateChatCompletionStreamResponse, SSEvent
@@ -76,6 +78,9 @@ def main() -> None:
                 except json.JSONDecodeError:
                     # Handle non-JSON SSE data
                     print(f"[Non-JSON chunk: {chunk.data}]", end="", flush=True)
+
+                except ValidationError:
+                    continue
 
         print("\n")
 
