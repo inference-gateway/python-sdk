@@ -28,6 +28,7 @@ class Provider(
             "moonshot",
             "nvidia",
             "zai",
+            "webwright",
         ]
     ]
 ):
@@ -48,6 +49,7 @@ class Provider(
         "moonshot",
         "nvidia",
         "zai",
+        "webwright",
     ]
 
 
