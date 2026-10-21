@@ -1,3 +1,35 @@
+## [0.22.0](https://github.com/inference-gateway/python-sdk/compare/v0.21.1...v0.22.0) (2026-10-21)
+
+### ✨ Features
+
+* add deprecated include filter to model listing (sync schemas v1.4.1) ([#156](https://github.com/inference-gateway/python-sdk/issues/156)) ([dc61111](https://github.com/inference-gateway/python-sdk/commit/dc6111104324169d933979585ce8ae8f44e3ed45))
+* add WebWright provider with schemas v1.5.0 ([7fcdee3](https://github.com/inference-gateway/python-sdk/commit/7fcdee329685079e90a33d95c90949ea8f5184db))
+* sync generated types with schemas v0.34.4 ([#144](https://github.com/inference-gateway/python-sdk/issues/144)) ([4ac0019](https://github.com/inference-gateway/python-sdk/commit/4ac001996aaba9d2882af72944e561a9e4c377e9))
+* sync generated types with schemas v1.2.0 ([#149](https://github.com/inference-gateway/python-sdk/issues/149)) ([78d220f](https://github.com/inference-gateway/python-sdk/commit/78d220feccc43a716404db22b7a246bcb958a30e))
+
+### 👷 CI
+
+* **deps:** bump actions/create-github-app-token ([#155](https://github.com/inference-gateway/python-sdk/issues/155)) ([cc4787b](https://github.com/inference-gateway/python-sdk/commit/cc4787b39a332648750469f8cdac96c2bb1fc750))
+* **deps:** bump actions/setup-node ([#153](https://github.com/inference-gateway/python-sdk/issues/153)) ([4ae5aac](https://github.com/inference-gateway/python-sdk/commit/4ae5aacfd4e3acd9cb4c6d2f836b0a794b7c34cc))
+
+### 📚 Documentation
+
+* **agents:** add code readability guidelines ([#141](https://github.com/inference-gateway/python-sdk/issues/141)) ([86dfcb6](https://github.com/inference-gateway/python-sdk/commit/86dfcb64bb981cccf9dfb18fa85ec5bf130f920b))
+* **agents:** add code readability guidelines ([#148](https://github.com/inference-gateway/python-sdk/issues/148)) ([839f7af](https://github.com/inference-gateway/python-sdk/commit/839f7afb4e1a015a7833f4deb35809c4b7b30d04))
+* handle ValidationError in chat stream example ([#150](https://github.com/inference-gateway/python-sdk/issues/150)) ([d7e10e1](https://github.com/inference-gateway/python-sdk/commit/d7e10e177bed2ba2fd80bdbaf054e68d42c3b5c2))
+
+### 🔧 Miscellaneous
+
+* **deps:** bump claude-code 2.1.280 -> 2.1.283 ([#142](https://github.com/inference-gateway/python-sdk/issues/142)) ([37993d1](https://github.com/inference-gateway/python-sdk/commit/37993d170e4e4a0ee0f7b504a78baa46fc561718))
+* **deps:** bump claude-code 2.1.283 -> 2.1.285 ([#146](https://github.com/inference-gateway/python-sdk/issues/146)) ([49286f0](https://github.com/inference-gateway/python-sdk/commit/49286f08b98bcd56157445cc68a5909633bb9bb8))
+* **deps:** bump claude-code 2.1.285 -> 2.1.289 ([#151](https://github.com/inference-gateway/python-sdk/issues/151)) ([57cf945](https://github.com/inference-gateway/python-sdk/commit/57cf945c5ca700167afb407fc95d4acddca04b83))
+* **deps:** bump claude-code 2.1.289 -> 2.1.296 ([#157](https://github.com/inference-gateway/python-sdk/issues/157)) ([8cc0acc](https://github.com/inference-gateway/python-sdk/commit/8cc0acc0dcaffc8145bdc235f983ff23f0bd0467))
+* **deps:** bump infer CLI v0.208.0 -> v0.218.0 ([#143](https://github.com/inference-gateway/python-sdk/issues/143)) ([f02ecf7](https://github.com/inference-gateway/python-sdk/commit/f02ecf73b515e31671b3438c3f0cfb89b48358e2))
+* **deps:** bump infer CLI v0.218.0 -> v0.221.1 ([#145](https://github.com/inference-gateway/python-sdk/issues/145)) ([f8ad720](https://github.com/inference-gateway/python-sdk/commit/f8ad720deec81f3bed3890410f7eb131f0a10993))
+* **deps:** bump infer CLI v0.221.1 -> v0.226.0 ([#152](https://github.com/inference-gateway/python-sdk/issues/152)) ([22686e1](https://github.com/inference-gateway/python-sdk/commit/22686e14797aa770e7b5191dd4ca6acc106cb5bf))
+* **deps:** bump infer CLI v0.226.0 -> v0.231.1 ([#158](https://github.com/inference-gateway/python-sdk/issues/158)) ([ccd8c4e](https://github.com/inference-gateway/python-sdk/commit/ccd8c4e538d861d417e81feb706c906680e35c23))
+* sync generated types with schemas v1.2.2 ([#154](https://github.com/inference-gateway/python-sdk/issues/154)) ([ff488ae](https://github.com/inference-gateway/python-sdk/commit/ff488aecc015fd0ef72b7588ed0060e2b419ec71))
+
 ## [0.21.1](https://github.com/inference-gateway/python-sdk/compare/v0.21.0...v0.21.1) (2026-09-26)
 
 ### 🐛 Bug Fixes
