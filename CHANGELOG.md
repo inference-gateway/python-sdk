@@ -1,3 +1,13 @@
+## [0.22.1](https://github.com/inference-gateway/python-sdk/compare/v0.22.0...v0.22.1) (2026-10-28)
+
+### 👷 CI
+
+* **deps:** bump the github-actions group with 2 updates ([#160](https://github.com/inference-gateway/python-sdk/issues/160)) ([d30918c](https://github.com/inference-gateway/python-sdk/commit/d30918ca78a0dfa997989611b1b5f1fd913a43ad))
+
+### 🔧 Miscellaneous
+
+* **deps:** bump claude-code 2.1.296 -> 2.1.308 ([#161](https://github.com/inference-gateway/python-sdk/issues/161)) ([823a4ed](https://github.com/inference-gateway/python-sdk/commit/823a4edabc0ea3be2d1271844fa4738a0830d652))
+
 ## [0.22.0](https://github.com/inference-gateway/python-sdk/compare/v0.21.1...v0.22.0) (2026-10-21)
 
 ### ✨ Features
