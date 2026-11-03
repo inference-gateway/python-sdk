@@ -1,3 +1,9 @@
+## [0.23.0](https://github.com/inference-gateway/python-sdk/compare/v0.22.2...v0.23.0) (2026-11-03)
+
+### ✨ Features
+
+* **client:** add create_decision for the OpenAI Decisions API (schemas v1.7.0) ([#163](https://github.com/inference-gateway/python-sdk/issues/163)) ([a4a4d05](https://github.com/inference-gateway/python-sdk/commit/a4a4d05291303b5b9ddc62265ec3eeca826de565))
+
 ## [0.22.2](https://github.com/inference-gateway/python-sdk/compare/v0.22.1...v0.22.2) (2026-11-01)
 
 ### 🔧 Miscellaneous
