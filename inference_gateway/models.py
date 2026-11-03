@@ -440,8 +440,8 @@ class Pricing(BaseModel):
     """
 
 
-class Modality(RootModel[Literal["text", "image", "audio", "video"]]):
-    root: Literal["text", "image", "audio", "video"]
+class Modality(RootModel[Literal["text", "image", "audio", "video", "decisions"]]):
+    root: Literal["text", "image", "audio", "video", "decisions"]
     """
     A single input or output modality
     """
@@ -449,7 +449,7 @@ class Modality(RootModel[Literal["text", "image", "audio", "video"]]):
 
 class ModelModalities(BaseModel):
     """
-    The input and output modalities of a model, mirroring the models.dev dataset shape. Vision models accept `image` in `input`; image-generation models list `image` in `output` - when `output` carries `image` but not `text`, the model only generates images and cannot chat.
+    The input and output modalities of a model, mirroring the models.dev dataset shape. Vision models accept `image` in `input`; image-generation models list `image` in `output` - when `output` carries `image` but not `text`, the model only generates images and cannot chat. Decision models list `decisions` in `output`: they answer the Decisions API (`POST /decisions`) with typed, probability-weighted answers, the same value llama.cpp advertises as `output_modalities` on its models listing.
     """
 
     model_config = ConfigDict(
