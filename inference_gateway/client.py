@@ -16,12 +16,14 @@ from inference_gateway.models import (
     ChatCompletionTool,
     CreateChatCompletionRequest,
     CreateChatCompletionResponse,
+    CreateDecisionRequest,
     CreateImageRequest,
     CreateMessagesRequest,
     CreateMusicRequest,
     CreateResponseRequest,
     CreateSFXRequest,
     CreateSpeechRequest,
+    Decision,
     ImagesResponse,
     ListModelsResponse,
     MCPJSONRPCRequest,
@@ -859,6 +861,49 @@ class InferenceGatewayClient:
             )
 
             return ImagesResponse.model_validate(response.json())
+
+        except ValidationError as e:
+            raise InferenceGatewayValidationError(f"Request/response validation failed: {e}")
+
+    def create_decision(
+        self,
+        model: str,
+        input: Union[str, List[Dict[str, Any]]],
+        questions: List[Dict[str, Any]],
+        provider: Optional[Union[Provider, str]] = None,
+        **kwargs: Any,
+    ) -> Decision:
+        """Answer questions about shared evidence via the OpenAI Decisions API.
+
+        Sends a request to `POST /decisions` and returns the relayed Decision.
+        Raises InferenceGatewayAPIError on API failure and
+        InferenceGatewayValidationError on request/response validation failure.
+        """
+        url = f"{self.base_url}/decisions"
+        params = {}
+
+        if provider:
+            provider_value = provider.root if hasattr(provider, "root") else str(provider)
+            params["provider"] = provider_value
+
+        try:
+            request_data: Dict[str, Any] = {
+                "model": model,
+                "input": input,
+                "questions": questions,
+            }
+            request_data.update(kwargs)
+
+            request = CreateDecisionRequest.model_validate(request_data)
+
+            response = self._make_request(
+                "POST",
+                url,
+                params=params,
+                json=request.model_dump(exclude_none=True, exclude_unset=True),
+            )
+
+            return Decision.model_validate(response.json())
 
         except ValidationError as e:
             raise InferenceGatewayValidationError(f"Request/response validation failed: {e}")
