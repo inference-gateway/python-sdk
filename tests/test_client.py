@@ -16,6 +16,7 @@ from inference_gateway.models import (
     ChatCompletionStreamResponseDelta,
     CreateChatCompletionRequest,
     CreateChatCompletionResponse,
+    Decision,
     ImagesResponse,
     ListModelsResponse,
     Message,
@@ -1091,6 +1092,54 @@ def test_create_image(mock_request, client):
     assert isinstance(response, ImagesResponse)
     assert response.data[0].url == "https://example.com/image.png"
     assert response.usage.total_tokens == 100
+
+
+@patch("requests.Session.request")
+def test_create_decision(mock_request, client):
+    """Test the Decisions API (POST /decisions)."""
+    mock_request.return_value = _response_mock(
+        {
+            "answers": [{"name": "is_spam", "type": "predicate", "value": True}],
+            "usage": {"input_tokens": 12},
+        }
+    )
+
+    questions = [{"type": "predicate", "name": "is_spam", "instructions": "Is this message spam?"}]
+    response = client.create_decision(
+        model="gpt-6-luna",
+        input="Buy now!!!",
+        questions=questions,
+        provider="openai",
+    )
+
+    mock_request.assert_called_once_with(
+        "POST",
+        "http://test-api/v1/decisions",
+        params={"provider": "openai"},
+        json={"model": "gpt-6-luna", "input": "Buy now!!!", "questions": questions},
+        timeout=30.0,
+    )
+    assert isinstance(response, Decision)
+    assert response.answers[0]["value"] is True
+    assert response.usage.input_tokens == 12
+
+
+@patch("requests.Session.request")
+def test_create_decision_not_supported(mock_request, client):
+    """A provider without Decisions support yields an InferenceGatewayAPIError."""
+    mock_request.return_value = _http_error_response(
+        400, b'{"error": "The Decisions API is not supported by this provider yet."}'
+    )
+
+    with pytest.raises(InferenceGatewayAPIError) as exc_info:
+        client.create_decision(
+            model="claude-opus-4",
+            input="Buy now!!!",
+            questions=[{"type": "predicate", "name": "is_spam", "instructions": "Spam?"}],
+            provider="anthropic",
+        )
+
+    assert exc_info.value.status_code == 400
 
 
 @patch("requests.Session.request")
