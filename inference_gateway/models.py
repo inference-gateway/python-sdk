@@ -132,6 +132,7 @@ class Endpoints(BaseModel):
     models: str
     chat: str
     responses: str | None = None
+    decisions: str | None = None
     images: str | None = None
     images_edits: str | None = None
     speech: str | None = None
@@ -139,6 +140,70 @@ class Endpoints(BaseModel):
     sfx: str | None = None
     videos: str | None = None
     videos_retrieve: str | None = None
+
+
+class PromptCacheOptions(BaseModel):
+    model_config = ConfigDict(
+        populate_by_name=True,
+    )
+    mode: str | None = None
+
+
+class Choice(BaseModel):
+    model_config = ConfigDict(
+        populate_by_name=True,
+    )
+    value: str | None = None
+    description: str | None = None
+
+
+class Level(BaseModel):
+    model_config = ConfigDict(
+        populate_by_name=True,
+    )
+    label: str | None = None
+    description: str | None = None
+
+
+class DecisionQuestion(BaseModel):
+    model_config = ConfigDict(
+        extra="allow",
+        populate_by_name=True,
+    )
+    type: Literal["predicate", "choice", "score"]
+    name: str
+    instructions: str
+    choices: Sequence[Choice] | None = None
+    levels: Annotated[Sequence[Level] | None, Field(max_length=10, min_length=2)] = None
+
+
+class InputTokensDetails(BaseModel):
+    model_config = ConfigDict(
+        populate_by_name=True,
+    )
+    cached_tokens: int | None = None
+    cache_write_tokens: int | None = None
+
+
+class Usage(BaseModel):
+    model_config = ConfigDict(
+        populate_by_name=True,
+    )
+    input_tokens: int | None = None
+    input_tokens_details: InputTokensDetails | None = None
+
+
+class Decision(BaseModel):
+    """
+    Response of the OpenAI Decisions API, relayed unchanged.
+    """
+
+    model_config = ConfigDict(
+        extra="allow",
+        populate_by_name=True,
+    )
+    answers: Sequence[Mapping[str, Any]] | None = None
+    usage: Usage | None = None
 
 
 class Error(BaseModel):
@@ -253,7 +318,7 @@ class Image(BaseModel):
     """
 
 
-class InputTokensDetails(BaseModel):
+class InputTokensDetails1(BaseModel):
     """
     A detailed breakdown of the input tokens.
     """
@@ -267,7 +332,7 @@ class InputTokensDetails(BaseModel):
     """
 
 
-class Usage(BaseModel):
+class Usage1(BaseModel):
     """
     Usage statistics for the image generation request.
     """
@@ -287,7 +352,7 @@ class Usage(BaseModel):
     """
     Number of output tokens.
     """
-    input_tokens_details: InputTokensDetails | None = None
+    input_tokens_details: InputTokensDetails1 | None = None
     """
     A detailed breakdown of the input tokens.
     """
@@ -309,7 +374,7 @@ class ImagesResponse(BaseModel):
     """
     The generated images.
     """
-    usage: Usage | None = None
+    usage: Usage1 | None = None
     """
     Usage statistics for the image generation request.
     """
@@ -1424,7 +1489,7 @@ class ResponseUsage(BaseModel):
     """
     The number of input tokens.
     """
-    input_tokens_details: InputTokensDetails | None = None
+    input_tokens_details: InputTokensDetails1 | None = None
     """
     A detailed breakdown of the input tokens.
     """
@@ -2060,6 +2125,29 @@ class MessagesStreamEvent(BaseModel):
 
 class Config(RootModel[Any]):
     root: Any
+
+
+class CreateDecisionRequest(BaseModel):
+    """
+    Request body for the OpenAI Decisions API, relayed unchanged.
+    """
+
+    model_config = ConfigDict(
+        extra="allow",
+        populate_by_name=True,
+    )
+    model: str
+    """
+    Model to use, optionally prefixed with the provider (`openai/gpt-6-luna`).
+    """
+    input: str | Sequence[Mapping[str, Any]]
+    """
+    Shared evidence, a string or an ordered array of message and tool items.
+    """
+    questions: Annotated[Sequence[DecisionQuestion], Field(max_length=400, min_length=1)]
+    prompt_cache_key: str | None = None
+    prompt_cache_breakpoint: str | None = None
+    prompt_cache_options: PromptCacheOptions | None = None
 
 
 class ImageContentPart(BaseModel):
