@@ -1,3 +1,13 @@
+## [0.25.0](https://github.com/inference-gateway/python-sdk/compare/v0.24.0...v0.25.0) (2026-11-15)
+
+### ✨ Features
+
+* sync schemas v1.14.0 and score a video with create_sfx ([#166](https://github.com/inference-gateway/python-sdk/issues/166)) ([2894c93](https://github.com/inference-gateway/python-sdk/commit/2894c9352c4d2e037c8b7f81f98ba3fdaf52387a))
+
+### 🔧 Miscellaneous
+
+* **deps:** bump claude-code 2.1.308 -> 2.1.318 ([#165](https://github.com/inference-gateway/python-sdk/issues/165)) ([87cf9b5](https://github.com/inference-gateway/python-sdk/commit/87cf9b546c80cecdb283bcb70ff24630578173c7))
+
 ## [0.24.0](https://github.com/inference-gateway/python-sdk/compare/v0.23.0...v0.24.0) (2026-11-03)
 
 ### ✨ Features
