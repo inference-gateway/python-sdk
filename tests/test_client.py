@@ -1285,9 +1285,40 @@ def test_create_music(mock_request, client):
 
 
 @patch("requests.Session.request")
+def test_create_sfx_scores_a_video(mock_request, client):
+    """Test that a video goes in the JSON body and the prompt is optional."""
+    mock_response = Mock()
+    mock_response.status_code = 200
+    mock_response.raise_for_status.return_value = None
+    mock_response.content = b"\x01\x02fake-scored-audio"
+    mock_request.return_value = mock_response
+
+    audio = client.create_sfx(
+        "mirelo/sfx-2.0",
+        video="https://cdn.example.com/scene.mov",
+        preserve_speech=True,
+        output="speech",
+    )
+
+    mock_request.assert_called_once_with(
+        "POST",
+        "http://test-api/v1/audio/sfx",
+        params={},
+        json={
+            "model": "mirelo/sfx-2.0",
+            "video": "https://cdn.example.com/scene.mov",
+            "preserve_speech": True,
+            "output": "speech",
+        },
+        timeout=30.0,
+    )
+    assert audio == b"\x01\x02fake-scored-audio"
+
+
+@patch("requests.Session.request")
 def test_create_sfx_validation_error(mock_request, client):
-    """Test that an out-of-range duration is rejected before any request."""
+    """Test that a duration under the floor is rejected before any request."""
     with pytest.raises(InferenceGatewayValidationError):
-        client.create_sfx("elevenlabs/eleven_text_to_sound_v2", "thunder", duration_seconds=99.0)
+        client.create_sfx("elevenlabs/eleven_text_to_sound_v2", "thunder", duration_seconds=0.1)
 
     mock_request.assert_not_called()

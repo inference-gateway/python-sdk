@@ -29,6 +29,7 @@ class Provider(
             "nvidia",
             "zai",
             "webwright",
+            "mirelo",
         ]
     ]
 ):
@@ -50,6 +51,7 @@ class Provider(
         "nvidia",
         "zai",
         "webwright",
+        "mirelo",
     ]
 
 
@@ -135,11 +137,16 @@ class Endpoints(BaseModel):
     decisions: str | None = None
     images: str | None = None
     images_edits: str | None = None
+    images_retrieve: str | None = None
     speech: str | None = None
     music: str | None = None
     sfx: str | None = None
+    sfx_video: str | None = None
+    assets: str | None = None
     videos: str | None = None
     videos_retrieve: str | None = None
+    voices: str | None = None
+    voices_create: str | None = None
 
 
 class PromptCacheOptions(BaseModel):
@@ -971,13 +978,17 @@ class CreateSpeechRequest(BaseModel):
     container. Forwarded to the provider as-is - only providers with
     voice-cloning support honor it (e.g. Qwen3-TTS-compatible
     backends); others ignore or reject it. Not supported by OpenAI.
+    ElevenLabs has no per-request sample, so the gateway adds the
+    sample to the account of the API key as an instant voice clone,
+    once per sample, and speaks in that voice instead of `voice`.
     """
 
 
 class CreateSFXRequest(BaseModel):
     """
     Request body for generating a non-speech audio clip - a sound effect
-    or ambience - from a text prompt.
+    or ambience - from a text prompt, or from a video when `video` is
+    set.
 
     """
 
@@ -986,26 +997,65 @@ class CreateSFXRequest(BaseModel):
     )
     model: str
     """
-    Model ID to use for sound-effect generation (e.g. `elevenlabs/eleven_text_to_sound_v2`).
+    Model ID to use for sound-effect generation (e.g. `elevenlabs/eleven_text_to_sound_v2`, `mirelo/sfx-2.0`, or `elevenlabs/music_v2_5` to score a video).
     """
-    prompt: str
+    prompt: str | None = None
     """
-    Description of the sound to generate (e.g. `distant thunder rolling over a valley`).
+    Description of the sound to generate (e.g. `distant thunder
+    rolling over a valley`). Required unless `video` is given:
+    without a video the prompt drives the result, with a video the
+    clip drives it and the prompt is only optional guidance on the
+    sound to generate.
     """
-    duration_seconds: Annotated[float | None, Field(ge=0.5, le=30.0)] = None
+    video: str | None = None
     """
-    Length of the generated clip in seconds. Omit to let the provider
-    pick a length that fits the prompt.
+    Optional video to score: the provider watches the clip and
+    generates the sound that fits it. Either an https URL or a
+    base64 data URI (`data:video/...`). Prefer a URL for large
+    clips: a data URI is about a third larger than the file and
+    counts against the gateway's request body limit. A provider
+    that cannot take the given form answers `400 Bad Request`. The
+    gateway never downloads the URL itself.
+    """
+    duration_seconds: Annotated[float | None, Field(ge=0.5)] = None
+    """
+    Length of the generated audio in seconds - at least 0.5 for a
+    text prompt and at least 1 for a video. The ceiling depends on
+    the model (30 for ElevenLabs text-to-sfx), and a longer value is
+    rejected with `400 Bad Request`. For a text prompt it is the
+    length of the generated clip. With a video it is the length of
+    the scored window, counted from `start_offset_seconds`. Omit to
+    let the provider pick a length that fits the prompt or the
+    clip, up to its ceiling.
+    """
+    start_offset_seconds: Annotated[float, Field(ge=0.0)] = 0
+    """
+    Video input only. Where in the clip the scored window starts,
+    in seconds.
+    """
+    preserve_speech: bool | None = None
+    """
+    Video input only. Keep the speech already in the clip under the
+    generated sound. Omit to use the provider default.
+    """
+    output: Literal["mix", "sfx", "speech"] = "mix"
+    """
+    Video input only. Which track to return. `mix` is the generated
+    sound with any preserved speech, `sfx` is the generated sound
+    alone and `speech` is the clip's own speech separated out. A
+    clip without speech has no `speech` track.
     """
     prompt_influence: Annotated[float | None, Field(ge=0.0, le=1.0)] = None
     """
-    How closely the generation follows the prompt. Higher values stay
-    closer to the prompt, lower values allow more variation. Omit to
-    use the provider default.
+    Text prompt only. How closely the generation follows the prompt.
+    Higher values stay closer to the prompt, lower values allow more
+    variation. Omit to use the provider default. Only models with
+    prompt-influence support honor it - a model that cannot honor it
+    rejects the request with `400 Bad Request`.
     """
     loop: bool | None = None
     """
-    Whether to generate a clip that loops seamlessly.
+    Text prompt only. Whether to generate a clip that loops seamlessly.
     """
     response_format: Literal["mp3", "opus", "aac", "flac", "pcm"] = "mp3"
     """
@@ -1047,8 +1097,8 @@ class CreateMusicRequest(BaseModel):
 
 class CreateVideoRequest(BaseModel):
     """
-    Request body for creating a video generation job via the
-    OpenAI-compatible Videos API. Sent as `multipart/form-data`.
+    Request body for creating a video generation job, shaped like the
+    Videos API OpenAI retired. Sent as `multipart/form-data`.
 
     """
 
@@ -1088,15 +1138,40 @@ class CreateVideoRequest(BaseModel):
     an audio clip - `audio/wav` or `audio/mpeg` - that drives the
     render. When present, the model lip-syncs `input_reference` to it
     and the generated video lasts as long as the clip, so `seconds` is
-    ignored. Forwarded to the provider as-is; only providers with
-    talking-avatar support honor it (e.g. ElevenLabs
-    `creatify-aurora`), others ignore or reject it.
+    ignored. Only models with talking-avatar support honor it (e.g.
+    ElevenLabs `creatify-aurora`). A model known to render from a
+    prompt is refused with `400 Bad Request`.
+    """
+    video: bytes | None = None
+    """
+    Non-standard extension (OpenAI's Videos API has no video field):
+    a clip to dub - the provider generates the sound that fits it and
+    re-renders the clip with that sound as its new soundtrack, so the
+    job returns a video downloadable from
+    `GET /videos/{video_id}/content`. Mutually exclusive with
+    `input_reference` and `reference_images`. Only providers with
+    video-to-sfx support honor it (e.g. Mirelo `sfx-2.0`), where only
+    the generated mix is laid onto the clip - the separated tracks come
+    back as audio from `POST /audio/sfx` - and `sfx-1.6` with
+    `preserve_speech` caps the scored window at 60 seconds.
+    """
+    start_offset_seconds: Annotated[float, Field(ge=0.0)] = 0
+    """
+    Video input only. Where in the clip the dubbed window starts, in
+    seconds.
+    """
+    preserve_speech: bool | None = None
+    """
+    Video input only. Keep the speech already in the clip under the
+    generated sound. Omit to use the provider default.
     """
     seconds: str | None = None
     """
     Requested duration of the generated video in seconds, as a string
     (e.g. `4`, `8`, `12`). Providers accept a limited set of values;
     omit to use the provider default. Ignored when `audio` is present.
+    With `video` it is the length of the dubbed window, at least 1,
+    counted from `start_offset_seconds`.
     """
     size: str | None = None
     """

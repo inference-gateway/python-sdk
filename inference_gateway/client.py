@@ -1053,29 +1053,40 @@ class InferenceGatewayClient:
     def create_sfx(
         self,
         model: str,
-        prompt: str,
+        prompt: Optional[str] = None,
         provider: Optional[Union[Provider, str]] = None,
+        video: Optional[str] = None,
         duration_seconds: Optional[float] = None,
+        start_offset_seconds: Optional[float] = None,
+        preserve_speech: Optional[bool] = None,
+        output: Optional[str] = None,
         prompt_influence: Optional[float] = None,
         loop: Optional[bool] = None,
         response_format: Optional[str] = None,
         **kwargs: Any,
     ) -> bytes:
-        """Generate a sound effect via the Audio API.
+        """Generate a sound effect from a text prompt or score a video.
 
         Sends a request to `POST /audio/sfx` and returns the generated audio
-        as raw bytes. The audio format is determined by `response_format`
-        (default `mp3`). Only providers with sound-effect support implement
-        this endpoint; others return a 400 error.
+        as raw bytes. Without `video` the prompt describes the sound. With
+        `video` the provider watches the clip and generates the sound that
+        fits it, and the prompt is optional guidance. The audio format is
+        determined by `response_format` (default `mp3`). Only providers with
+        sound-effect support implement this endpoint - others return a 400
+        error, as does a provider that cannot honor a given field.
 
         Args:
             model: Model ID for sound-effect generation
-                    (e.g. `elevenlabs/eleven_text_to_sound_v2`)
-            prompt: Description of the sound to generate
+                    (e.g. `elevenlabs/eleven_text_to_sound_v2`, `mirelo/sfx-2.0`)
+            prompt: Description of the sound to generate, required unless `video` is given
             provider: Optional provider specification
-            duration_seconds: Length of the clip in seconds (0.5-30)
-            prompt_influence: How closely generation follows the prompt (0.0-1.0)
-            loop: Whether to generate a seamlessly looping clip
+            video: Clip to score, an https URL or a base64 `data:video/...` URI
+            duration_seconds: Length of the clip in seconds, or of the scored window
+            start_offset_seconds: Video only, where the scored window starts in seconds
+            preserve_speech: Video only, keep the clip's speech under the sound
+            output: Video only, the track to return (`mix`, `sfx` or `speech`)
+            prompt_influence: Text only, how closely generation follows the prompt (0.0-1.0)
+            loop: Text only, whether to generate a seamlessly looping clip
             response_format: Audio format (`mp3`, `opus`, `aac`, `flac`, `pcm`)
             **kwargs: Additional parameters to pass to the API
 
@@ -1086,17 +1097,21 @@ class InferenceGatewayClient:
             InferenceGatewayAPIError: If the API request fails
             InferenceGatewayValidationError: If request validation fails
         """
-        request_data: Dict[str, Any] = {"model": model, "prompt": prompt}
-
-        if duration_seconds is not None:
-            request_data["duration_seconds"] = duration_seconds
-        if prompt_influence is not None:
-            request_data["prompt_influence"] = prompt_influence
-        if loop is not None:
-            request_data["loop"] = loop
-        if response_format is not None:
-            request_data["response_format"] = response_format
-
+        optional_fields = {
+            "prompt": prompt,
+            "video": video,
+            "duration_seconds": duration_seconds,
+            "start_offset_seconds": start_offset_seconds,
+            "preserve_speech": preserve_speech,
+            "output": output,
+            "prompt_influence": prompt_influence,
+            "loop": loop,
+            "response_format": response_format,
+        }
+        request_data: Dict[str, Any] = {"model": model}
+        request_data.update(
+            {key: value for key, value in optional_fields.items() if value is not None}
+        )
         request_data.update(kwargs)
 
         return self._post_audio("/audio/sfx", CreateSFXRequest, request_data, provider)
