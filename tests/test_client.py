@@ -1010,7 +1010,8 @@ def test_create_message_stream(mock_request, client):
         b"event: message_start",
         b'data: {"type":"message_start","message":{"id":"msg-1","type":"message",'
         b'"role":"assistant","content":[],"model":"claude-sonnet-5",'
-        b'"stop_reason":"end_turn","usage":{"input_tokens":1,"output_tokens":0}}}',
+        b'"stop_reason":null,"stop_sequence":null,'
+        b'"usage":{"input_tokens":1,"output_tokens":0}}}',
         b"",
         b"event: content_block_delta",
         b'data: {"type":"content_block_delta","index":0,'
@@ -1051,6 +1052,7 @@ def test_create_message_stream(mock_request, client):
     assert all(isinstance(c, MessagesStreamEvent) for c in chunks)
     assert chunks[0].type == "message_start"
     assert chunks[0].message.id == "msg-1"
+    assert chunks[0].message.stop_reason is None
     assert chunks[1].type == "content_block_delta"
     assert chunks[1].delta.text == "Hello"
     assert chunks[2].type == "message_stop"
