@@ -4942,8 +4942,10 @@ components:
             - tool_use
             - pause_turn
             - refusal
+          nullable: true
           description: |
-            The reason the model stopped generating.
+            The reason the model stopped generating. Null in the message
+            carried by the streaming `message_start` event.
         stop_sequence:
           type: string
           nullable: true

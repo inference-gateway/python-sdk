@@ -2076,11 +2076,13 @@ class MessagesResponse(BaseModel):
     """
     The model used to generate the message.
     """
-    stop_reason: Literal[
-        "end_turn", "max_tokens", "stop_sequence", "tool_use", "pause_turn", "refusal"
-    ]
+    stop_reason: (
+        Literal["end_turn", "max_tokens", "stop_sequence", "tool_use", "pause_turn", "refusal"]
+        | None
+    )
     """
-    The reason the model stopped generating.
+    The reason the model stopped generating. Null in the message
+    carried by the streaming `message_start` event.
 
     """
     stop_sequence: str | None = None
