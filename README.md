@@ -541,6 +541,44 @@ for block in response.content:
 
 > **Note:** Not every provider implements the Messages API. Requests routed to a provider without support return a 400 error - use `create_chat_completion` for those providers.
 
+### Responses API
+
+The gateway also exposes an OpenAI-compatible Responses API (`POST /responses`). `input` is either a string or a list of `ResponseInputItem` objects, the token limit is `max_output_tokens`, and `create_response` returns a validated `Response` whose `output` is a typed item list:
+
+```python
+from inference_gateway import InferenceGatewayClient, ResponseOutputMessage, ResponseOutputText
+
+client = InferenceGatewayClient("http://localhost:8080/v1")
+
+response = client.create_response(
+    model="openai/gpt-4o",
+    input="Hello! Please introduce yourself briefly.",
+    max_output_tokens=100,
+)
+
+for item in response.output:
+    if isinstance(item.root, ResponseOutputMessage):
+        for part in item.root.content:
+            if isinstance(part.root, ResponseOutputText):
+                print(part.root.text)
+```
+
+`create_response_stream` yields typed `ResponseStreamEvent` objects (`response.created`, `response.output_text.delta`, `response.completed`, ...) - no manual SSE parsing needed:
+
+```python
+for event in client.create_response_stream(
+    model="openai/gpt-4o",
+    input="Tell me a short story.",
+    max_output_tokens=200,
+):
+    if event.type == "response.output_text.delta" and event.delta:
+        print(event.delta, end="", flush=True)
+```
+
+Tools use the flattened `ResponseTool` shape (`name`, `description` and `parameters` at the top level), and tool calls come back as `ResponseFunctionToolCall` output items. See the [Responses example](./examples/responses/) for a multi-turn tool-calling walkthrough.
+
+> **Note:** Not every provider implements the Responses API. Requests routed to a provider without support return a 400 error - use `create_chat_completion` for those providers.
+
 ### Proxy Requests
 
 To proxy a raw request directly to a provider's API through the gateway, use `proxy_request`:
@@ -615,6 +653,7 @@ For more detailed examples and use cases, check out the [examples directory](./e
 - **[Images Example](./examples/images/)** - Image generation and editing via the Images API
 - **[Tools Example](./examples/tools/)** - Function calling and tool usage
 - **[Messages Example](./examples/messages/)** - Anthropic-compatible Messages API usage
+- **[Responses Example](./examples/responses/)** - OpenAI-compatible Responses API usage
 - **[MCP Example](./examples/mcp/)** - Model Context Protocol integration examples
 
 Each example includes its own README with specific instructions and explanations.
