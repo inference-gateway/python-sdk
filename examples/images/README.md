@@ -5,7 +5,7 @@ This example demonstrates image generation and editing via the OpenAI-compatible
 - Generate an image from a text prompt with `create_image`
 - Edit an existing image with `create_image_edit` (optional)
 
-**Prerequisites:** The Inference Gateway must be configured with an image-capable provider (for example OpenAI) and its API key set in the `.env` file.
+**Prerequisites:** The Inference Gateway must be configured with an image-capable provider (for example OpenAI) and its API key set in the `.env` file, and `IMAGES_ENABLED=true` must be set - otherwise `POST /images/generations` and `POST /images/edits` return `404`.
 
 ## Usage
 
