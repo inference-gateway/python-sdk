@@ -4,7 +4,6 @@ from unittest.mock import Mock, patch
 import httpx
 import pytest
 import requests
-from pydantic import ValidationError
 
 from inference_gateway.client import (
     InferenceGatewayAPIError,
@@ -16,6 +15,7 @@ from inference_gateway.models import (
     ChatCompletionStreamResponseDelta,
     CreateChatCompletionRequest,
     CreateChatCompletionResponse,
+    CreateChatCompletionStreamResponse,
     Decision,
     ImagesResponse,
     ListModelsResponse,
@@ -485,31 +485,38 @@ def test_create_chat_completion_stream_openai_format(mock_request, client):
     assert chunk_2_data["choices"][0]["delta"]["content"] == " world!"
 
 
-@pytest.mark.xfail(
-    strict=True,
-    raises=ValidationError,
-    reason=(
-        "Upstream openapi.yaml (inference-gateway/schemas) re-added `content` to the "
-        "required list of ChatCompletionStreamResponseDelta, reverting the fix for #29. "
-        "Real streaming deltas (e.g. the first/last chunks) omit `content`, so a strict "
-        "model still rejects them. Tracked upstream; remove this marker once the spec "
-        "drops `content` from the delta's required list and models are regenerated."
-    ),
-)
 def test_stream_response_delta_allows_missing_content():
-    """Regression test for #29.
-
-    The first streaming chunk's delta typically carries only ``role`` and no
-    ``content``. ``ChatCompletionStreamResponseDelta.content`` must therefore be
-    optional, so ``model_validate`` does not raise on the initial chunk.
-
-    Currently xfailing: the regenerated model marks ``content`` required because
-    the upstream spec lists it as required again (see marker reason above).
-    """
+    """The first streaming chunk's delta carries only ``role``, so ``content`` is optional."""
     delta = ChatCompletionStreamResponseDelta.model_validate({"role": "assistant"})
 
     assert delta.content is None
     assert delta.role.root == "assistant"
+
+
+@pytest.mark.parametrize(
+    "choice",
+    [
+        {"index": 0, "delta": {"content": "Hi"}, "finish_reason": None, "logprobs": None},
+        {"index": 0, "delta": {"content": None, "refusal": None}},
+        {"index": 0, "delta": {}, "finish_reason": "stop"},
+    ],
+    ids=["null_finish_reason_no_role", "null_content_and_refusal", "empty_final_delta"],
+)
+def test_stream_response_parses_standard_openai_chunks(choice: Dict[str, Any]):
+    """Standard OpenAI stream chunks validate against ``CreateChatCompletionStreamResponse``."""
+    chunk = CreateChatCompletionStreamResponse.model_validate(
+        {
+            "id": "chatcmpl-123",
+            "object": "chat.completion.chunk",
+            "created": 1694268190,
+            "model": "gpt-4o",
+            "choices": [choice],
+        }
+    )
+
+    finish_reason = chunk.choices[0].finish_reason
+    assert chunk.choices[0].delta.role is None
+    assert (finish_reason.root if finish_reason else None) == choice.get("finish_reason")
 
 
 @pytest.mark.parametrize(
