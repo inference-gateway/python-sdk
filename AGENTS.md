@@ -43,6 +43,8 @@ Black + isort at 100 columns, 4-space indents, LF line endings, YAML/JSON at 2 s
   tags, compiler pragmas, code generation markers).
 - No semicolons in documentation prose (Markdown files, doc comments): split the sentence or use
   a dash instead.
+- No issue or PR numbers or links in docs, examples, or code comments (e.g. "see #172"). Explain
+  the reason inline instead. Issue references belong in commit messages and PR descriptions.
 
 ## Testing
 

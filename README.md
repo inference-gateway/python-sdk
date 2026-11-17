@@ -365,7 +365,7 @@ for chunk in client.create_chat_completion_stream(
             print(delta["content"], end="", flush=True)
 ```
 
-> **Note:** Read stream chunks from the parsed JSON rather than validating them with `CreateChatCompletionStreamResponse`. That model currently requires `finish_reason`, `delta.role` and `delta.content` on every chunk, so it rejects standard OpenAI chunks (see [#172](https://github.com/inference-gateway/python-sdk/issues/172)).
+> **Note:** Read stream chunks from the parsed JSON rather than validating them with `CreateChatCompletionStreamResponse`. That model currently requires `finish_reason`, `delta.role` and `delta.content` on every chunk, so it rejects standard OpenAI chunks.
 
 ### Tool-Use
 

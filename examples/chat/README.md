@@ -74,7 +74,7 @@ for chunk in stream:
             print(content, end="", flush=True)
 ```
 
-Chunks are read from the parsed JSON instead of `CreateChatCompletionStreamResponse`, because that model currently rejects standard OpenAI chunks (null `finish_reason`, deltas without `role` or `content`) - see [#172](https://github.com/inference-gateway/python-sdk/issues/172).
+Chunks are read from the parsed JSON instead of `CreateChatCompletionStreamResponse`, because that model currently rejects standard OpenAI chunks (null `finish_reason`, deltas without `role` or `content`).
 
 ## Error Handling
 
