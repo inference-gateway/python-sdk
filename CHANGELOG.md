@@ -1,3 +1,30 @@
+## [0.26.0](https://github.com/inference-gateway/python-sdk/compare/v0.25.0...v0.26.0) (2026-11-17)
+
+### ✨ Features
+
+* sync schemas v1.14.1 and accept standard OpenAI stream chunks ([#182](https://github.com/inference-gateway/python-sdk/issues/182)) ([d4e2634](https://github.com/inference-gateway/python-sdk/commit/d4e2634e36f5c48539e8dd12115f153c732a1272)), closes [#181](https://github.com/inference-gateway/python-sdk/issues/181)
+
+### 🐛 Bug Fixes
+
+* allow null stop_reason in Messages stream message_start ([#179](https://github.com/inference-gateway/python-sdk/issues/179)) ([cb9440e](https://github.com/inference-gateway/python-sdk/commit/cb9440eb5e49347a84b071d831e89bcece5785ef))
+* read stream chunks as JSON in chat examples ([#178](https://github.com/inference-gateway/python-sdk/issues/178)) ([fca4630](https://github.com/inference-gateway/python-sdk/commit/fca463005e285e239524c0a514dba18693b6fcbf)), closes [#172](https://github.com/inference-gateway/python-sdk/issues/172)
+
+### 👷 CI
+
+* align Dependabot schedule and grouping ([#169](https://github.com/inference-gateway/python-sdk/issues/169)) ([3f5ad19](https://github.com/inference-gateway/python-sdk/commit/3f5ad192d72700f0abad5310398d64cd89528d11))
+* set up orchestrators from repos.yaml ([#170](https://github.com/inference-gateway/python-sdk/issues/170)) ([bffe983](https://github.com/inference-gateway/python-sdk/commit/bffe98354836de91aa018981e2b2dce07c131a4d))
+
+### 📚 Documentation
+
+* add audio example for speech, sfx and music ([#176](https://github.com/inference-gateway/python-sdk/issues/176)) ([c1f04d0](https://github.com/inference-gateway/python-sdk/commit/c1f04d0d0ed640ecaed57579070f3e7686bc06e9))
+* add Responses API example and README section ([#180](https://github.com/inference-gateway/python-sdk/issues/180)) ([ec0e02a](https://github.com/inference-gateway/python-sdk/commit/ec0e02a69dc1f18322043637834fe05334009289))
+* sync examples and README with gateway config ([#177](https://github.com/inference-gateway/python-sdk/issues/177)) ([ee0999d](https://github.com/inference-gateway/python-sdk/commit/ee0999d1e25299b919b70284cb2e670ca7d6cfeb))
+
+### 🔧 Miscellaneous
+
+* **deps:** bump flox dependencies to latest ([#167](https://github.com/inference-gateway/python-sdk/issues/167)) ([55f32c5](https://github.com/inference-gateway/python-sdk/commit/55f32c5698d341f76915cc5e301ff825c2a8f67e))
+* **deps:** bump flox dependencies to latest ([#168](https://github.com/inference-gateway/python-sdk/issues/168)) ([de020e9](https://github.com/inference-gateway/python-sdk/commit/de020e9c220dac637479923ed5369ae871022a3a))
+
 ## [0.25.0](https://github.com/inference-gateway/python-sdk/compare/v0.24.0...v0.25.0) (2026-11-15)
 
 ### ✨ Features
