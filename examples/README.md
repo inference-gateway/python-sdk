@@ -29,4 +29,5 @@ The following examples demonstrate how to use the Inference Gateway SDK for vari
 - [Decisions](decisions/README.md)
 - [Tools](tools/README.md)
 - [Messages](messages/README.md)
+- [Responses](responses/README.md)
 - [MCP](mcp/README.md)
