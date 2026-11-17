@@ -46,10 +46,7 @@ print(response.choices[0].message.content.root)
 ```python
 import json
 
-from pydantic import ValidationError
-
 from inference_gateway import InferenceGatewayClient, Message
-from inference_gateway.models import CreateChatCompletionStreamResponse
 
 client = InferenceGatewayClient("http://localhost:8080/v1")
 
@@ -63,24 +60,21 @@ stream = client.create_chat_completion_stream(
 )
 
 for chunk in stream:
-    if chunk.data:
-        try:
-            # Parse the raw JSON data
-            data = json.loads(chunk.data)
+    if not chunk.data:
+        continue
 
-            # Unmarshal to the structured model for type safety. The model is
-            # strict: a delta without `content`, or a choice with a null
-            # `finish_reason`, raises `ValidationError` - skip those chunks.
-            structured_chunk = CreateChatCompletionStreamResponse.model_validate(data)
+    try:
+        data = json.loads(chunk.data)
+    except json.JSONDecodeError:
+        continue
 
-            if structured_chunk.choices and len(structured_chunk.choices) > 0:
-                choice = structured_chunk.choices[0]
-                if choice.delta.content:
-                    print(choice.delta.content, end="", flush=True)
-
-        except (json.JSONDecodeError, ValidationError):
-            continue
+    for choice in data.get("choices", []):
+        content = choice.get("delta", {}).get("content")
+        if content:
+            print(content, end="", flush=True)
 ```
+
+Chunks are read from the parsed JSON instead of `CreateChatCompletionStreamResponse`, because that model currently rejects standard OpenAI chunks (null `finish_reason`, deltas without `role` or `content`).
 
 ## Error Handling
 
