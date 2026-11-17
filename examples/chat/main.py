@@ -34,7 +34,7 @@ def main() -> None:
             max_tokens=100,
         )
 
-        print(f"Response: {response.choices[0].message.content}")
+        print(f"Response: {response.choices[0].message.content.root}")
         if response.usage:
             print(f"Usage: {response.usage.total_tokens} tokens")
 

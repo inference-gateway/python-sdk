@@ -613,6 +613,7 @@ For more detailed examples and use cases, check out the [examples directory](./e
 - **[List Example](./examples/list/)** - How to list available models
 - **[Chat Example](./examples/chat/)** - Basic and advanced chat completion examples
 - **[Images Example](./examples/images/)** - Image generation and editing via the Images API
+- **[Decisions Example](./examples/decisions/)** - Answering questions about evidence via the Decisions API
 - **[Tools Example](./examples/tools/)** - Function calling and tool usage
 - **[Messages Example](./examples/messages/)** - Anthropic-compatible Messages API usage
 - **[MCP Example](./examples/mcp/)** - Model Context Protocol integration examples
@@ -639,6 +640,8 @@ The SDK supports the following LLM providers:
 - Moonshot (`"moonshot"`)
 - NVIDIA (`"nvidia"`)
 - Z.AI (`"zai"`)
+- WebWright (`"webwright"`)
+- Mirelo (`"mirelo"`)
 
 ## License
 

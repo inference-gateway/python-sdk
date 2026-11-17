@@ -5,7 +5,7 @@ This example demonstrates the OpenAI Decisions API relay (`POST /v1/decisions`) 
 - Ask one or more questions about a shared piece of evidence with `create_decision`
 - Read the per-question answers from the response
 
-**Prerequisites:** The Inference Gateway must be configured with a provider that supports the Decisions API (currently OpenAI) and its API key set in the `.env` file. Other providers return `400` with `The Decisions API is not supported by this provider yet.`
+**Prerequisites:** The Inference Gateway must be configured with a provider that supports the Decisions API (currently OpenAI) and its API key set in the `.env` file, and `DECISIONS_ENABLED=true` must be set - otherwise `POST /decisions` returns `404`. Other providers return `400` with `The Decisions API is not supported by this provider yet.`
 
 ## Usage
 
