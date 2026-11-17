@@ -335,6 +335,7 @@ To generate content using streaming mode, use the `create_chat_completion_stream
 ```python
 import json
 from inference_gateway import InferenceGatewayClient, Message
+from inference_gateway.models import CreateChatCompletionStreamResponse
 
 client = InferenceGatewayClient("http://localhost:8080/v1")
 
@@ -353,19 +354,16 @@ for chunk in client.create_chat_completion_stream(
     except json.JSONDecodeError:
         continue
 
-    for choice in data.get("choices", []):
-        delta = choice.get("delta", {})
+    for choice in CreateChatCompletionStreamResponse.model_validate(data).choices:
         # Reasoning content (both reasoning and reasoning_content fields)
-        if delta.get("reasoning"):
-            print(f"💭 Reasoning: {delta['reasoning']}")
-        if delta.get("reasoning_content"):
-            print(f"💭 Reasoning: {delta['reasoning_content']}")
+        if choice.delta.reasoning:
+            print(f"💭 Reasoning: {choice.delta.reasoning}")
+        if choice.delta.reasoning_content:
+            print(f"💭 Reasoning: {choice.delta.reasoning_content}")
 
-        if delta.get("content"):
-            print(delta["content"], end="", flush=True)
+        if choice.delta.content:
+            print(choice.delta.content, end="", flush=True)
 ```
-
-> **Note:** Read stream chunks from the parsed JSON rather than validating them with `CreateChatCompletionStreamResponse`. That model currently requires `finish_reason`, `delta.role` and `delta.content` on every chunk, so it rejects standard OpenAI chunks.
 
 ### Tool-Use
 

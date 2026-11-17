@@ -3,6 +3,7 @@ import os
 
 from inference_gateway import InferenceGatewayClient, Message
 from inference_gateway.client import InferenceGatewayAPIError, InferenceGatewayError
+from inference_gateway.models import CreateChatCompletionStreamResponse
 
 
 def main() -> None:
@@ -66,14 +67,13 @@ def main() -> None:
                     print(f"[Non-JSON chunk: {chunk.data}]", end="", flush=True)
                     continue
 
-                for choice in data.get("choices", []):
-                    content = choice.get("delta", {}).get("content")
-                    if content:
-                        print(content, end="", flush=True)
+                structured_chunk = CreateChatCompletionStreamResponse.model_validate(data)
+                for choice in structured_chunk.choices:
+                    if choice.delta.content:
+                        print(choice.delta.content, end="", flush=True)
 
-                    finish_reason = choice.get("finish_reason")
-                    if finish_reason:
-                        print(f"\n[Finished: {finish_reason}]")
+                    if choice.finish_reason:
+                        print(f"\n[Finished: {choice.finish_reason.root}]")
 
         print("\n")
 

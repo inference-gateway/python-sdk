@@ -47,6 +47,7 @@ print(response.choices[0].message.content.root)
 import json
 
 from inference_gateway import InferenceGatewayClient, Message
+from inference_gateway.models import CreateChatCompletionStreamResponse
 
 client = InferenceGatewayClient("http://localhost:8080/v1")
 
@@ -68,13 +69,10 @@ for chunk in stream:
     except json.JSONDecodeError:
         continue
 
-    for choice in data.get("choices", []):
-        content = choice.get("delta", {}).get("content")
-        if content:
-            print(content, end="", flush=True)
+    for choice in CreateChatCompletionStreamResponse.model_validate(data).choices:
+        if choice.delta.content:
+            print(choice.delta.content, end="", flush=True)
 ```
-
-Chunks are read from the parsed JSON instead of `CreateChatCompletionStreamResponse`, because that model currently rejects standard OpenAI chunks (null `finish_reason`, deltas without `role` or `content`).
 
 ## Error Handling
 
