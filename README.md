@@ -541,6 +541,24 @@ for block in response.content:
 
 > **Note:** Not every provider implements the Messages API. Requests routed to a provider without support return a 400 error - use `create_chat_completion` for those providers.
 
+### Audio
+
+`create_speech`, `create_sfx` and `create_music` return the generated audio as raw `bytes`, not a response model:
+
+```python
+audio = client.create_speech(
+    model="openai/gpt-4o-mini-tts",
+    input="Hello from the Inference Gateway!",
+    voice="alloy",
+    response_format="mp3",
+)
+
+with open("speech.mp3", "wb") as f:
+    f.write(audio)
+```
+
+> **Note:** The gateway must run with `AUDIO_ENABLED=true` and route to a provider with audio support (for example `openai`, `elevenlabs` or `mirelo`). Providers without support return a 400 error. See the [Audio Example](./examples/audio/) for sound effects, video scoring and music.
+
 ### Proxy Requests
 
 To proxy a raw request directly to a provider's API through the gateway, use `proxy_request`:
@@ -613,6 +631,7 @@ For more detailed examples and use cases, check out the [examples directory](./e
 - **[List Example](./examples/list/)** - How to list available models
 - **[Chat Example](./examples/chat/)** - Basic and advanced chat completion examples
 - **[Images Example](./examples/images/)** - Image generation and editing via the Images API
+- **[Audio Example](./examples/audio/)** - Speech, sound effects, video scoring and music via the Audio API
 - **[Tools Example](./examples/tools/)** - Function calling and tool usage
 - **[Messages Example](./examples/messages/)** - Anthropic-compatible Messages API usage
 - **[MCP Example](./examples/mcp/)** - Model Context Protocol integration examples
