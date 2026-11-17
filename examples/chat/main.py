@@ -1,11 +1,8 @@
 import json
 import os
 
-from pydantic import ValidationError
-
 from inference_gateway import InferenceGatewayClient, Message
 from inference_gateway.client import InferenceGatewayAPIError, InferenceGatewayError
-from inference_gateway.models import CreateChatCompletionStreamResponse, SSEvent
 
 
 def main() -> None:
@@ -64,23 +61,19 @@ def main() -> None:
                 try:
                     # Parse the raw JSON data
                     data = json.loads(chunk.data)
-
-                    structured_chunk = CreateChatCompletionStreamResponse.model_validate(data)
-
-                    if structured_chunk.choices and len(structured_chunk.choices) > 0:
-                        choice = structured_chunk.choices[0]
-                        if choice.delta.content:
-                            print(choice.delta.content, end="", flush=True)
-
-                        if choice.finish_reason and choice.finish_reason.root != "null":
-                            print(f"\n[Finished: {choice.finish_reason.root}]")
-
                 except json.JSONDecodeError:
                     # Handle non-JSON SSE data
                     print(f"[Non-JSON chunk: {chunk.data}]", end="", flush=True)
-
-                except ValidationError:
                     continue
+
+                for choice in data.get("choices", []):
+                    content = choice.get("delta", {}).get("content")
+                    if content:
+                        print(content, end="", flush=True)
+
+                    finish_reason = choice.get("finish_reason")
+                    if finish_reason:
+                        print(f"\n[Finished: {finish_reason}]")
 
         print("\n")
 
